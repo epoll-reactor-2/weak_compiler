@@ -2,8 +2,8 @@
 //  StructDecl <line:48, col:7> `x`
 //    StructDecl <line:49, col:11> `y`
 //      StructDecl <line:50, col:15> `z`
-//        VarDecl <line:51, col:13> int * `value`
-//      VarDecl <line:53, col:9> struct z * `z_ptr`
+//        Indexed VarDecl <line:51, col:13> int * `value` `0`
+//      Indexed VarDecl <line:53, col:9> struct z * `z_ptr` `0`
 //  FunctionDecl <line:57, col:1>
 //    FunctionDeclRetType <line:57, col:1> int
 //    FunctionDeclName <line:57, col:1> `main`
