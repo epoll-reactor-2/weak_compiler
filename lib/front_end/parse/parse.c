@@ -14,68 +14,96 @@
 #include <assert.h>
 #include <string.h>
 
-struct ast_node *parse(const struct token *begin, const struct token *end)
-{
-    (void) begin;
-    (void) end;
+typedef vector_t(struct ast_node *) ast_array_t;
 
-    return NULL;
+static struct token *tok_begin;
+static struct token *tok_end;
+static uint32_t      loops_depth = 0;
+
+static struct token *peek_current() { return tok_begin;   }
+static struct token *peek_next   () { return tok_begin++; }
+
+struct token *require_token(enum token_type t)
+{
+    struct token *curr_tok = peek_current();
+
+    if (curr_tok->type != t)
+        weak_compile_error(
+            curr_tok->line_no,
+            curr_tok->col_no,
+            "Expected `%s`, got `%s`",
+            tok_to_string(t), tok_to_string(curr_tok->type)
+        );
+
+    ++tok_begin;
+    return curr_tok;
 }
 
+struct token *require_char(char c)
+{
+    return require_token(tok_char_to_tok(c));
+}
 
-// typedef vector_t(struct ast_node *) ast_array_t;
+static enum data_type tok_to_data_type(enum token_type t)
+{
+    switch (t) {
+    case TOK_VOID:   return D_T_VOID;
+    case TOK_INT:    return D_T_INT;
+    case TOK_FLOAT:  return D_T_FLOAT;
+    case TOK_CHAR:   return D_T_CHAR;
+    case TOK_BOOL:   return D_T_BOOL;
+    case TOK_SYM:    return D_T_STRUCT;
+    default:
+        weak_unreachable(
+            "Cannot convert token `%s` to the data type",
+            tok_to_string(t)
+        );
+    }
+}
 
-// static struct token *tok_begin;
-// static struct token *tok_end;
-// static uint32_t      loops_depth = 0;
+static struct ast_node *parse_q_chars(); /* "Quoted header chars". */
+static struct ast_node *parse_h_chars(); /* <Braced header chars>. */
 
-// static enum data_type tok_to_data_type(enum token_type t)
-// {
-//     switch (t) {
-//     case TOK_VOID:   return D_T_VOID;
-//     case TOK_INT:    return D_T_INT;
-//     case TOK_FLOAT:  return D_T_FLOAT;
-//     case TOK_CHAR:   return D_T_CHAR;
-//     case TOK_BOOL:   return D_T_BOOL;
-//     case TOK_SYMBOL: return D_T_STRUCT;
-//     default:
-//         weak_unreachable(
-//             "Cannot convert token `%s` to the data type",
-//             tok_to_string(t)
-//         );
-//     }
-// }
+struct ast_node *parse(const struct token *begin, const struct token *end)
+{
+    tok_begin = (struct token *) begin;
+    tok_end   = (struct token *) end;
 
-// static struct token *peek_current()
-// {
-//     return tok_begin;
-// }
+    typedef vector_t(struct ast_node *) stmts_t;
 
-// static struct token *peek_next()
-// {
-//     return tok_begin++;
-// }
+    stmts_t global_stmts = {0};
+    struct token *curr = NULL;
 
-// struct token *require_token(enum token_type t)
-// {
-//     struct token *curr_tok = peek_current();
+    while (tok_begin < tok_end) {
+        curr = peek_next();
+        switch (curr->type) {
+        case TOK_STRUCT:
+            // vector_push_back(global_stmts, parse_struct_decl());
+            break;
+        case TOK_VOID:
+        case TOK_INT:
+        case TOK_CHAR:
+        case TOK_FLOAT:
+        case TOK_BOOL: /* Fall through. */
+            // vector_push_back(global_stmts, parse_function_decl());
+            break;
+        default:
+            weak_compile_error(
+                curr->line_no,
+                curr->col_no,
+                "Unexpected token in global context: %s\n",
+                tok_to_string(curr->type)
+            );
+        }
+    }
 
-//     if (curr_tok->type != t)
-//         weak_compile_error(
-//             curr_tok->line_no,
-//             curr_tok->col_no,
-//             "Expected `%s`, got `%s`",
-//             tok_to_string(t), tok_to_string(curr_tok->type)
-//         );
-
-//     ++tok_begin;
-//     return curr_tok;
-// }
-
-// struct token *require_char(char c)
-// {
-//     return require_token(tok_char_to_tok(c));
-// }
+    return ast_compound_init(
+        /*size=*/global_stmts.count,
+        /*stmts=*/global_stmts.data,
+        /*line_no=*/0,
+        /*col_no=*/0
+    );
+}
 
 // static struct ast_node *parse_additive();
 // static struct ast_node *parse_and();
