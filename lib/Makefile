@@ -4,15 +4,15 @@
 SRC = $(shell find front_end middle_end util -name '*.c') ../build/lex.yy.c
 LIB = libweak_compiler.so
 
-ifeq ($(USE_BACKEND_EVAL), 1)
-SRC += back_end/eval.c
-endif # USE_BACKEND_EVAL
-
-ifeq ($(USE_BACKEND_RISC_V), 1)
-SRC += back_end/risc_v.c
-endif # USE_BACKEND_EVAL
-
-SRC += back_end/elf.c
+# ifeq ($(USE_BACKEND_EVAL), 1)
+# SRC += back_end/eval.c
+# endif # USE_BACKEND_EVAL
+# 
+# ifeq ($(USE_BACKEND_RISC_V), 1)
+# SRC += back_end/risc_v.c
+# endif # USE_BACKEND_EVAL
+# 
+# SRC += back_end/elf.c
 
 OBJ = $(SRC:.c=.o)
 

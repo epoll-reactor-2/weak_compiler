@@ -294,6 +294,7 @@ struct ast_fn_decl {
     enum data_type   data_type;
     uint16_t         ptr_depth;
     char            *name; /** \note Must be dynamically allocated. */
+    uint64_t         args_cnt;
     struct ast_node *args;
     struct ast_node *body; /** \note May be NULL. If so, this statement represents
                                      function prototype. */

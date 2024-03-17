@@ -10,7 +10,7 @@
 #include "util/diagnostic.h"
 #include "util/unreachable.h"
 #include "util/vector.h"
-#include "builtins.h"
+// #include "builtins.h"
 #include <assert.h>
 #include <string.h>
 
@@ -66,7 +66,7 @@ static bool is_assignment_op(enum token_type e)
     case TOK_SHR_ASSIGN:
     case TOK_BIT_AND_ASSIGN:
     case TOK_BIT_OR_ASSIGN:
-    case TOK_XOR_ASSIGN:
+    case TOK_BIT_XOR_ASSIGN:
         return true;
     default:
         return false;
@@ -141,18 +141,8 @@ static void uses_mark_top_scope_as_read()
         use_add_read(vector_back(usages).data[i]);
 }
 
-static bool is_builtin(const char *name)
-{
-    for (uint64_t i = 0; i < __weak_array_size(builtin_fns); ++i)
-         if (strcmp(builtin_fns[i].name, name) == 0)
-            return 1;
-
-    return 0;
-}
-
 static void assert_is_declared(const char *name, struct ast_node *loc)
 {
-    if (is_builtin(name)) return;
     if (ast_storage_lookup(&storage, name)) return;
     weak_compile_error(
         loc->line_no,
@@ -401,8 +391,6 @@ static void visit_fn_decl(struct ast_node *ast)
 static void visit_fn_call(struct ast_node *ast)
 {
     struct ast_fn_call *stmt = ast->ast;
-
-    if (is_builtin(stmt->name)) return;
 
     assert_is_declared(stmt->name, ast);
     use_add_read(ast);

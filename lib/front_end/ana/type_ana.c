@@ -86,14 +86,14 @@ static bool correct_bin_ops(enum token_type op, enum data_type t)
     /* Only integers. */
     case TOK_BIT_OR:
     case TOK_BIT_AND:
-    case TOK_XOR:
+    case TOK_BIT_XOR:
     case TOK_SHL:
     case TOK_SHR:
     case TOK_MOD:
     case TOK_MOD_ASSIGN:
     case TOK_BIT_OR_ASSIGN:
     case TOK_BIT_AND_ASSIGN:
-    case TOK_XOR_ASSIGN:
+    case TOK_BIT_XOR_ASSIGN:
     case TOK_SHL_ASSIGN:
     case TOK_SHR_ASSIGN: /* Fall through. */
         are_correct |= t == D_T_INT;

@@ -8,7 +8,6 @@
 #include "front_end/ana/fn_storage.h"
 #include "front_end/sema/sema.h"
 #include "util/unreachable.h"
-#include "builtins.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -183,39 +182,39 @@ static void visit_return(struct ast_node **ast)
     }
 }
 
-static void visit_fn_call(struct ast_node *ast)
+static void visit_fn_call(unused struct ast_node *ast)
 {
-    struct ast_fn_call  *stmt = ast->ast;
-    struct builtin_fn   *fn   = fn_storage_lookup(&fn_storage, stmt->name);
-    struct ast_compound *args = stmt->args->ast;
+     // struct ast_fn_call  *stmt = ast->ast;
+    // struct builtin_fn   *fn   = fn_storage_lookup(&fn_storage, stmt->name);
+    // struct ast_compound *args = stmt->args->ast;
 
-    if (!fn)
-        weak_fatal_error("`%s` function lookup failed", stmt->name);
+    // if (!fn)
+    //     weak_fatal_error("`%s` function lookup failed", stmt->name);
 
-    if (args->size != fn->args_cnt)
-        weak_fatal_error(
-            "Mismatch between args count of stored function and "
-            "call to it. Please run ana/fn_ana.c."
-        );
+    // if (args->size != fn->args_cnt)
+    //     weak_fatal_error(
+    //         "Mismatch between args count of stored function and "
+    //         "call to it. Please run ana/fn_ana.c."
+    //     );
 
-    for (uint64_t i = 0; i < fn->args_cnt; ++i) {
-        visit(&args->stmts[i]);
-        enum data_type l = last_type;
-        enum data_type r = fn->args[i];
+    // for (uint64_t i = 0; i < fn->args_cnt; ++i) {
+    //     visit(&args->stmts[i]);
+    //     enum data_type l = last_type;
+    //     enum data_type r = fn->args[i];
 
-        if (l == r)
-            continue;
+    //     if (l == r)
+    //         continue;
 
-        struct ast_node **a = &args->stmts[i];
-        *a = ast_implicit_cast_init(
-            r, /* We cast to declared function return ty.e */
-            (*a),
-            (*a)->line_no,
-            (*a)->col_no
-        );
-    }
+    //     struct ast_node **a = &args->stmts[i];
+    //     *a = ast_implicit_cast_init(
+    //         r, /* We cast to declared function return ty.e */
+    //         (*a),
+    //         (*a)->line_no,
+    //         (*a)->col_no
+    //     );
+    // }
 
-    last_type = fn->rt;
+    // last_type = fn->rt;
 }
 
 static void visit_array_access(struct ast_node **ast)

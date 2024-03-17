@@ -1,5 +1,5 @@
-/* struct tokenype.h - List of all token types.
- * Copyright (C) 2022 epoll-reactor <glibcxx.chrono@gmail.com>
+/* tok_type.h - List of all token types.
+ * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.
  */
@@ -9,86 +9,128 @@
 
 #include "util/compiler.h"
 
+#define __take_enum(x, y) x,
+#define __take_string(x, y) y,
+
+#define map_tokens(take) \
+    take(TOK_ALIGNOF, "alignof") \
+    take(TOK_AUTO, "auto") \
+    take(TOK_BREAK, "break") \
+    take(TOK_CASE, "case") \
+    take(TOK_CHAR, "char") \
+    take(TOK_CONST, "const") \
+    take(TOK_CONTINUE, "continue") \
+    take(TOK_DEFAULT, "default") \
+    take(TOK_DO, "do") \
+    take(TOK_DOUBLE, "double") \
+    take(TOK_ELSE, "else") \
+    take(TOK_ENUM, "enum") \
+    take(TOK_EXTERN, "extern") \
+    take(TOK_FLOAT, "float") \
+    take(TOK_FOR, "for") \
+    take(TOK_GOTO, "goto") \
+    take(TOK_IF, "if") \
+    take(TOK_INLINE, "inline") \
+    take(TOK_INT, "int") \
+    take(TOK_LONG, "long") \
+    take(TOK_REGISTER, "register") \
+    take(TOK_RESTRICT, "restrict") \
+    take(TOK_RETURN, "return") \
+    take(TOK_SHORT, "short") \
+    take(TOK_SIGNED, "signed") \
+    take(TOK_SIZEOF, "sizeof") \
+    take(TOK_STATIC, "static") \
+    take(TOK_STRUCT, "struct") \
+    take(TOK_SWITCH, "switch") \
+    take(TOK_TYPEDEF, "typedef") \
+    take(TOK_UNION, "union") \
+    take(TOK_UNSIGNED, "unsigned") \
+    take(TOK_VOID, "void") \
+    take(TOK_VOLATILE, "volatile") \
+    take(TOK_WHILE, "while") \
+    take(TOK_ALIGNAS, "_Alignas") \
+    take(TOK_ATOMIC, "_Atomic") \
+    take(TOK_BOOL, "_Bool") \
+    take(TOK_COMPLEX, "_Complex") \
+    take(TOK_GENERIC, "_Generic") \
+    take(TOK_IMAGINARY, "_Imaginary") \
+    take(TOK_NORETURN, "_Noreturn") \
+    take(TOK_STATIC_ASSERT, "_Static_assert") \
+    take(TOK_THREAD_LOCAL, "_Thread_local") \
+    take(TOK_OPEN_BRACKET, "[") \
+    take(TOK_CLOSE_BRACKET, "]") \
+    take(TOK_OPEN_PAREN, "(") \
+    take(TOK_CLOSE_PAREN, ")") \
+    take(TOK_OPEN_BRACE, "{") \
+    take(TOK_CLOSE_BRACE, "}") \
+    take(TOK_DOT, ".") \
+    take(TOK_ARROW, "->") \
+    take(TOK_INC, "++") \
+    take(TOK_DEC, "--") \
+    take(TOK_BIT_AND, "&") \
+    take(TOK_STAR, "*") \
+    take(TOK_PLUS, "+") \
+    take(TOK_MINUS, "-") \
+    take(TOK_TILDE, "~") \
+    take(TOK_EXCLAMATION, "!") \
+    take(TOK_SLASH, "/") \
+    take(TOK_MOD, "%") \
+    take(TOK_SHL, "<<") \
+    take(TOK_SHR, ">>") \
+    take(TOK_LT, "<") \
+    take(TOK_GT, ">") \
+    take(TOK_LE, "<=") \
+    take(TOK_GE, ">=") \
+    take(TOK_EQ, "==") \
+    take(TOK_NEQ, "!=") \
+    take(TOK_BIT_XOR, "^") \
+    take(TOK_BIT_OR, "|") \
+    take(TOK_AND, "&&") \
+    take(TOK_OR, "||") \
+    take(TOK_QUESTION_MARK, "?") \
+    take(TOK_COLON, ":") \
+    take(TOK_SEMICOLON, ";") \
+    take(TOK_ELLIPSIS, "...") \
+    take(TOK_ASSIGN, "=") \
+    take(TOK_MUL_ASSIGN, "*=") \
+    take(TOK_DIV_ASSIGN, "/=") \
+    take(TOK_MOD_ASSIGN, "%=") \
+    take(TOK_PLUS_ASSIGN, "+=") \
+    take(TOK_MINUS_ASSIGN, "-=") \
+    take(TOK_SHL_ASSIGN, "<<=") \
+    take(TOK_SHR_ASSIGN, ">>=") \
+    take(TOK_BIT_AND_ASSIGN, "&=") \
+    take(TOK_BIT_XOR_ASSIGN, "^=") \
+    take(TOK_BIT_OR_ASSIGN, "|=") \
+    take(TOK_COMMA, ",") \
+    take(TOK_HASH, "#") \
+    take(TOK_HASH_HASH, "##") \
+    take(TOK_LESS_COLON, "<:") \
+    take(TOK_COLON_GREATER, ":>") \
+    take(TOK_LESS_PERCENT, "<%") \
+    take(TOK_PERCENT_GREATER, "%>") \
+    take(TOK_PERCENT_COLON, "%:") \
+    take(TOK_PERCENT_PERCENT, "%:%:") \
+    take(TOK_INT_LITERAL, "<integer literal>") \
+    take(TOK_FLOAT_LITERAL, "<float literal>") \
+    take(TOK_STRING_LITERAL, "<string literal>") \
+    take(TOK_CHAR_LITERAL, "<char literal>") \
+    take(TOK_SYM, "<symbol>")
+
 enum token_type {
-    /** Keywords. */
-    TOK_BOOL,
-    TOK_BREAK,
-    TOK_CHAR,
-    TOK_CONTINUE,
-    TOK_DO,
-    TOK_ELSE,
-    TOK_FALSE,
-    TOK_FLOAT,
-    TOK_FOR,
-    TOK_IF,
-    TOK_INT,
-    TOK_RETURN,
-    TOK_STRUCT,
-    TOK_TRUE,
-    TOK_VOID,
-    TOK_WHILE,
-
-    /** Literals. */
-    TOK_CHAR_LITERAL,
-    TOK_INT_LITERAL,
-    TOK_FLOAT_LITERAL,
-    TOK_STRING_LITERAL,
-    TOK_SYMBOL,
-
-    /** Operators. */
-    TOK_ASSIGN,              // =
-    TOK_MUL_ASSIGN,          // *=
-    TOK_DIV_ASSIGN,          // /=
-    TOK_MOD_ASSIGN,          // %=
-    TOK_PLUS_ASSIGN,         // +=
-    TOK_MINUS_ASSIGN,        // -=
-    TOK_SHL_ASSIGN,          // <<=
-    TOK_SHR_ASSIGN,          // >>=
-    TOK_BIT_AND_ASSIGN,      // &=
-    TOK_BIT_OR_ASSIGN,       // |=
-    TOK_XOR_ASSIGN,          // ^=
-    TOK_AND,                 // &&
-    TOK_OR,                  // ||
-    TOK_XOR,                 // ^
-    TOK_BIT_AND,             // &
-    TOK_BIT_OR,              // |
-    TOK_EQ,                  // ==
-    TOK_NEQ,                 // !=
-    TOK_GT,                  // >
-    TOK_LT,                  // <
-    TOK_GE,                  // >=
-    TOK_LE,                  // <=
-    TOK_SHL,                 // <<
-    TOK_SHR,                 // >>
-    TOK_PLUS,                // +
-    TOK_MINUS,               // -
-    TOK_STAR,                // *
-    TOK_SLASH,               // /
-    TOK_MOD,                 // %
-    TOK_INC,                 // ++
-    TOK_DEC,                 // --
-    TOK_DOT,                 // .
-    TOK_COMMA,               // ,
-    TOK_COLON,               // :
-    TOK_SEMICOLON,           // ;
-    TOK_NOT,                 // !
-    TOK_OPEN_BOX_BRACKET,    // [
-    TOK_CLOSE_BOX_BRACKET,   // ]
-    TOK_OPEN_CURLY_BRACKET,  // {
-    TOK_CLOSE_CURLY_BRACKET, // }
-    TOK_OPEN_PAREN,          // (
-    TOK_CLOSE_PAREN          // )
+    map_tokens(__take_enum)
 };
 
-/** \return String representation of the token. Don't
-            apply free() to the result.
-   
-    \note   weak_unreachable() called on unknown integer value of t. */
-wur const char *tok_to_string(enum token_type t);
+really_inline static const char *tok_to_string(int t)
+{
+    static const char *names[] = { map_tokens(__take_string) };
+    return names[t];
+}
 
-/** \return Token type based on its character value.
-   
-    \note   weak_unreachable() called on unknown char. */
-wur enum token_type tok_char_to_tok(char c);
+enum token_type tok_char_to_tok(char c);
+
+#undef __take_string
+#undef __take_enum
+#undef map_tokens
 
 #endif // WEAK_COMPILER_FRONTEND_LEX_TOK_TYPE_H

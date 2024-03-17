@@ -10,7 +10,6 @@
 #include "util/hashmap.h"
 
 struct ast_fn_decl;
-struct builtin_fn;
 
 /** - Key:   CRC-32 of function name.
     - Value: Pointer to malloc()'ed struct builtin.
@@ -28,7 +27,7 @@ void fn_storage_push(
     struct ast_fn_decl *decl
 );
 
-struct builtin_fn *fn_storage_lookup(
+struct ast_fn_decl *fn_storage_lookup(
     fn_storage_t *s,
     const char   *name
 );

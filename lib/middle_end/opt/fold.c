@@ -81,7 +81,7 @@ static bool fold_booleans(enum token_type op, bool l, bool r)
     switch (op) {
     case TOK_BIT_AND: return l & r;
     case TOK_BIT_OR:  return l | r;
-    case TOK_XOR:     return l ^ r;
+    case TOK_BIT_XOR: return l ^ r;
     case TOK_ASSIGN:  return 0;
     default:
         weak_unreachable("Unknown token type `%s`.", tok_to_string(op));
@@ -93,7 +93,7 @@ static int32_t fold_ints(enum token_type op, int32_t l, int32_t r)
     switch (op) {
     case TOK_AND:     return l && r;
     case TOK_OR:      return l || r;
-    case TOK_XOR:     return l  ^ r;
+    case TOK_BIT_XOR: return l  ^ r;
     case TOK_BIT_AND: return l  & r;
     case TOK_BIT_OR:  return l  | r;
     case TOK_EQ:      return l == r;

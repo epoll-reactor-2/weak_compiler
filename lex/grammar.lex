@@ -69,8 +69,8 @@ extern void lex_consume_token(struct token *tok);
  int lex_lineno, lex_colno;
  int prev_yylineno = yylineno;
    
-\/\/.*\n               /* Requirement [2.3.1] */
-\/\*.*\*\/             /* Requirement [2.3.2] */
+\/\/.*\n               /* One-line comment. */
+\/\*.*\*\/             /* Multi-line comment. */
 [[:space:]]            /* Ignore whitespace. */
 
 -?[0-9]+               LEX_CONSUME_WORD(TOK_INT_LITERAL)
@@ -84,14 +84,12 @@ extern void lex_consume_token(struct token *tok);
 "continue"             LEX_CONSUME_WORD(TOK_CONTINUE)
 "do"                   LEX_CONSUME_WORD(TOK_DO)
 "else"                 LEX_CONSUME_WORD(TOK_ELSE)
-"false"                LEX_CONSUME_WORD(TOK_FALSE)
 "float"                LEX_CONSUME_WORD(TOK_FLOAT)
 "for"                  LEX_CONSUME_WORD(TOK_FOR)
 "if"                   LEX_CONSUME_WORD(TOK_IF)
 "int"                  LEX_CONSUME_WORD(TOK_INT)
 "return"               LEX_CONSUME_WORD(TOK_RETURN)
 "struct"               LEX_CONSUME_WORD(TOK_STRUCT)
-"true"                 LEX_CONSUME_WORD(TOK_TRUE)
 "void"                 LEX_CONSUME_WORD(TOK_VOID)
 "while"                LEX_CONSUME_WORD(TOK_WHILE)
 
@@ -104,7 +102,7 @@ extern void lex_consume_token(struct token *tok);
 "<<="                  LEX_CONSUME_OPERATOR(TOK_SHL_ASSIGN)
 "&="                   LEX_CONSUME_OPERATOR(TOK_BIT_AND_ASSIGN)
 "|="                   LEX_CONSUME_OPERATOR(TOK_BIT_OR_ASSIGN)
-"^="                   LEX_CONSUME_OPERATOR(TOK_XOR_ASSIGN)
+"^="                   LEX_CONSUME_OPERATOR(TOK_BIT_XOR_ASSIGN)
 "&&"                   LEX_CONSUME_OPERATOR(TOK_AND)
 "||"                   LEX_CONSUME_OPERATOR(TOK_OR)
 "&"                    LEX_CONSUME_OPERATOR(TOK_BIT_AND)
@@ -128,16 +126,16 @@ extern void lex_consume_token(struct token *tok);
 ","                    LEX_CONSUME_OPERATOR(TOK_COMMA)
 ":"                    LEX_CONSUME_OPERATOR(TOK_COLON)
 ";"                    LEX_CONSUME_OPERATOR(TOK_SEMICOLON)
-"!"                    LEX_CONSUME_OPERATOR(TOK_NOT)
-"^"                    LEX_CONSUME_OPERATOR(TOK_XOR)
-"["                    LEX_CONSUME_OPERATOR(TOK_OPEN_BOX_BRACKET)
-"]"                    LEX_CONSUME_OPERATOR(TOK_CLOSE_BOX_BRACKET)
+"!"                    LEX_CONSUME_OPERATOR(TOK_EXCLAMATION)
+"^"                    LEX_CONSUME_OPERATOR(TOK_BIT_XOR)
+"["                    LEX_CONSUME_OPERATOR(TOK_OPEN_BRACKET)
+"]"                    LEX_CONSUME_OPERATOR(TOK_CLOSE_BRACKET)
 "("                    LEX_CONSUME_OPERATOR(TOK_OPEN_PAREN)
 ")"                    LEX_CONSUME_OPERATOR(TOK_CLOSE_PAREN)
-"{"                    LEX_CONSUME_OPERATOR(TOK_OPEN_CURLY_BRACKET)
-"}"                    LEX_CONSUME_OPERATOR(TOK_CLOSE_CURLY_BRACKET)
+"{"                    LEX_CONSUME_OPERATOR(TOK_OPEN_BRACE)
+"}"                    LEX_CONSUME_OPERATOR(TOK_CLOSE_BRACE)
 
-[_a-zA-Z][_a-zA-Z0-9]* LEX_CONSUME_WORD(TOK_SYMBOL)
+[_a-zA-Z][_a-zA-Z0-9]* LEX_CONSUME_WORD(TOK_SYM)
 
 .                      { fprintf(stderr, "Illegal token `%s`\n", yytext);
                          fflush (stderr);

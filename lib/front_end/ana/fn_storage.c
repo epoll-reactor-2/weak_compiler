@@ -8,7 +8,6 @@
 #include "front_end/ast/ast.h"
 #include "util/alloc.h"
 #include "util/crc32.h"
-#include "builtins.h"
 #include <string.h>
 
 void fn_storage_init(fn_storage_t *s)
@@ -31,34 +30,10 @@ void fn_storage_push(
     const char         *name,
     struct ast_fn_decl *decl
 ) {
-    struct builtin_fn   *fn   = weak_calloc(1, sizeof (struct builtin_fn));
-    struct ast_compound *args = decl->args->ast;
-
-    strncpy(fn->name, decl->name, sizeof (fn->name) - 1);
-    fn->rt = decl->data_type;
-    fn->args_cnt = args->size;
-
-    for (uint16_t i = 0; i < fn->args_cnt; ++i) {
-        struct ast_var_decl *arg = args->stmts[i]->ast;
-        fn->args[i] = arg->dt;
-    }
-
-    hashmap_put(s, crc32_string(name), (uint64_t) fn);
-
+    hashmap_put(s, crc32_string(name), (uint64_t) decl);
 }
 
-
-
-static inline struct builtin_fn *fn_builtin_lookup(const char *name)
-{
-    for (uint64_t i = 0; i < __weak_array_size(builtin_fns); ++i)
-         if (strcmp(builtin_fns[i].name, name) == 0)
-            return &builtin_fns[i];
-
-    return NULL;
-}
-
-struct builtin_fn *fn_storage_lookup(
+struct ast_fn_decl *fn_storage_lookup(
     fn_storage_t *s,
     const char   *name
 ) {
@@ -67,7 +42,7 @@ struct builtin_fn *fn_storage_lookup(
     uint64_t addr = hashmap_get(s, hash, &ok);
 
     if (!ok || addr == 0)
-        return fn_builtin_lookup(name);
+        return NULL;
 
-    return (struct builtin_fn *) addr;
+    return (struct ast_fn_decl *) addr;
 }

@@ -10,7 +10,6 @@
 #include "util/diagnostic.h"
 #include "util/hashmap.h"
 #include "util/unreachable.h"
-#include "builtins.h"
 #include <assert.h>
 #include <string.h>
 
@@ -116,7 +115,7 @@ static void visit_fn_decl(struct ast_node *ast)
 static void visit_fn_call(struct ast_node *ast)
 {
     struct ast_fn_call  *stmt      = ast->ast;
-    struct builtin_fn   *fn        = fn_storage_lookup(&fn_storage, stmt->name);
+    struct ast_fn_decl  *fn        = fn_storage_lookup(&fn_storage, stmt->name);
     struct ast_compound *call_args = stmt->args->ast;
 
     if (call_args->size != fn->args_cnt)
