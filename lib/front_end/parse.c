@@ -24,6 +24,11 @@ struct localized_data_type {
     int16_t         col_no;
 };
 
+static void report_unexpected(struct token *t)
+{
+    fcc_compile_error(t->line_no, t->col_no, "Unexpected token `%s`", tok_to_string(t->type));
+}
+
 static struct token *tok_begin;
 static struct token *tok_end;
 static uint32_t      loops_depth = 0;
@@ -69,10 +74,16 @@ static enum data_type tok_to_data_type(enum token_type t)
     }
 }
 
-static struct ast_node            *parse_q_chars(); /* "Quoted header chars". */
-static struct ast_node            *parse_h_chars(); /* <Braced header chars>. */
-static struct ast_node            *parse_storage_class_specifier();
-static struct localized_data_type  parse_type_specifier();
+/* https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf */
+static enum token_type             parse_punctuator(); /* 6.4.6 */
+static struct ast_node            *parse_q_chars(); /* 6.4.7 */
+static struct ast_node            *parse_h_chars(); /* 6.4.7 */
+static struct ast_node            *parse_storage_class_specifier(); /* 6.7.1 */
+static struct localized_data_type  parse_type_specifier(); /* 6.7.2 */
+static enum token_type             parse_struct_or_union(); /* 6.7.2.1 */
+static struct ast_node            *parse_enum_specifier(); /* 6.7.2.2 */
+static enum token_type             parse_type_qualifier(); /* 6.7.3 */
+static enum token_type             parse_function_specifier(); /* 6.7.4 */
 
 struct ast_node *parse(const struct token *begin, const struct token *end)
 {
@@ -116,7 +127,77 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
     );
 }
 
-static struct ast_node *parse_storage_class_specifier()
+static enum token_type parse_punctuator() /* 6.4.6 */
+{
+    struct token *c = peek_next();
+    switch (c->type) {
+    case TOK_OPEN_BRACKET: /* [ */
+    case TOK_CLOSE_BRACKET: /* ] */
+    case TOK_OPEN_PAREN: /* ( */
+    case TOK_CLOSE_PAREN: /* ) */
+    case TOK_OPEN_BRACE: /* { */
+    case TOK_CLOSE_BRACE: /* } */
+    case TOK_DOT: /* . */
+    case TOK_ARROW: /* -> */
+
+    case TOK_INC: /* ++ */
+    case TOK_DEC: /* -- */
+    case TOK_BIT_AND: /* & */
+    case TOK_STAR: /* * */
+    case TOK_PLUS: /* + */
+    case TOK_MINUS: /* - */
+    case TOK_TILDE: /* ~ */
+    case TOK_EXCLAMATION: /* ! */
+
+    case TOK_SLASH: /* / */
+    case TOK_MOD: /* % */
+    case TOK_SHL: /* << */
+    case TOK_SHR: /* >> */
+    case TOK_LT: /* < */
+    case TOK_GT: /* > */
+    case TOK_LE: /* <= */
+    case TOK_GE: /* >= */
+    case TOK_EQ: /* == */
+    case TOK_NEQ: /* != */
+    case TOK_BIT_XOR: /* ^ */
+    case TOK_BIT_OR: /* | */
+    case TOK_AND: /* && */
+    case TOK_OR: /* || */
+
+    case TOK_QUESTION_MARK: /* ? */
+    case TOK_COLON: /* : */
+    case TOK_SEMICOLON: /* ; */
+    case TOK_ELLIPSIS: /* ... */
+
+    case TOK_ASSIGN: /* = */
+    case TOK_MUL_ASSIGN: /* *= */
+    case TOK_DIV_ASSIGN: /* /= */
+    case TOK_MOD_ASSIGN: /* %= */
+    case TOK_PLUS_ASSIGN: /* += */
+    case TOK_MINUS_ASSIGN: /* -= */
+    case TOK_SHL_ASSIGN: /* <<= */
+    case TOK_SHR_ASSIGN: /* >>= */
+    case TOK_BIT_AND_ASSIGN: /* &= */
+    case TOK_BIT_XOR_ASSIGN: /* &= */
+    case TOK_BIT_OR_ASSIGN: /* |= */
+
+    case TOK_COMMA: /* , */
+    case TOK_HASH: /* # */
+    case TOK_HASH_HASH: /* ## */
+
+    case TOK_LESS_COLON: /* <: */
+    case TOK_COLON_GREATER: /* :> */
+    case TOK_LESS_PERCENT: /* <% */
+    case TOK_PERCENT_GREATER: /* %> */
+    case TOK_PERCENT_COLON: /* %: */
+    case TOK_PERCENT_PERCENT: /* %:%: */
+        return c->type;
+    default:
+        report_unexpected(c);
+    }
+}
+
+static struct ast_node *parse_storage_class_specifier() /* 6.7.1 */
 {
     struct token *c = peek_next();
     switch (c->type) {
@@ -128,11 +209,11 @@ static struct ast_node *parse_storage_class_specifier()
     case TOK_REGISTER:
         return NULL;
     default:
-        fcc_compile_error(c->line_no, c->col_no, "");
+        report_unexpected(c);
     }
 }
 
-static struct localized_data_type parse_type_specifier()
+static struct localized_data_type parse_type_specifier() /* 6.7.2 */
 {
     struct token *c = peek_next();
     struct localized_data_type dt = {
@@ -154,10 +235,63 @@ static struct localized_data_type parse_type_specifier()
     case TOK_BOOL: t = D_T_BOOL; break;
     case TOK_COMPLEX: t = D_T_COMPLEX; break;
     default:
-        fcc_compile_error(c->line_no, c->col_no, "");
+        report_unexpected(c);
     }
 
     return dt;
+}
+
+static enum token_type parse_struct_or_union() /* 6.7.2.1 */
+{
+    struct token *c = peek_next();
+    switch (c->type) {
+    case TOK_STRUCT:
+    case TOK_UNION:
+        return c->type;
+    default:
+        report_unexpected(c);
+    }
+}
+
+static struct ast_node *parse_enum_specifier() /* 6.7.2.2 */
+{
+    require_token(TOK_ENUM);
+    struct token *c = peek_current();
+
+    switch (c->type) {
+    case TOK_SYM:
+        return NULL;
+    case TOK_OPEN_BRACE:
+        return NULL;
+    default:
+        report_unexpected(c);
+    }
+}
+
+static enum token_type parse_type_qualifier() /* 6.7.3 */
+{
+    struct token *c = peek_next();
+    switch (c->type) {
+    case TOK_CONST:
+    case TOK_RESTRICT:
+    case TOK_VOLATILE:
+    case TOK_ATOMIC:
+        return c->type;
+    default:
+        report_unexpected(c);
+    }
+}
+
+static enum token_type parse_function_specifier() /* 6.7.4 */
+{
+    struct token *c = peek_next();
+    switch (c->type) {
+    case TOK_INLINE:
+    case TOK_NORETURN:
+        return c->type;
+    default:
+        report_unexpected(c);
+    }
 }
 
 /*
