@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_PARSE_PARSE_H
-#define WEAK_COMPILER_FRONTEND_PARSE_PARSE_H
+#ifndef FCC_FRONTEND_PARSE_PARSE_H
+#define FCC_FRONTEND_PARSE_PARSE_H
 
 #include "front_end/lex/tok.h"
 #include "util/compiler.h"
@@ -15,4 +15,4 @@ struct ast_node;
 wur
 struct ast_node *parse(const struct token *begin, const struct token *end);
 
-#endif // WEAK_COMPILER_FRONTEND_PARSE_PARSE_H
+#endif // FCC_FRONTEND_PARSE_PARSE_H

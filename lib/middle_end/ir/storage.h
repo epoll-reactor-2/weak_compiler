@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_IR_STORAGE_H
-#define WEAK_COMPILER_MIDDLE_END_IR_STORAGE_H
+#ifndef FCC_MIDDLE_END_IR_STORAGE_H
+#define FCC_MIDDLE_END_IR_STORAGE_H
 
 #include "front_end/lex/data_type.h"
 #include "util/compiler.h"
@@ -45,4 +45,4 @@ void ir_storage_push(
 wur struct ir_storage_record *
 ir_storage_get (const char *name);
 
-#endif // WEAK_COMPILER_MIDDLE_END_IR_STORAGE_H
+#endif // FCC_MIDDLE_END_IR_STORAGE_H

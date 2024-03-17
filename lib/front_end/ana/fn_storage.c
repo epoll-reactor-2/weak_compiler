@@ -20,7 +20,7 @@ void fn_storage_free(fn_storage_t *s)
     hashmap_foreach(s, k, v) {
         (void) k;
         struct builtin_fn *fn = (struct builtin_fn *) v;
-        weak_free(fn);
+        fcc_free(fn);
     }
     hashmap_destroy(s);
 }

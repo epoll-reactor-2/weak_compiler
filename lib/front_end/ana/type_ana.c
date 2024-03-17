@@ -128,7 +128,7 @@ static void visit_binary(struct ast_node *ast)
     if (l_indir_lvl == 0 && r_indir_lvl == 0) {
         bool correct_ops = correct_bin_ops(stmt->op, l_dt);
         if (!are_same || !correct_ops)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Cannot apply `%s` to %s and %s",
@@ -139,7 +139,7 @@ static void visit_binary(struct ast_node *ast)
     } else {
         bool correct_ops = l_indir_lvl == r_indir_lvl;
         if (!are_same || !correct_ops)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Indirection level mismatch (%d vs %d)",
@@ -159,7 +159,7 @@ static void visit_unary(struct ast_node *ast)
     case TOK_INC:
     case TOK_DEC: /* Fall through. */
         if (dt != D_T_CHAR && dt != D_T_INT)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Cannot apply `%s` to %s",
@@ -172,7 +172,7 @@ static void visit_unary(struct ast_node *ast)
         break;
     case TOK_STAR: /* Dereference operator `*`. */
         if (last_indir_lvl == 0)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Attempt to dereference integral type"
@@ -180,7 +180,7 @@ static void visit_unary(struct ast_node *ast)
         --last_indir_lvl;
         break;
     default:
-        weak_unreachable("Invalid unary operand.");
+        fcc_unreachable("Invalid unary operand.");
     }
 }
 
@@ -202,7 +202,7 @@ static void visit_var_decl(struct ast_node *ast)
         are_correct |= decl->dt == last_dt;
         are_correct |= decl->ptr_depth == 1 && last_dt == D_T_STRING;
         if (!are_correct)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Cannot assign %s to variable of type %s",
@@ -223,7 +223,7 @@ static void visit_array_decl(struct ast_node *ast)
     for (uint64_t i = 0; i < dimensions->size; ++i) {
         int32_t num = ( (struct ast_int *) (dimensions->stmts[i]->ast) )->value;
         if (num == 0)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Array size cannot be equal '0'"
@@ -245,7 +245,7 @@ static void out_of_range_analysis(struct ast_node *decl_indices_ast, struct ast_
     if (decl_indices->size < call_indices->size) {
         char index[16];
         ordinal_numeral(call_indices->size, index);
-        weak_compile_error(
+        fcc_compile_error(
             call_indices->stmts[0]->line_no,
             call_indices->stmts[0]->col_no,
             "Cannot get %s index of %d dimensional array",
@@ -263,14 +263,14 @@ static void out_of_range_analysis(struct ast_node *decl_indices_ast, struct ast_
         int32_t decl_index = decl_index_ast->value;
 
         if (index < 0)
-            weak_compile_error(
+            fcc_compile_error(
                 index_ast->line_no,
                 index_ast->col_no,
                 "Array index less than zero"
             );
 
         if (index >= decl_index)
-            weak_compile_error(
+            fcc_compile_error(
                 index_ast->line_no,
                 index_ast->col_no,
                 "Out of range! Index (which is %d) >= array size (which is %d)",
@@ -295,7 +295,7 @@ static void visit_array_access(struct ast_node *ast)
            declaration. */
         struct ast_var_decl *decl = record->ast;
         if (decl->ptr_depth == 0)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Cannot get index of non-array type"
@@ -306,7 +306,7 @@ static void visit_array_access(struct ast_node *ast)
     for (uint64_t i = 0; i < enclosure->size; ++i) {
         visit(enclosure->stmts[i]);
         if (last_dt != D_T_INT)
-            weak_compile_error(
+            fcc_compile_error(
                 enclosure->stmts[i]->line_no,
                 enclosure->stmts[i]->col_no,
                 "Expected integer as array index, got %s",
@@ -321,7 +321,7 @@ static void require_last_dt_convertible_to_bool(struct ast_node *location)
 {
     enum data_type dt = last_dt;
     if (dt != D_T_INT && dt != D_T_BOOL)
-        weak_compile_error(
+        fcc_compile_error(
             location->line_no,
             location->col_no,
             "Cannot convert %s to boolean",
@@ -395,7 +395,7 @@ static char *decl_name(struct ast_node *decl)
     if (decl->type == AST_ARRAY_DECL)
         return ( (struct ast_array_decl *) decl->ast )->name;
 
-    weak_unreachable("Declaration expected.");
+    fcc_unreachable("Declaration expected.");
 }
 
 static void visit_fn_call(struct ast_node *ast)
@@ -403,7 +403,7 @@ static void visit_fn_call(struct ast_node *ast)
     struct ast_fn_call *call = ast->ast;
     struct ast_node *decl = ast_storage_lookup(&storage, call->name)->ast;
     if (decl->type != AST_FUNCTION_DECL)
-        weak_compile_error(
+        fcc_compile_error(
             ast->line_no,
             ast->col_no,
             "`%s` is not a function",
@@ -428,7 +428,7 @@ static void visit_fn_call(struct ast_node *ast)
         uint64_t r_indir_lvl = last_indir_lvl;
 
         if (l_dt != r_dt)
-            weak_compile_error(
+            fcc_compile_error(
                 call_args->stmts[i]->line_no,
                 call_args->stmts[i]->col_no,
                 "For argument `%s` got %s, but %s expected",
@@ -438,7 +438,7 @@ static void visit_fn_call(struct ast_node *ast)
             );
 
         if (l_indir_lvl != r_indir_lvl)
-            weak_compile_error(
+            fcc_compile_error(
                 ast->line_no,
                 ast->col_no,
                 "Indirection level mismatch (%d vs %d)",
@@ -468,7 +468,7 @@ static void visit_fn_decl(struct ast_node *ast)
 
     visit(decl->body);
     if (dt != D_T_VOID && dt != last_return_dt)
-        weak_compile_error(
+        fcc_compile_error(
             ast->line_no,
             ast->col_no,
             "Cannot return %s instead of %s",
@@ -553,7 +553,7 @@ void visit(struct ast_node *ast)
         break;
     default: {
         enum ast_type t = ast->type;
-        weak_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
+        fcc_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
     }
     }
 }

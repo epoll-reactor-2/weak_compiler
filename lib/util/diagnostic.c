@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
-jmp_buf weak_fatal_error_buf;
+jmp_buf fcc_fatal_error_buf;
 
 extern void *diag_error_memstream;
 extern void *diag_warn_memstream;
@@ -24,24 +24,24 @@ static struct diag_config config = {
     .show_location = 0
 };
 
-void weak_diag_set_config(struct diag_config *new_config)
+void fcc_diag_set_config(struct diag_config *new_config)
 {
     memcpy(&config, new_config, sizeof (config));
 }
 
-void weak_set_source_filename(const char *filename)
+void fcc_set_source_filename(const char *filename)
 {
     active_filename = filename;
 }
 
-void weak_set_source_stream(FILE *stream)
+void fcc_set_source_stream(FILE *stream)
 {
     active_stream = stream;
 }
 
-static noreturn void weak_terminate_compilation()
+static noreturn void fcc_terminate_compilation()
 {
-    longjmp(weak_fatal_error_buf, 1);
+    longjmp(fcc_fatal_error_buf, 1);
     __builtin_trap(); /* Just to be sure that we will never get there. */
 }
 
@@ -141,7 +141,7 @@ unused static void print_file_range(
 
 
 
-void weak_compile_error(uint16_t line_no, uint16_t col_no, const char *fmt, ...)
+void fcc_compile_error(uint16_t line_no, uint16_t col_no, const char *fmt, ...)
 {
     FILE *stream = diag_error_memstream != NULL
         ? diag_error_memstream
@@ -169,10 +169,10 @@ void weak_compile_error(uint16_t line_no, uint16_t col_no, const char *fmt, ...)
     fputc('\n', stream);
     fflush(stream);
 
-    weak_terminate_compilation();
+    fcc_terminate_compilation();
 }
 
-void weak_compile_warn(uint16_t line_no, uint16_t col_no, const char *fmt, ...)
+void fcc_compile_warn(uint16_t line_no, uint16_t col_no, const char *fmt, ...)
 {
     if (config.ignore_warns)
         return;

@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_AST_H
-#define WEAK_COMPILER_FRONTEND_AST_H
+#ifndef FCC_FRONTEND_AST_H
+#define FCC_FRONTEND_AST_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -521,4 +521,4 @@ wur struct ast_node *ast_implicit_cast_init(
 );
 void ast_implicit_cast_cleanup(struct ast_implicit_cast *ast);
 
-#endif // WEAK_COMPILER_FRONTEND_AST_H
+#endif // FCC_FRONTEND_AST_H

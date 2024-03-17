@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_IR_H
-#define WEAK_COMPILER_MIDDLE_END_IR_H
+#ifndef FCC_MIDDLE_END_IR_H
+#define FCC_MIDDLE_END_IR_H
 
 #include "front_end/lex/data_type.h"
 #include "front_end/lex/tok_type.h"
@@ -326,4 +326,4 @@ wur struct ir_node *ir_phi_init(
 void ir_node_cleanup(struct ir_node *ir);
 void ir_unit_cleanup(struct ir_unit *ir);
 
-#endif // WEAK_COMPILER_MIDDLE_END_IR_H
+#endif // FCC_MIDDLE_END_IR_H

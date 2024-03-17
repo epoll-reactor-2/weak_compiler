@@ -593,7 +593,7 @@ int32_t visit(FILE *mem, struct ast_node *ast)
         break;
     default: {
         enum ast_type t = ast->type;
-        weak_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
+        fcc_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
     }
     }
 

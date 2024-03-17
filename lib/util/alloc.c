@@ -9,37 +9,37 @@
 #include <alloca.h>
 #include <stdlib.h>
 
-void *weak_malloc(size_t size)
+void *fcc_malloc(size_t size)
 {
     void *addr = malloc(size);
     if (addr == NULL) {
-        weak_fatal_error("malloc() failed");
+        fcc_fatal_error("malloc() failed");
     }
 
     return addr;
 }
 
-void *weak_calloc(size_t nmemb, size_t size)
+void *fcc_calloc(size_t nmemb, size_t size)
 {
     void *addr = calloc(nmemb, size);
     if (addr == NULL) {
-        weak_fatal_error("calloc() failed");
+        fcc_fatal_error("calloc() failed");
     }
 
     return addr;
 }
 
-void *weak_realloc(void *addr, size_t size)
+void *fcc_realloc(void *addr, size_t size)
 {
     addr = realloc(addr, size);
     if (addr == NULL) {
-        weak_fatal_error("realloc() failed");
+        fcc_fatal_error("realloc() failed");
     }
 
     return addr;
 }
 
-void weak_free(void *addr)
+void fcc_free(void *addr)
 {
     free(addr);
 }

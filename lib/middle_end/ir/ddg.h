@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_DDG_H
-#define WEAK_COMPILER_MIDDLE_END_DDG_H
+#ifndef FCC_MIDDLE_END_DDG_H
+#define FCC_MIDDLE_END_DDG_H
 
 struct ir_fn_decl;
 
@@ -21,4 +21,4 @@ struct ir_fn_decl;
           loop header, for example). */
 void ir_ddg_build(struct ir_fn_decl *decl);
 
-#endif // WEAK_COMPILER_MIDDLE_END_DDG_H
+#endif // FCC_MIDDLE_END_DDG_H

@@ -49,7 +49,7 @@ static int32_t alloca_get(int32_t sym_idx)
     uint64_t addr = hashmap_get(&alloca_stmts, (uint64_t) sym_idx, &ok);
 
     if (!ok)
-        weak_unreachable("Did I put alloca properly?");
+        fcc_unreachable("Did I put alloca properly?");
 
     struct ir_node *ir = (struct ir_node *) addr;
 
@@ -242,7 +242,7 @@ static void dce_node(struct ir_node *ir)
         dce_cond(ir);
         break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 }
 

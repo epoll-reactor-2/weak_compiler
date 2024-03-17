@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_IR_DUMP_H
-#define WEAK_COMPILER_MIDDLE_END_IR_DUMP_H
+#ifndef FCC_MIDDLE_END_IR_DUMP_H
+#define FCC_MIDDLE_END_IR_DUMP_H
 
 #include "middle_end/ir/ir.h"
 #include <stdio.h>
@@ -49,4 +49,4 @@ void ir_dump_graph_dot(FILE *mem, struct ir_fn_decl *decl);
 
 void ir_dump_cfg(FILE *mem, struct ir_fn_decl *decl);
 
-#endif // WEAK_COMPILER_MIDDLE_END_IR_DUMP_H
+#endif // FCC_MIDDLE_END_IR_DUMP_H

@@ -34,7 +34,7 @@ static void assigns_collect(struct ir_fn_decl *decl, hashmap_t *out)
                sym_idx -> { assign_1, assign_2, ...} */
             ir_vector_t *list = ok
                 ? (ir_vector_t *) addr
-                : weak_calloc(1, sizeof (ir_vector_t));
+                : fcc_calloc(1, sizeof (ir_vector_t));
 
             vector_push_back(*list, it);
 

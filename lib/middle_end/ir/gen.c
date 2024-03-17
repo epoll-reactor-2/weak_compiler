@@ -70,7 +70,7 @@ static enum data_type load_return_type(const char *name)
     uint64_t name_hash = crc32_string(name);
     uint64_t got = hashmap_get(&ir_fn_return_types, name_hash, &ok);
     if (!ok)
-        weak_unreachable("Cannot get return type for function `%s`", name);
+        fcc_unreachable("Cannot get return type for function `%s`", name);
 
     return (enum data_type) got;
 }
@@ -92,8 +92,8 @@ static void try_add_meta(struct ir_node *ir)
          and set up in `link()`. */
 static void insert(struct ir_node *new_node)
 {
-    __weak_debug({
-        __weak_debug_msg("Insert IR (instr_idx: %lu) :", new_node->instr_idx);
+    __fcc_debug({
+        __fcc_debug_msg("Insert IR (instr_idx: %lu) :", new_node->instr_idx);
         ir_dump_node(stdout, new_node);
         puts("");
     });
@@ -288,7 +288,7 @@ static struct ir_node *zero_cond_immediate()
     case D_T_CHAR:  return ir_imm_char_init(0);
     case D_T_BOOL:  return ir_imm_bool_init(0);
     default:
-        weak_unreachable("Unknown data type (numeric: %d)", ir_last_type);
+        fcc_unreachable("Unknown data type (numeric: %d)", ir_last_type);
     }
 }
 
@@ -627,7 +627,7 @@ static void visit_unary(struct ast_unary *ast)
         visit_unary_pointer(op, ast->operand->type == AST_SYMBOL);
         break;
     default:
-        weak_unreachable("Unknown operator `%s`", tok_to_string(op));
+        fcc_unreachable("Unknown operator `%s`", tok_to_string(op));
     }
 }
 
@@ -713,7 +713,7 @@ static void visit_array_decl(struct ast_array_decl *ast)
 
     uint64_t *lvls = alloca(enclosure->size * sizeof (uint64_t));
     if (!lvls)
-        weak_unreachable("Something funny happened.");
+        fcc_unreachable("Something funny happened.");
 
     for (uint64_t i = 0; i < enclosure->size; ++i) {
         struct ast_int *num = enclosure->stmts[i]->ast;
@@ -883,7 +883,7 @@ static void visit(struct ast_node *ast)
     case AST_FUNCTION_CALL:   visit_fn_call(ptr); break;
     case AST_IMPLICIT_CAST:   visit_cast(ptr); break;
     default:
-        weak_unreachable("Wrong AST type (numeric: %d).", ast->type);
+        fcc_unreachable("Wrong AST type (numeric: %d).", ast->type);
     }
 }
 

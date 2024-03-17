@@ -29,7 +29,7 @@ void ir_storage_push(
     struct ir_node *ir
 ) {
     struct ir_storage_record *record =
-        weak_calloc(1, sizeof (struct ir_storage_record));
+        fcc_calloc(1, sizeof (struct ir_storage_record));
 
     record->sym_idx = sym_idx;
     record->dt = dt;

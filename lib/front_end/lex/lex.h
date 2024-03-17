@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_LEX_LEX_H
-#define WEAK_COMPILER_FRONTEND_LEX_LEX_H
+#ifndef FCC_FRONTEND_LEX_LEX_H
+#define FCC_FRONTEND_LEX_LEX_H
 
 #include "front_end/lex/tok.h"
 #include "util/compiler.h"
@@ -36,4 +36,4 @@ void lex_init_state();
 /** Cleanup all internal resources. */
 void lex_reset_state();
 
-#endif // WEAK_COMPILER_FRONTEND_LEX_LEX_H
+#endif // FCC_FRONTEND_LEX_LEX_H

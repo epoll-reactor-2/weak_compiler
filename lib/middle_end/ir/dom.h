@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_DOM_H
-#define WEAK_COMPILER_MIDDLE_END_DOM_H
+#ifndef FCC_MIDDLE_END_DOM_H
+#define FCC_MIDDLE_END_DOM_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,4 +23,4 @@ bool ir_dominated_by(struct ir_node *node, struct ir_node *dom);
 /** Judge if \p dom is dominator of \p node. */
 bool ir_dominates(struct ir_node *dom, struct ir_node *node);
 
-#endif // WEAK_COMPILER_MIDDLE_END_DOM_H
+#endif // FCC_MIDDLE_END_DOM_H

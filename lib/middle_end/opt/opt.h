@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_OPT_H
-#define WEAK_COMPILER_MIDDLE_END_OPT_H
+#ifndef FCC_MIDDLE_END_OPT_H
+#define FCC_MIDDLE_END_OPT_H
 
 struct ir_fn_decl;
 
@@ -92,4 +92,4 @@ void ir_opt_reorder(struct ir_fn_decl *ir);
       - All loops (including nested) used to compute return values are left. */
 void ir_opt_data_flow(struct ir_fn_decl *ir);
 
-#endif // WEAK_COMPILER_MIDDLE_END_OPT_H
+#endif // FCC_MIDDLE_END_OPT_H

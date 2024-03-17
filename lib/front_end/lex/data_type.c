@@ -31,6 +31,6 @@ const char *data_type_to_string(enum data_type dt)
     case D_T_STRING:  return "string";
     case D_T_STRUCT:  return "struct";
     default:
-        weak_unreachable("Unknown data type (numeric: %d).", dt);
+        fcc_unreachable("Unknown data type (numeric: %d).", dt);
     }
 }

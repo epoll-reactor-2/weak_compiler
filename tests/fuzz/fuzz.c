@@ -518,7 +518,7 @@ void fuzz()
 
     yylex();
     fseek(yyin, 0, SEEK_SET);
-    weak_set_source_stream(yyin);
+    fcc_set_source_stream(yyin);
 
     fuzz_print_source();
 

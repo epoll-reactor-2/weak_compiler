@@ -4,30 +4,30 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_UTIL_ALLOC_H
-#define WEAK_COMPILER_UTIL_ALLOC_H
+#ifndef FCC_UTIL_ALLOC_H
+#define FCC_UTIL_ALLOC_H
 
 #include "util/compiler.h"
 #include "util/unreachable.h"
 #include <stddef.h>
 
 #if __has_attribute(returns_nonnull) && __has_attribute(warn_unused_result) && __has_attribute(alloc_size)
-#define __weak_malloc  __attribute__((returns_nonnull, warn_unused_result, malloc, alloc_size(1)))
-#define __weak_calloc  __attribute__((returns_nonnull, warn_unused_result, malloc, alloc_size(1, 2)))
-#define __weak_realloc __attribute__((returns_nonnull, warn_unused_result, alloc_size(2)))
+#define __fcc_malloc  __attribute__((returns_nonnull, warn_unused_result, malloc, alloc_size(1)))
+#define __fcc_calloc  __attribute__((returns_nonnull, warn_unused_result, malloc, alloc_size(1, 2)))
+#define __fcc_realloc __attribute__((returns_nonnull, warn_unused_result, alloc_size(2)))
 #else
-#define __weak_malloc
-#define __weak_calloc
-#define __weak_realloc
+#define __fcc_malloc
+#define __fcc_calloc
+#define __fcc_realloc
 #endif
 
-__weak_malloc  wur void *weak_malloc(size_t size);
-__weak_calloc  wur void *weak_calloc(size_t nmemb, size_t size);
-__weak_realloc wur void *weak_realloc(void *addr, size_t size);
+__fcc_malloc  wur void *fcc_malloc(size_t size);
+__fcc_calloc  wur void *fcc_calloc(size_t nmemb, size_t size);
+__fcc_realloc wur void *fcc_realloc(void *addr, size_t size);
 
-#define weak_new(type) weak_calloc(1, sizeof (type))
+#define fcc_new(type) fcc_calloc(1, sizeof (type))
 
 /** Used to reduce #include <stdlib.h> bloat. */
-void weak_free(void *addr);
+void fcc_free(void *addr);
 
-#endif // WEAK_COMPILER_UTIL_ALLOC_H
+#endif // FCC_UTIL_ALLOC_H

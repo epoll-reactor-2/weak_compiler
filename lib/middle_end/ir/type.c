@@ -26,7 +26,7 @@ uint64_t ir_type_size(enum data_type dt)
     case D_T_INT:   return 4;
     case D_T_FLOAT: return 4;
     default:
-        weak_unreachable("Unknown data type: `%s`", data_type_to_string(dt));
+        fcc_unreachable("Unknown data type: `%s`", data_type_to_string(dt));
     }
 }
 
@@ -38,7 +38,7 @@ static enum data_type imm_type_to_dt(enum ir_imm_type t)
     case IMM_INT:   return D_T_INT;
     case IMM_FLOAT: return D_T_FLOAT;
     default:
-        weak_unreachable("Unknown data type (numeric: %d)", t);
+        fcc_unreachable("Unknown data type (numeric: %d)", t);
     }
 }
 
@@ -46,7 +46,7 @@ static enum data_type imm_type_to_dt(enum ir_imm_type t)
 
 static void fn_type_save(struct ir_fn_decl *decl)
 {
-    struct type *t = weak_calloc(1, sizeof (struct type));
+    struct type *t = fcc_calloc(1, sizeof (struct type));
 
     t->dt = decl->ret_type;
     t->ptr_depth = decl->ptr_depth;
@@ -62,7 +62,7 @@ struct type *fn_type_lookup(const char *name)
     uint64_t addr = hashmap_get(&fn_map, hash, &ok);
 
     if (!ok)
-        weak_unreachable("Function `%s` not found", name);
+        fcc_unreachable("Function `%s` not found", name);
 
     return (struct type *) addr;
 }
@@ -81,7 +81,7 @@ static void reset_fn_map()
 {
     hashmap_foreach(&fn_map, k, v) {
         (void) k;
-        weak_free((void *) v);
+        fcc_free((void *) v);
     }
     hashmap_destroy(&fn_map);
 }
@@ -234,7 +234,7 @@ static void type_pass(struct ir_node *ir)
     case IR_PHI:
         break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 }
 

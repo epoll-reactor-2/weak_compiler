@@ -23,7 +23,7 @@ void ir_reset_state()
 
 struct ir_node *ir_node_init(enum ir_type type, void *ir)
 {
-    struct ir_node *node = weak_calloc(1, sizeof (struct ir_node));
+    struct ir_node *node = fcc_calloc(1, sizeof (struct ir_node));
     node->type = type;
     node->instr_idx = ir_instr_idx;
     node->ir = ir;
@@ -35,7 +35,7 @@ struct ir_node *ir_node_init(enum ir_type type, void *ir)
 
 struct ir_node *ir_alloca_init(enum data_type dt, uint16_t ptr_depth, uint64_t idx)
 {
-    struct ir_alloca *ir = weak_calloc(1, sizeof (struct ir_alloca));
+    struct ir_alloca *ir = fcc_calloc(1, sizeof (struct ir_alloca));
     ir->dt = dt;
     ir->ptr_depth = ptr_depth;
     ir->idx = idx;
@@ -49,7 +49,7 @@ struct ir_node *ir_alloca_array_init(
     uint64_t        enclosure_lvls_size,
     uint64_t         idx
 ) {
-    struct ir_alloca_array *ir = weak_calloc(1, sizeof (struct ir_alloca_array));
+    struct ir_alloca_array *ir = fcc_calloc(1, sizeof (struct ir_alloca_array));
     ir->dt = dt;
     ir->arity_size = enclosure_lvls_size;
     ir->idx = idx;
@@ -60,7 +60,7 @@ struct ir_node *ir_alloca_array_init(
 
 struct ir_node *ir_imm_bool_init(bool imm)
 {
-    struct ir_imm *ir = weak_calloc(1, sizeof (struct ir_imm));
+    struct ir_imm *ir = fcc_calloc(1, sizeof (struct ir_imm));
     ir->imm.__bool = imm;
     ir->type = IMM_BOOL;
     return ir_node_init(IR_IMM, ir);
@@ -68,7 +68,7 @@ struct ir_node *ir_imm_bool_init(bool imm)
 
 struct ir_node *ir_imm_char_init(char imm)
 {
-    struct ir_imm *ir = weak_calloc(1, sizeof (struct ir_imm));
+    struct ir_imm *ir = fcc_calloc(1, sizeof (struct ir_imm));
     ir->imm.__char = imm;
     ir->type = IMM_CHAR;
     return ir_node_init(IR_IMM, ir);
@@ -76,7 +76,7 @@ struct ir_node *ir_imm_char_init(char imm)
 
 struct ir_node *ir_imm_float_init(float imm)
 {
-    struct ir_imm *ir = weak_calloc(1, sizeof (struct ir_imm));
+    struct ir_imm *ir = fcc_calloc(1, sizeof (struct ir_imm));
     ir->imm.__float = imm;
     ir->type = IMM_FLOAT;
     return ir_node_init(IR_IMM, ir);
@@ -84,7 +84,7 @@ struct ir_node *ir_imm_float_init(float imm)
 
 struct ir_node *ir_imm_int_init(uint64_t imm)
 {
-    struct ir_imm *ir = weak_calloc(1, sizeof (struct ir_imm));
+    struct ir_imm *ir = fcc_calloc(1, sizeof (struct ir_imm));
     ir->imm.__int = imm;
     ir->type = IMM_INT;
     return ir_node_init(IR_IMM, ir);
@@ -93,7 +93,7 @@ struct ir_node *ir_imm_int_init(uint64_t imm)
 struct ir_node *ir_string_init(uint64_t len, char *imm)
 {
     assert(imm);
-    struct ir_string *ir = weak_calloc(1, sizeof (struct ir_string));
+    struct ir_string *ir = fcc_calloc(1, sizeof (struct ir_string));
     ir->len = len;
     ir->imm = imm;
     return ir_node_init(IR_STRING, ir);
@@ -101,7 +101,7 @@ struct ir_node *ir_string_init(uint64_t len, char *imm)
 
 struct ir_node *ir_sym_init(uint64_t idx)
 {
-    struct ir_sym *ir = weak_calloc(1, sizeof (struct ir_sym));
+    struct ir_sym *ir = fcc_calloc(1, sizeof (struct ir_sym));
     ir->deref = 0;
     ir->addr_of = 0;
     ir->idx = idx;
@@ -111,7 +111,7 @@ struct ir_node *ir_sym_init(uint64_t idx)
 
 struct ir_node *ir_sym_ptr_init(uint64_t idx)
 {
-    struct ir_sym *ir = weak_calloc(1, sizeof (struct ir_sym));
+    struct ir_sym *ir = fcc_calloc(1, sizeof (struct ir_sym));
     ir->deref = 1;
     ir->idx = idx;
     ir->ssa_idx = UINT64_MAX;
@@ -125,7 +125,7 @@ struct ir_node *ir_store_init(struct ir_node *idx, struct ir_node *body)
     ) && (
         "Store instruction expects symbol or array access operator as target"
     ));
-    struct ir_store *ir = weak_calloc(1, sizeof (struct ir_store));
+    struct ir_store *ir = fcc_calloc(1, sizeof (struct ir_store));
     ir->idx = idx;
     ir->body = body;
     if (body->type != IR_FN_CALL)
@@ -149,7 +149,7 @@ struct ir_node *ir_bin_init(enum token_type op, struct ir_node *lhs, struct ir_n
     )) && (
         "Binary operation expects variable, immediate value or array access operator"
     ));
-    struct ir_bin *ir = weak_calloc(1, sizeof (struct ir_bin));
+    struct ir_bin *ir = fcc_calloc(1, sizeof (struct ir_bin));
     ir->op = op;
     ir->lhs = lhs;
     ir->rhs = rhs;
@@ -158,7 +158,7 @@ struct ir_node *ir_bin_init(enum token_type op, struct ir_node *lhs, struct ir_n
 
 struct ir_node *ir_jump_init(uint64_t idx)
 {
-    struct ir_jump *ir = weak_calloc(1, sizeof (struct ir_jump));
+    struct ir_jump *ir = fcc_calloc(1, sizeof (struct ir_jump));
     ir->idx = idx;
     ++ir_instr_idx;
     return ir_node_init(IR_JUMP, ir);
@@ -167,7 +167,7 @@ struct ir_node *ir_jump_init(uint64_t idx)
 struct ir_node *ir_cond_init(struct ir_node *cond, uint64_t goto_label)
 {
     assert(cond->type == IR_BIN && "Only binary instruction supported as condition body");
-    struct ir_cond *ir = weak_calloc(1, sizeof (struct ir_cond));
+    struct ir_cond *ir = fcc_calloc(1, sizeof (struct ir_cond));
     ir->cond = cond;
     ir->goto_label = goto_label;
     ++ir_instr_idx;
@@ -183,7 +183,7 @@ struct ir_node *ir_ret_init(struct ir_node *body)
         ) && (
             "Ret expects immediate value or variable"
         ));
-    struct ir_ret *ir = weak_calloc(1, sizeof (struct ir_ret));
+    struct ir_ret *ir = fcc_calloc(1, sizeof (struct ir_ret));
     ir->body = body;
     ir->is_void = ir->body == NULL;
     /* Return operand is inline instruction. */
@@ -193,7 +193,7 @@ struct ir_node *ir_ret_init(struct ir_node *body)
 
 struct ir_node *ir_member_init(uint64_t idx, uint64_t field_idx)
 {
-    struct ir_member *ir = weak_calloc(1, sizeof (struct ir_member));
+    struct ir_member *ir = fcc_calloc(1, sizeof (struct ir_member));
     ir->idx = idx;
     ir->field_idx = field_idx;
     return ir_node_init(IR_MEMBER, ir);
@@ -201,7 +201,7 @@ struct ir_node *ir_member_init(uint64_t idx, uint64_t field_idx)
 
 struct ir_node *ir_type_decl_init(const char *name, struct ir_node *decls)
 {
-    __weak_debug({
+    __fcc_debug({
         struct ir_node *it = decls;
         while (it) {
             enum ir_type t = it->type;
@@ -214,7 +214,7 @@ struct ir_node *ir_type_decl_init(const char *name, struct ir_node *decls)
             it = it->next;
         }
     })
-    struct ir_type_decl *ir = weak_calloc(1, sizeof (struct ir_type_decl));
+    struct ir_type_decl *ir = fcc_calloc(1, sizeof (struct ir_type_decl));
     ir->name = name;
     ir->decls = decls;
     return ir_node_init(IR_TYPE_DECL, ir);
@@ -227,7 +227,7 @@ struct ir_node *ir_fn_decl_init(
     struct ir_node *args,
     struct ir_node *body
 ) {
-    __weak_debug({
+    __fcc_debug({
         struct ir_node *it = args;
         while (it) {
             enum ir_type t = it->type;
@@ -237,7 +237,7 @@ struct ir_node *ir_fn_decl_init(
             it = it->next;
         }
     })
-    struct ir_fn_decl *ir = weak_calloc(1, sizeof (struct ir_fn_decl));
+    struct ir_fn_decl *ir = fcc_calloc(1, sizeof (struct ir_fn_decl));
     ir->ret_type = ret_type;
     ir->ptr_depth = ptr_depth;
     ir->name = name;
@@ -248,7 +248,7 @@ struct ir_node *ir_fn_decl_init(
 
 struct ir_node *ir_fn_call_init(char *name, struct ir_node *args)
 {
-    __weak_debug({
+    __fcc_debug({
         struct ir_node *it = args;
         while (it) {
             enum ir_type t = it->type;
@@ -261,7 +261,7 @@ struct ir_node *ir_fn_call_init(char *name, struct ir_node *args)
             it = it->next;
         }
     })
-    struct ir_fn_call *ir = weak_calloc(1, sizeof (struct ir_fn_call));
+    struct ir_fn_call *ir = fcc_calloc(1, sizeof (struct ir_fn_call));
     ir->name = name;
     ir->args = args;
     ++ir_instr_idx;
@@ -273,7 +273,7 @@ wur struct ir_node *ir_phi_init(
     uint64_t op_1_idx,
     uint64_t op_2_idx
 ) {
-    struct ir_phi *ir = weak_calloc(1, sizeof (struct ir_phi));
+    struct ir_phi *ir = fcc_calloc(1, sizeof (struct ir_phi));
     ir->sym_idx = sym_idx;
     ir->op_1_idx = op_1_idx;
     ir->op_2_idx = op_2_idx;
@@ -283,7 +283,7 @@ wur struct ir_node *ir_phi_init(
 
 static void ir_string_cleanup(struct ir_string *ir)
 {
-    weak_free(ir->imm);
+    fcc_free(ir->imm);
 }
 
 static void ir_store_cleanup(struct ir_store *ir)
@@ -332,7 +332,7 @@ static void ir_fn_decl_cleanup(struct ir_fn_decl *ir)
         it = it->next;
     }
 
-    weak_free(ir->name);
+    fcc_free(ir->name);
 }
 static void ir_fn_call_cleanup(struct ir_fn_call *ir)
 {
@@ -342,7 +342,7 @@ static void ir_fn_call_cleanup(struct ir_fn_call *ir)
         it = it->next;
     }
 
-    weak_free(ir->name);
+    fcc_free(ir->name);
 }
 
 void ir_node_cleanup(struct ir_node *ir)
@@ -368,14 +368,14 @@ void ir_node_cleanup(struct ir_node *ir)
     case IR_FN_CALL:
         ir_fn_call_cleanup(ir->ir); break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 
     vector_clear(ir->idom_back);
     vector_clear(ir->ddg_stmts);
     vector_clear(ir->df);
-    weak_free(ir->ir);
-    weak_free(ir);
+    fcc_free(ir->ir);
+    fcc_free(ir);
 }
 
 void ir_unit_cleanup(struct ir_unit *ir)

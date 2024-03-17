@@ -89,7 +89,7 @@ static const char *ast_decl_or_expr_to_string(struct ast_node *ast)
     case AST_SYMBOL:
         return "Variable";
     default:
-        weak_unreachable(
+        fcc_unreachable(
             "Expected variable or function AST, got `%s`.",
             ast_type_to_string(ast->type)
         );
@@ -144,7 +144,7 @@ static void uses_mark_top_scope_as_read()
 static void assert_is_declared(const char *name, struct ast_node *loc)
 {
     if (ast_storage_lookup(&storage, name)) return;
-    weak_compile_error(
+    fcc_compile_error(
         loc->line_no,
         loc->col_no,
         "%s `%s` not found",
@@ -157,7 +157,7 @@ static void assert_is_not_declared(const char *name, struct ast_node *loc)
     struct ast_storage_decl *decl = ast_storage_lookup(&storage, name);
 
     if (!decl) return;
-    weak_compile_error(
+    fcc_compile_error(
         loc->line_no,
         loc->col_no,
         "%s `%s` already declared at line %u, column %u",
@@ -176,7 +176,7 @@ void make_unused_var_analysis()
         struct ast_storage_decl *use = set.data[i];
         bool is_func = use->ast->type == AST_FUNCTION_DECL;
         if (!is_func && use->read_uses == 0) {
-            weak_compile_warn(
+            fcc_compile_warn(
                 use->ast->line_no,
                 use->ast->col_no,
                 "Variable `%s` %s",
@@ -203,7 +203,7 @@ void make_unused_var_and_func_analysis()
             is_main_func = !strcmp(decl->name, "main");
         }
         if (!is_main_func && use->read_uses == 0)
-            weak_compile_warn(
+            fcc_compile_warn(
                 use->ast->line_no,
                 use->ast->col_no,
                 "%s `%s` %s",
@@ -268,7 +268,7 @@ static void visit_unary(struct ast_node *ast)
     is_var |= op->type == AST_MEMBER; /* *var.field */
     is_var |= op->type == AST_PREFIX_UNARY; /* *(*var) */
     if (!is_var)
-        weak_compile_error(
+        fcc_compile_error(
             ast->line_no,
             ast->col_no,
             "Variable as argument of unary operator expected"
@@ -284,7 +284,7 @@ static void visit_unary(struct ast_node *ast)
         use_add_read(op);
         break;
     default:
-        weak_unreachable("Unknown unary operator `%s`.", tok_to_string(stmt->op));
+        fcc_unreachable("Unknown unary operator `%s`.", tok_to_string(stmt->op));
     }
     visit(op);
 }
@@ -465,7 +465,7 @@ void visit(struct ast_node *ast)
         break;
     default: {
         enum ast_type t = ast->type;
-        weak_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
+        fcc_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
     }
     }
 }

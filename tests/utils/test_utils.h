@@ -93,7 +93,7 @@ void get_init_comment(FILE *in, FILE *out, const char *filename)
 void set_cwd(char cwd[512], const char *tests_dir)
 {
     if (!getcwd(cwd, 512))
-        weak_unreachable("Cannot get current dir: %s", strerror(errno));
+        fcc_unreachable("Cannot get current dir: %s", strerror(errno));
 
     size_t cwd_len = strlen(cwd);
 
@@ -116,7 +116,7 @@ int compare_with_comment(
     FILE   *expected_stream  = open_memstream(&expected, &_);
     FILE   *generated_stream = open_memstream(&generated, &_);
 
-    if (!setjmp(weak_fatal_error_buf)) {
+    if (!setjmp(fcc_fatal_error_buf)) {
         fn(path, filename, generated_stream);
 
         get_init_comment(yyin, expected_stream, NULL);
@@ -170,7 +170,7 @@ int do_on_each_file(
 
     it = opendir(cwd);
     if (!it)
-        weak_unreachable("Cannot open current dir: %s", strerror(errno));
+        fcc_unreachable("Cannot open current dir: %s", strerror(errno));
 
     while ((d = readdir(it))) {
         switch (d->d_type) {
@@ -180,7 +180,7 @@ int do_on_each_file(
         case DT_LNK:
             break; /* Ok. */
         default:
-            weak_unreachable("File or symlink expected as test input.");
+            fcc_unreachable("File or symlink expected as test input.");
         }
 
         if (strstr(d->d_name, "disabled_") != NULL)
@@ -191,7 +191,7 @@ int do_on_each_file(
 
         snprintf(fname, sizeof (fname), "%s/%s", cwd, d->d_name);
 
-        weak_set_source_filename(fname);
+        fcc_set_source_filename(fname);
 
         if (callback(fname, d->d_name) < 0) {
             rc = -1;
@@ -247,11 +247,11 @@ tok_array_t *gen_tokens(const char *filename)
     if (!yyin) yyin = fopen(filename, "r");
     else yyin = freopen(filename, "r", yyin);
     if (yyin == NULL)
-        weak_unreachable("Cannot open file `%s`", filename);
+        fcc_unreachable("Cannot open file `%s`", filename);
 
     yylex();
     fseek(yyin, 0, SEEK_SET);
-    weak_set_source_stream(yyin);
+    fcc_set_source_stream(yyin);
 
     return lex_consumed_tokens();
 }

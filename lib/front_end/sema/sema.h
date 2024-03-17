@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_SEMA_H
-#define WEAK_COMPILER_FRONTEND_SEMA_H
+#ifndef FCC_FRONTEND_SEMA_H
+#define FCC_FRONTEND_SEMA_H
 
 struct ast_node;
 
@@ -18,4 +18,4 @@ void sema_lower(struct ast_node **ast);
     conversions. */
 void sema_type(struct ast_node **ast);
 
-#endif // WEAK_COMPILER_FRONTEND_SEMA_H
+#endif // FCC_FRONTEND_SEMA_H

@@ -44,7 +44,7 @@ static inline int32_t nth_bit(int32_t x)
         ++idx;
     }
 
-    weak_unreachable("Expected power of 2 as input, got %d.", x);
+    fcc_unreachable("Expected power of 2 as input, got %d.", x);
 }
 
 #define __match(__op, l, r) \
@@ -173,7 +173,7 @@ static struct ir_node *opt_arith_node(struct ir_node *ir)
     case IR_COND:
         break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 
     return no_result();

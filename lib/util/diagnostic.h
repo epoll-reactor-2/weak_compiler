@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_UTIL_DIAGNOSTICS_H
-#define WEAK_COMPILER_UTIL_DIAGNOSTICS_H
+#ifndef FCC_UTIL_DIAGNOSTICS_H
+#define FCC_UTIL_DIAGNOSTICS_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,9 +31,9 @@ struct diag_config {
         // Fallback on error inside normal code.
     }
     \endcode */
-extern jmp_buf weak_fatal_error_buf;
+extern jmp_buf fcc_fatal_error_buf;
 
-/** \defgroup weak_diagnostic_streams
+/** \defgroup fcc_diagnostic_streams
    
     Streams being FILE * used for debug purposes. There are
     two cases:
@@ -54,18 +54,18 @@ extern void *diag_warn_memstream;
     - ignore_warns  = 1
     - show_location = 0
  */
-void weak_diag_set_config(struct diag_config *new_config);
+void fcc_diag_set_config(struct diag_config *new_config);
 
 /** \brief Set source code location being analyzed. Used to display
            warns and errors. */
-void weak_set_source_filename(const char *filename);
-void weak_set_source_stream(FILE *stream);
+void fcc_set_source_filename(const char *filename);
+void fcc_set_source_stream(FILE *stream);
 
-/** \brief Emit compile error according to \ref weak_diagnostic_streams rule
+/** \brief Emit compile error according to \ref fcc_diagnostic_streams rule
            and go out from executor function of any depth. */
 noreturn
-void weak_compile_error(uint16_t line_no, uint16_t col_no, const char *fmt, ...);
-/** \brief Emit compile warning according to \ref weak_diagnostic_streams rule. */
-void weak_compile_warn (uint16_t line_no, uint16_t col_no, const char *fmt, ...);
+void fcc_compile_error(uint16_t line_no, uint16_t col_no, const char *fmt, ...);
+/** \brief Emit compile warning according to \ref fcc_diagnostic_streams rule. */
+void fcc_compile_warn (uint16_t line_no, uint16_t col_no, const char *fmt, ...);
 
-#endif // WEAK_COMPILER_UTIL_DIAGNOSTICS_H
+#endif // FCC_UTIL_DIAGNOSTICS_H

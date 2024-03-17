@@ -45,7 +45,7 @@ int generate_report(const char *path, const char *filename)
 
     struct ast_node *ast = gen_ast(path);
 
-    if (!setjmp(weak_fatal_error_buf))
+    if (!setjmp(fcc_fatal_error_buf))
         analysis_fn(ast);
 
     ast_node_cleanup(ast);
@@ -73,7 +73,7 @@ void configure()
         .ignore_warns  = 0,
         .show_location = 1
     };
-    weak_diag_set_config(&config);
+    fcc_diag_set_config(&config);
 
     create_dir("dumps");
     create_dir("dumps/var_ana");

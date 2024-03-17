@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_IR_OPS_H
-#define WEAK_COMPILER_MIDDLE_END_IR_OPS_H
+#ifndef FCC_MIDDLE_END_IR_OPS_H
+#define FCC_MIDDLE_END_IR_OPS_H
 
 #include "util/vector.h"
 #include <stdbool.h>
@@ -17,4 +17,4 @@ typedef vector_t(struct ir_node *) ir_vector_t;
     in list, update `list_head`. */
 void ir_remove(struct ir_node **ir, struct ir_node **list_head);
 
-#endif // WEAK_COMPILER_MIDDLE_END_IR_OPS_H
+#endif // FCC_MIDDLE_END_IR_OPS_H

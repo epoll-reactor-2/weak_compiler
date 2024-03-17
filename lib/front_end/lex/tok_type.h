@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_LEX_TOK_TYPE_H
-#define WEAK_COMPILER_FRONTEND_LEX_TOK_TYPE_H
+#ifndef FCC_FRONTEND_LEX_TOK_TYPE_H
+#define FCC_FRONTEND_LEX_TOK_TYPE_H
 
 #include "util/compiler.h"
 
@@ -133,4 +133,4 @@ enum token_type tok_char_to_tok(char c);
 #undef __take_enum
 #undef map_tokens
 
-#endif // WEAK_COMPILER_FRONTEND_LEX_TOK_TYPE_H
+#endif // FCC_FRONTEND_LEX_TOK_TYPE_H

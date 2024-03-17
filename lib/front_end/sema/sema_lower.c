@@ -53,7 +53,7 @@ void sema_lower(unused struct ast_node **ast)
 //     hashmap_foreach(&storage, key, val) {
 //         (void) key;
 //         struct array_decl_info *decl = (struct array_decl_info *) val;
-//         weak_free(decl);
+//         fcc_free(decl);
 //     }
 //     hashmap_destroy(&storage);
 // }
@@ -79,7 +79,7 @@ void sema_lower(unused struct ast_node **ast)
 //     enum data_type   dt,
 //     int32_t          top_arity
 // ) {
-//     struct array_decl_info *decl = weak_calloc(1, sizeof (struct array_decl_info));
+//     struct array_decl_info *decl = fcc_calloc(1, sizeof (struct array_decl_info));
 
 //     strncpy(decl->name, name, DECL_NAME_MAX_LEN - 1);
 //     decl->ast = ast;
@@ -95,12 +95,12 @@ void sema_lower(unused struct ast_node **ast)
 //     int64_t  addr = hashmap_get(&storage, hash, &ok);
 
 //     if (!ok || addr == 0)
-//         weak_unreachable("Could not find variable `%s`.", name);
+//         fcc_unreachable("Could not find variable `%s`.", name);
 
 //     struct array_decl_info *decl = (struct array_decl_info *) addr;
 
 //     if (decl->depth > scope_depth)
-//         weak_unreachable("Impossible case: variable depth > current depth");
+//         fcc_unreachable("Impossible case: variable depth > current depth");
 
 //     return decl;
 // }
@@ -265,7 +265,7 @@ void sema_lower(unused struct ast_node **ast)
 
 //     if (iter->type == AST_ARRAY_DECL)
 //         if (!verify_iterated_array(iter->ast, decl->ast->ast))
-//             weak_unreachable(
+//             fcc_unreachable(
 //                 "Iterated array declaration does not "
 //                 "match the target declaration."
 //             );
@@ -274,7 +274,7 @@ void sema_lower(unused struct ast_node **ast)
 // really_inline static struct ast_node **make_index(const char *name)
 // {
 //     struct ast_node *idx = ast_sym_init(strdup(name), 0, 0);
-//     struct ast_node **idxs = weak_calloc(1, sizeof (struct ast_node *));
+//     struct ast_node **idxs = fcc_calloc(1, sizeof (struct ast_node *));
 //     idxs[0] = idx;
 
 //     return idxs;
@@ -331,7 +331,7 @@ void sema_lower(unused struct ast_node **ast)
 
 // really_inline static struct ast_node *enlarge_body(struct ast_compound *body)
 // {
-//     struct ast_node **new_stmts = weak_calloc(body->size + 1, sizeof (struct ast_node *));
+//     struct ast_node **new_stmts = fcc_calloc(body->size + 1, sizeof (struct ast_node *));
 
 //     /* Copy all statements from old body to the new
 //        and left space for first assignment. */
@@ -375,10 +375,10 @@ void sema_lower(unused struct ast_node **ast)
 
 //     make_iter_ptr_body(decl, iter, __i);
 
-//     weak_free(body->stmts);
+//     fcc_free(body->stmts);
 //     ast_node_cleanup(target);
-//     weak_free((*ast)->ast);
-//     weak_free((*ast));
+//     fcc_free((*ast)->ast);
+//     fcc_free((*ast));
 
 //     *ast = ast_for_init(
 //         iterator,

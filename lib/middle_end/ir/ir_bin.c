@@ -39,19 +39,19 @@
 #define ir_fread(x) \
     { int rc = fread (&(x), sizeof ((x)), 1, mem); \
       if (rc != 1) \
-        weak_fatal_errno("fread(%d)", rc); \
+        fcc_fatal_errno("fread(%d)", rc); \
       DUMP (&(x), sizeof ((x))); }
 
 #define ir_fread_ptr(x) \
     { int rc = fread ((x), sizeof (*(x)), 1, mem); \
       if (rc != 1) \
-        weak_fatal_errno("fread(%d)", rc); \
+        fcc_fatal_errno("fread(%d)", rc); \
       DUMP ((x), sizeof (*(x))); }
 
 #define ir_fread_bytes(x, n) \
     { int rc = fread ((x), (n), 1, mem); \
       if (rc != 1) \
-        weak_fatal_errno("fread(%d)", rc); \
+        fcc_fatal_errno("fread(%d)", rc); \
       DUMP ((x), (n)); }
 
 /**********************************************
@@ -71,7 +71,7 @@ static void write_alloca(FILE *mem, struct ir_node *ir)
 
 static void read_alloca(unused FILE *mem, struct ir_node *ir)
 {
-    struct ir_alloca *alloca = weak_new(struct ir_alloca);
+    struct ir_alloca *alloca = fcc_new(struct ir_alloca);
     ir->ir = alloca;
     ir_fread_ptr(alloca);
 }
@@ -87,7 +87,7 @@ static void write_alloca_array(FILE *mem, struct ir_node *ir)
 
 static void read_alloca_array(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_alloca_array *alloca = weak_new(struct ir_alloca_array);
+    struct ir_alloca_array *alloca = fcc_new(struct ir_alloca_array);
     ir->ir = alloca;
     ir_fread_ptr(alloca);
 }
@@ -103,7 +103,7 @@ static void write_imm(FILE *mem, struct ir_node *ir)
 
 static void read_imm(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_imm *imm = weak_new(struct ir_imm);
+    struct ir_imm *imm = fcc_new(struct ir_imm);
     ir->ir = imm;
 
     ir_fread_ptr(imm);
@@ -121,11 +121,11 @@ static void write_string(unused FILE *mem, unused struct ir_node *ir)
 
 static void read_string(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_string *s = weak_new(struct ir_string);
+    struct ir_string *s = fcc_new(struct ir_string);
     ir->ir = s;
 
     ir_fread(s->len);
-    s->imm = weak_calloc(1, s->len);
+    s->imm = fcc_calloc(1, s->len);
     ir_fread_bytes(s->imm, s->len);
 }
 
@@ -140,7 +140,7 @@ static void write_sym(FILE *mem, struct ir_node *ir)
 
 static void read_sym(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_sym *sym = weak_new(struct ir_sym);
+    struct ir_sym *sym = fcc_new(struct ir_sym);
     ir->ir = sym;
 
     ir_fread_ptr(sym);
@@ -158,7 +158,7 @@ static void write_store(FILE *mem, struct ir_node *ir)
 
 static void read_store(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_store *store = weak_new(struct ir_store);
+    struct ir_store *store = fcc_new(struct ir_store);
     ir->ir = store;
 
     store->idx  = read_node(mem);
@@ -178,7 +178,7 @@ static void write_bin(FILE *mem, struct ir_node *ir)
 
 static void read_bin(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_bin *bin = weak_new(struct ir_bin);
+    struct ir_bin *bin = fcc_new(struct ir_bin);
     ir->ir = bin;
 
     ir_fread(bin->op);
@@ -197,7 +197,7 @@ static void write_jump(FILE *mem, struct ir_node *ir)
 
 static void read_jump(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_jump *jump = weak_new(struct ir_jump);
+    struct ir_jump *jump = fcc_new(struct ir_jump);
     ir->ir = jump;
 
     ir_fread(jump->idx);
@@ -215,7 +215,7 @@ static void write_cond(FILE *mem, struct ir_node *ir)
 
 static void read_cond(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_cond *cond = weak_new(struct ir_cond);
+    struct ir_cond *cond = fcc_new(struct ir_cond);
     ir->ir = cond;
 
     cond->cond = read_node(mem);
@@ -236,7 +236,7 @@ static void write_ret(FILE *mem, struct ir_node *ir)
 
 static void read_ret(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_ret *ret = weak_new(struct ir_ret);
+    struct ir_ret *ret = fcc_new(struct ir_ret);
     ir->ir = ret;
 
     ir_fread(ret->is_void);
@@ -290,12 +290,12 @@ static void write_fn_call(unused FILE *mem, unused struct ir_node *ir)
 
 static void read_fn_call(unused FILE *mem, unused struct ir_node *ir)
 {
-    struct ir_fn_call *call = weak_new(struct ir_fn_call);
+    struct ir_fn_call *call = fcc_new(struct ir_fn_call);
     ir->ir = call;
 
     uint64_t len = 0;
     ir_fread(len);
-    call->name = weak_calloc(1, len);
+    call->name = fcc_calloc(1, len);
     ir_fread_bytes(call->name, len);
 
     uint64_t args_num = 0;
@@ -345,7 +345,7 @@ static void read_fn_decl_header(FILE *mem, struct ir_fn_decl *decl)
 {
     uint64_t len = 0;
     ir_fread(len);
-    decl->name = weak_calloc(1, len);
+    decl->name = fcc_calloc(1, len);
     ir_fread_bytes(decl->name, len);
     ir_fread(decl->ret_type);
     ir_fread(decl->ptr_depth);
@@ -379,7 +379,7 @@ static void read_fn_decl_args(FILE *mem, struct ir_fn_decl *decl)
 
     ir_vector_t args = {0};
     for (uint64_t i = 0; i < num; ++i) {
-        struct ir_node *ir = weak_new(struct ir_node);
+        struct ir_node *ir = fcc_new(struct ir_node);
         read_alloca(mem, ir);
         vector_push_back(args, ir);
     }
@@ -450,7 +450,7 @@ static void write_fn_decl(FILE *mem, struct ir_node *ir)
 
 static void read_fn_decl(FILE *mem, unused struct ir_node *ir)
 {
-    ir->ir = weak_new(struct ir_fn_decl);
+    ir->ir = fcc_new(struct ir_fn_decl);
     read_fn_decl_header(mem, ir->ir);
     read_fn_decl_args(mem, ir->ir);
     read_fn_decl_body(mem, ir->ir);
@@ -497,13 +497,13 @@ static void write_node(FILE *mem, struct ir_node *ir)
     case IR_FN_CALL:      write_fn_call(mem, ir); break;
     case IR_PHI:          write_phi(mem, ir); break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 }
 
 static struct ir_node *read_node(FILE *mem)
 {
-    struct ir_node *ir = weak_new(struct ir_node);
+    struct ir_node *ir = fcc_new(struct ir_node);
 
     read_node_meta(mem, ir);
     /* printf("IR read type: %s\n", ir_type_to_string(ir->type)); */
@@ -525,7 +525,7 @@ static struct ir_node *read_node(FILE *mem)
     case IR_FN_CALL:      read_fn_call(mem, ir); break;
     case IR_PHI:          read_phi(mem, ir); break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 
     return ir;
@@ -556,7 +556,7 @@ static struct ir_unit read_unit(FILE *mem)
 {
     uint64_t num_fns = 0;
     struct ir_unit unit = {
-        .fn_decls = weak_new(struct ir_node)
+        .fn_decls = fcc_new(struct ir_node)
     };
 
     ir_fread(num_fns);

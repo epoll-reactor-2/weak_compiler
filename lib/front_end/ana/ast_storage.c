@@ -22,7 +22,7 @@ void ast_storage_free(struct ast_storage *s)
     s->scope_depth = 0;
     hashmap_foreach(&s->scopes, k, v) {
         (void) k;
-        weak_free((void *) v);
+        fcc_free((void *) v);
     }
     hashmap_destroy(&s->scopes);
 }
@@ -37,7 +37,7 @@ void ast_storage_end_scope(struct ast_storage *s)
     hashmap_foreach(&s->scopes, k, v) {
         struct ast_storage_decl *decl = (struct ast_storage_decl *) v;
         if (decl->depth == s->scope_depth) {
-            weak_free(decl);
+            fcc_free(decl);
             hashmap_remove(&s->scopes, k);
         }
     }
@@ -56,7 +56,7 @@ void ast_storage_push_typed(
     uint16_t            ptr_depth,
     struct ast_node    *ast
 ) {
-    struct ast_storage_decl *decl = weak_calloc(1, sizeof (struct ast_storage_decl));
+    struct ast_storage_decl *decl = fcc_calloc(1, sizeof (struct ast_storage_decl));
     decl->ast = ast;
     decl->data_type = dt;
     decl->name = var_name;

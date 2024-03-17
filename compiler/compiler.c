@@ -59,7 +59,7 @@ tok_array_t *gen_tokens(const char *filename)
     }
     yylex();
     fseek(yyin, 0, SEEK_SET);
-    weak_set_source_stream(yyin);
+    fcc_set_source_stream(yyin);
 
     return lex_consumed_tokens();
 }
@@ -213,7 +213,7 @@ void configure_diag()
         .ignore_warns  = 0,
         .show_location = 1
     };
-    weak_diag_set_config(&diag_config);
+    fcc_diag_set_config(&diag_config);
 }
 
 int main(int argc, char *argv[])
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 void help()
 {
     printf(
-        "Usage: weak_compiler <options...> | <input-file>\n"
+        "Usage: fcc_compiler <options...> | <input-file>\n"
         "\n"
         "\t--dump-tokens\n"
         "\t--dump-ast\n"

@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_LEX_TOK_H
-#define WEAK_COMPILER_FRONTEND_LEX_TOK_H
+#ifndef FCC_FRONTEND_LEX_TOK_H
+#define FCC_FRONTEND_LEX_TOK_H
 
 #include "front_end/lex/tok_type.h"
 #include "util/compiler.h"
@@ -21,4 +21,4 @@ struct token {
 
 wur bool tok_is(const struct token *tok, char symbol);
 
-#endif // WEAK_COMPILER_FRONTEND_LEX_TOK_H
+#endif // FCC_FRONTEND_LEX_TOK_H

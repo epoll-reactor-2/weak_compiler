@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_TYPE_H
-#define WEAK_COMPILER_MIDDLE_END_TYPE_H
+#ifndef FCC_MIDDLE_END_TYPE_H
+#define FCC_MIDDLE_END_TYPE_H
 
 #include "front_end/lex/data_type.h"
 #include <stdint.h>
@@ -32,4 +32,4 @@ void ir_type_pass(struct ir_unit *unit);
 
 uint64_t ir_type_size(enum data_type dt);
 
-#endif // WEAK_COMPILER_MIDDLE_END_TYPE_H
+#endif // FCC_MIDDLE_END_TYPE_H

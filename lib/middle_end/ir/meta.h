@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_META_H
-#define WEAK_COMPILER_MIDDLE_END_META_H
+#ifndef FCC_MIDDLE_END_META_H
+#define FCC_MIDDLE_END_META_H
 
 #include "front_end/lex/data_type.h"
 #include <stdint.h>
@@ -56,4 +56,4 @@ struct meta {
     uint64_t global_loop_idx;
 };
 
-#endif // WEAK_COMPILER_MIDDLE_END_META_H
+#endif // FCC_MIDDLE_END_META_H

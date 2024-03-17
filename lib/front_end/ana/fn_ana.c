@@ -97,7 +97,7 @@ static void visit_fn_decl(struct ast_node *ast)
 
     if (last_ret.occurred && decl->data_type == D_T_VOID) {
         reset();
-        weak_compile_error(
+        fcc_compile_error(
             line_no, col_no,
             "Cannot return value from void function"
         );
@@ -105,7 +105,7 @@ static void visit_fn_decl(struct ast_node *ast)
 
     if (!last_ret.occurred && decl->data_type != D_T_VOID) {
         reset();
-        weak_compile_error(
+        fcc_compile_error(
             ast->line_no, ast->col_no,
             "Expected return value"
         );
@@ -119,7 +119,7 @@ static void visit_fn_call(struct ast_node *ast)
     struct ast_compound *call_args = stmt->args->ast;
 
     if (call_args->size != fn->args_cnt)
-        weak_compile_error(
+        fcc_compile_error(
             ast->line_no,
             ast->col_no,
             "Arguments size mismatch: %u got, but %u expected",
@@ -188,7 +188,7 @@ void visit(struct ast_node *ast)
         break;
     default: {
         enum ast_type t = ast->type;
-        weak_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
+        fcc_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
     }
     }
 }

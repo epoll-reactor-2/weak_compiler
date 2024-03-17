@@ -2,8 +2,8 @@
 # Compiler flags                 #
 ##################################
 CFLAGS  = -I../tests -I../lib
-LDFLAGS = -L../build -lweak_compiler -lfl
-BIN     = weak_compiler
+LDFLAGS = -L../build -lfcc_compiler -lfl
+BIN     = fcc_compiler
 SRC     = compiler.c
 OBJ     = $(SRC:.c=.o)
 

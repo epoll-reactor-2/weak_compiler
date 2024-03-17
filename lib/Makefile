@@ -2,7 +2,7 @@
 # Source files                   #
 ##################################
 SRC = $(shell find front_end middle_end util -name '*.c') ../build/lex.yy.c
-LIB = libweak_compiler.so
+LIB = libfcc_compiler.so
 
 # ifeq ($(USE_BACKEND_EVAL), 1)
 # SRC += back_end/eval.c

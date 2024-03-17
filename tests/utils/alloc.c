@@ -12,21 +12,21 @@ void *diag_warn_memstream = NULL;
 
 int main() {
     {
-        void *addr = weak_malloc(1);
+        void *addr = fcc_malloc(1);
         ASSERT_TRUE(addr);
-        weak_free(addr);
+        fcc_free(addr);
     }
 
     {
-        void *addr = weak_calloc(1, 1);
+        void *addr = fcc_calloc(1, 1);
         ASSERT_TRUE(addr);
-        weak_free(addr);
+        fcc_free(addr);
     }
 
     {
-        void *addr = weak_malloc(1);
-        addr = weak_realloc(addr, 2);
+        void *addr = fcc_malloc(1);
+        addr = fcc_realloc(addr, 2);
         ASSERT_TRUE(addr);
-        weak_free(addr);
+        fcc_free(addr);
     }
 }

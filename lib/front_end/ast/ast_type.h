@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_AST_AST_TYPE_H
-#define WEAK_COMPILER_FRONTEND_AST_AST_TYPE_H
+#ifndef FCC_FRONTEND_AST_AST_TYPE_H
+#define FCC_FRONTEND_AST_AST_TYPE_H
 
 enum ast_type {
     /** Literals. */
@@ -60,7 +60,7 @@ enum ast_type {
 /** \return String representation of the AST type. Don't
              apply free() to the result.
 
-    \note   weak_unreachable() called on unknown integer value of t. */
+    \note   fcc_unreachable() called on unknown integer value of t. */
 const char *ast_type_to_string(enum ast_type t);
 
-#endif // WEAK_COMPILER_FRONTEND_AST_AST_TYPE_H
+#endif // FCC_FRONTEND_AST_AST_TYPE_H

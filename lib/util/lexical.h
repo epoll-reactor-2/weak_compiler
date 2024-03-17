@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_UTIL_LEXICAL_H
-#define WEAK_COMPILER_UTIL_LEXICAL_H
+#ifndef FCC_UTIL_LEXICAL_H
+#define FCC_UTIL_LEXICAL_H
 
 #include <stdint.h>
 #include "util/compiler.h"
@@ -29,4 +29,4 @@ void ordinal_numeral(uint64_t num, char *out);
 /** Like strcmp but ignore spaces. */
 int istrcmp(const char *l, const char *r);
 
-#endif // WEAK_COMPILER_UTIL_LEXICAL_H
+#endif // FCC_UTIL_LEXICAL_H

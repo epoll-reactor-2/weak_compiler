@@ -14,7 +14,7 @@
  **********************************************/
 struct ast_node *ast_array_access_init(char *name, struct ast_node *indices, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_array_access *ast = weak_calloc(1, sizeof (struct ast_array_access));
+    struct ast_array_access *ast = fcc_calloc(1, sizeof (struct ast_array_access));
     ast->name = name;
     ast->indices = indices;
     return ast_node_init(AST_ARRAY_ACCESS, ast, line_no, col_no);
@@ -23,8 +23,8 @@ struct ast_node *ast_array_access_init(char *name, struct ast_node *indices, uin
 void ast_array_access_cleanup(struct ast_array_access *ast)
 {
     ast_node_cleanup(ast->indices);
-    weak_free(ast->name);
-    weak_free(ast);
+    fcc_free(ast->name);
+    fcc_free(ast);
 }
 
 
@@ -41,7 +41,7 @@ struct ast_node *ast_array_decl_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_array_decl *ast = weak_calloc(1, sizeof (struct ast_array_decl));
+    struct ast_array_decl *ast = fcc_calloc(1, sizeof (struct ast_array_decl));
     ast->dt = dt;
     ast->name = name;
     ast->type_name = type_name;
@@ -56,9 +56,9 @@ void ast_array_decl_cleanup(struct ast_array_decl *ast)
     ast_node_cleanup(ast->arity);
     ast_node_cleanup(ast->body);
     if (ast->type_name)
-        weak_free(ast->type_name);
-    weak_free(ast->name);
-    weak_free(ast);
+        fcc_free(ast->type_name);
+    fcc_free(ast->name);
+    fcc_free(ast);
 }
 
 
@@ -72,7 +72,7 @@ struct ast_node *ast_binary_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_binary *ast = weak_calloc(1, sizeof (struct ast_binary));
+    struct ast_binary *ast = fcc_calloc(1, sizeof (struct ast_binary));
     ast->op = op;
     ast->lhs = lhs;
     ast->rhs = rhs;
@@ -83,7 +83,7 @@ void ast_binary_cleanup(struct ast_binary *ast)
 {
     ast_node_cleanup(ast->lhs);
     ast_node_cleanup(ast->rhs);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -92,14 +92,14 @@ void ast_binary_cleanup(struct ast_binary *ast)
  **********************************************/
 struct ast_node *ast_bool_init(bool value, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_bool *ast = weak_calloc(1, sizeof (struct ast_bool));
+    struct ast_bool *ast = fcc_calloc(1, sizeof (struct ast_bool));
     ast->value = value;
     return ast_node_init(AST_BOOL, ast, line_no, col_no);
 }
 
 void ast_bool_cleanup(struct ast_bool *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -108,13 +108,13 @@ void ast_bool_cleanup(struct ast_bool *ast)
  **********************************************/
 struct ast_node *ast_break_init(uint16_t line_no, uint16_t col_no)
 {
-    struct ast_break *ast = weak_calloc(1, sizeof (struct ast_break));
+    struct ast_break *ast = fcc_calloc(1, sizeof (struct ast_break));
     return ast_node_init(AST_BREAK_STMT, ast, line_no, col_no);
 }
 
 void ast_break_cleanup(struct ast_break *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -123,14 +123,14 @@ void ast_break_cleanup(struct ast_break *ast)
  **********************************************/
 struct ast_node *ast_char_init(char value, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_char *ast = weak_calloc(1, sizeof (struct ast_char));
+    struct ast_char *ast = fcc_calloc(1, sizeof (struct ast_char));
     ast->value = value;
     return ast_node_init(AST_CHAR, ast, line_no, col_no);
 }
 
 void ast_char_cleanup(struct ast_char *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -143,7 +143,7 @@ struct ast_node *ast_compound_init(
     uint16_t          line_no,
     uint16_t          col_no
 ) {
-    struct ast_compound *ast = weak_calloc(1, sizeof (struct ast_compound));
+    struct ast_compound *ast = fcc_calloc(1, sizeof (struct ast_compound));
     ast->size = size;
     ast->stmts = stmts;
     return ast_node_init(AST_COMPOUND_STMT, ast, line_no, col_no);
@@ -154,8 +154,8 @@ void ast_compound_cleanup(struct ast_compound *ast)
     for (uint64_t i = 0; i < ast->size; ++i)
         ast_node_cleanup(ast->stmts[i]);
 
-    weak_free(ast->stmts);
-    weak_free(ast);
+    fcc_free(ast->stmts);
+    fcc_free(ast);
 }
 
 
@@ -164,13 +164,13 @@ void ast_compound_cleanup(struct ast_compound *ast)
  **********************************************/
 struct ast_node *ast_continue_init(uint16_t line_no, uint16_t col_no)
 {
-    struct ast_continue *ast = weak_calloc(1, sizeof (struct ast_continue));
+    struct ast_continue *ast = fcc_calloc(1, sizeof (struct ast_continue));
     return ast_node_init(AST_CONTINUE_STMT, ast, line_no, col_no);
 }
 
 void ast_continue_cleanup(struct ast_continue *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -183,7 +183,7 @@ struct ast_node *ast_do_while_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_do_while *ast = weak_calloc(1, sizeof (struct ast_do_while));
+    struct ast_do_while *ast = fcc_calloc(1, sizeof (struct ast_do_while));
     ast->body = body;
     ast->condition = condition;
     return ast_node_init(AST_DO_WHILE_STMT, ast, line_no, col_no);
@@ -193,7 +193,7 @@ void ast_do_while_cleanup(struct ast_do_while *ast)
 {
     ast_node_cleanup(ast->body);
     ast_node_cleanup(ast->condition);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -202,14 +202,14 @@ void ast_do_while_cleanup(struct ast_do_while *ast)
  **********************************************/
 struct ast_node *ast_float_init(double value, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_float *ast = weak_calloc(1, sizeof (struct ast_float));
+    struct ast_float *ast = fcc_calloc(1, sizeof (struct ast_float));
     ast->value = value;
     return ast_node_init(AST_FLOAT, ast, line_no, col_no);
 }
 
 void ast_float_cleanup(struct ast_float *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -224,7 +224,7 @@ struct ast_node *ast_for_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_for *ast = weak_calloc(1, sizeof (struct ast_for));
+    struct ast_for *ast = fcc_calloc(1, sizeof (struct ast_for));
     ast->init = init;
     ast->condition = condition;
     ast->increment = increment;
@@ -238,7 +238,7 @@ void ast_for_cleanup(struct ast_for *ast)
     ast_node_cleanup(ast->condition);
     ast_node_cleanup(ast->increment);
     ast_node_cleanup(ast->body);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -252,7 +252,7 @@ struct ast_node *ast_for_range_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_for_range *ast = weak_calloc(1, sizeof (struct ast_for_range));
+    struct ast_for_range *ast = fcc_calloc(1, sizeof (struct ast_for_range));
     ast->iter = iter;
     ast->range_target = range_target;
     ast->body = body;
@@ -264,7 +264,7 @@ void ast_for_range_cleanup(struct ast_for_range *ast)
     ast_node_cleanup(ast->iter);
     ast_node_cleanup(ast->range_target);
     ast_node_cleanup(ast->body);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -278,9 +278,9 @@ struct ast_node *ast_fn_call_init(
     uint16_t         col_no
 ) {
     if (args->type != AST_COMPOUND_STMT)
-        weak_fatal_error("Expected compound statement as function call arguments list.");
+        fcc_fatal_error("Expected compound statement as function call arguments list.");
 
-    struct ast_fn_call *ast = weak_calloc(1, sizeof (struct ast_fn_call));
+    struct ast_fn_call *ast = fcc_calloc(1, sizeof (struct ast_fn_call));
     ast->name = name;
     ast->args = args;
     return ast_node_init(AST_FUNCTION_CALL, ast, line_no, col_no);
@@ -289,8 +289,8 @@ struct ast_node *ast_fn_call_init(
 void ast_fn_call_cleanup(struct ast_fn_call *ast)
 {
     ast_node_cleanup(ast->args);
-    weak_free(ast->name);
-    weak_free(ast);
+    fcc_free(ast->name);
+    fcc_free(ast);
 }
 
 
@@ -306,7 +306,7 @@ struct ast_node *ast_fn_decl_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_fn_decl *ast = weak_calloc(1, sizeof (struct ast_fn_decl));
+    struct ast_fn_decl *ast = fcc_calloc(1, sizeof (struct ast_fn_decl));
     ast->data_type = data_type;
     ast->ptr_depth = ptr_depth;
     ast->name = name;
@@ -319,8 +319,8 @@ void ast_fn_decl_cleanup(struct ast_fn_decl *ast)
 {
     ast_node_cleanup(ast->args);
     ast_node_cleanup(ast->body);
-    weak_free(ast->name);
-    weak_free(ast);
+    fcc_free(ast->name);
+    fcc_free(ast);
 }
 
 
@@ -334,7 +334,7 @@ struct ast_node *ast_if_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_if *ast = weak_calloc(1, sizeof (struct ast_if));
+    struct ast_if *ast = fcc_calloc(1, sizeof (struct ast_if));
     ast->condition = condition;
     ast->body = body;
     ast->else_body = else_body;
@@ -347,7 +347,7 @@ void ast_if_cleanup(struct ast_if *ast)
     ast_node_cleanup(ast->body);
     ast_node_cleanup(ast->else_body);
 
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -360,7 +360,7 @@ struct ast_node *ast_member_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_member *ast = weak_calloc(1, sizeof (struct ast_member));
+    struct ast_member *ast = fcc_calloc(1, sizeof (struct ast_member));
     ast->structure = structure;
     ast->member = member;
     return ast_node_init(AST_MEMBER, ast, line_no, col_no);
@@ -370,7 +370,7 @@ void ast_member_cleanup(struct ast_member *ast)
 {
     ast_node_cleanup(ast->member);
     ast_node_cleanup(ast->structure);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 /**********************************************
@@ -378,14 +378,14 @@ void ast_member_cleanup(struct ast_member *ast)
  **********************************************/
 struct ast_node *ast_int_init(int32_t value, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_int *ast = weak_calloc(1, sizeof (struct ast_int));
+    struct ast_int *ast = fcc_calloc(1, sizeof (struct ast_int));
     ast->value = value;
     return ast_node_init(AST_INT, ast, line_no, col_no);
 }
 
 void ast_int_cleanup(struct ast_int *ast)
 {
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -394,7 +394,7 @@ void ast_int_cleanup(struct ast_int *ast)
  **********************************************/
 struct ast_node *ast_ret_init(struct ast_node *op, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_ret *ast = weak_calloc(1, sizeof (struct ast_ret));
+    struct ast_ret *ast = fcc_calloc(1, sizeof (struct ast_ret));
     ast->op = op;
     return ast_node_init(AST_RETURN_STMT, ast, line_no, col_no);
 }
@@ -403,7 +403,7 @@ void ast_ret_cleanup(struct ast_ret *ast)
 {
     ast_node_cleanup(ast->op);
 
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -416,7 +416,7 @@ struct ast_node *ast_string_init(
     uint16_t  line_no,
     uint16_t  col_no
 ) {
-    struct ast_string *ast = weak_calloc(1, sizeof (struct ast_string));
+    struct ast_string *ast = fcc_calloc(1, sizeof (struct ast_string));
     ast->len = len;
     ast->value = value;
     return ast_node_init(AST_STRING, ast, line_no, col_no);
@@ -424,8 +424,8 @@ struct ast_node *ast_string_init(
 
 void ast_string_cleanup(struct ast_string *ast)
 {
-    weak_free(ast->value);
-    weak_free(ast);
+    fcc_free(ast->value);
+    fcc_free(ast);
 }
 
 
@@ -434,7 +434,7 @@ void ast_string_cleanup(struct ast_string *ast)
  **********************************************/
 struct ast_node *ast_struct_decl_init(char *name, struct ast_node *decls, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_struct_decl *ast = weak_calloc(1, sizeof (struct ast_struct_decl));
+    struct ast_struct_decl *ast = fcc_calloc(1, sizeof (struct ast_struct_decl));
     ast->name = name;
     ast->decls = decls;
     return ast_node_init(AST_STRUCT_DECL, ast, line_no, col_no);
@@ -443,8 +443,8 @@ struct ast_node *ast_struct_decl_init(char *name, struct ast_node *decls, uint16
 void ast_struct_decl_cleanup(struct ast_struct_decl *ast)
 {
     ast_node_cleanup(ast->decls);
-    weak_free(ast->name);
-    weak_free(ast);
+    fcc_free(ast->name);
+    fcc_free(ast);
 }
 
 
@@ -453,15 +453,15 @@ void ast_struct_decl_cleanup(struct ast_struct_decl *ast)
  **********************************************/
 struct ast_node *ast_sym_init(char *value, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_sym *ast = weak_calloc(1, sizeof (struct ast_sym));
+    struct ast_sym *ast = fcc_calloc(1, sizeof (struct ast_sym));
     ast->value = value;
     return ast_node_init(AST_SYMBOL, ast, line_no, col_no);
 }
 
 void ast_sym_cleanup(struct ast_sym *ast)
 {
-    weak_free(ast->value);
-    weak_free(ast);
+    fcc_free(ast->value);
+    fcc_free(ast);
 }
 
 
@@ -476,10 +476,10 @@ struct ast_node *ast_unary_init(
     uint16_t         col_no
 ) {
     if (type != AST_PREFIX_UNARY && type != AST_POSTFIX_UNARY) {
-        weak_fatal_error("Expected prefix or postfix unary type.");
+        fcc_fatal_error("Expected prefix or postfix unary type.");
     }
 
-    struct ast_unary *ast = weak_calloc(1, sizeof (struct ast_unary));
+    struct ast_unary *ast = fcc_calloc(1, sizeof (struct ast_unary));
     ast->op = op;
     ast->operand = operand;
     return ast_node_init(type, ast, line_no, col_no);
@@ -488,7 +488,7 @@ struct ast_node *ast_unary_init(
 void ast_unary_cleanup(struct ast_unary *ast)
 {
     ast_node_cleanup(ast->operand);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -504,7 +504,7 @@ struct ast_node *ast_var_decl_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_var_decl *ast = weak_calloc(1, sizeof (struct ast_var_decl));
+    struct ast_var_decl *ast = fcc_calloc(1, sizeof (struct ast_var_decl));
     ast->dt = dt;
     ast->name = name;
     ast->type_name = type_name;
@@ -515,13 +515,13 @@ struct ast_node *ast_var_decl_init(
 
 void ast_var_decl_cleanup(struct ast_var_decl *ast)
 {
-    weak_free(ast->name);
+    fcc_free(ast->name);
 
     if (ast->type_name)
-        weak_free(ast->type_name);
+        fcc_free(ast->type_name);
 
     ast_node_cleanup(ast->body);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -534,7 +534,7 @@ struct ast_node *ast_while_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_while *ast = weak_calloc(1, sizeof (struct ast_while));
+    struct ast_while *ast = fcc_calloc(1, sizeof (struct ast_while));
     ast->cond = cond;
     ast->body = body;
     return ast_node_init(AST_WHILE_STMT, ast, line_no, col_no);
@@ -544,7 +544,7 @@ void ast_while_cleanup(struct ast_while *ast)
 {
     ast_node_cleanup(ast->cond);
     ast_node_cleanup(ast->body);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -553,7 +553,7 @@ void ast_while_cleanup(struct ast_while *ast)
  **********************************************/
 struct ast_node *ast_node_init(enum ast_type type, void *ast, uint16_t line_no, uint16_t col_no)
 {
-    struct ast_node *node = weak_calloc(1, sizeof (struct ast_node));
+    struct ast_node *node = fcc_calloc(1, sizeof (struct ast_node));
     node->type = type;
     node->ast = ast;
     node->line_no = line_no;
@@ -571,7 +571,7 @@ wur struct ast_node *ast_implicit_cast_init(
     uint16_t         line_no,
     uint16_t         col_no
 ) {
-    struct ast_implicit_cast *ast = weak_calloc(1, sizeof (struct ast_implicit_cast));
+    struct ast_implicit_cast *ast = fcc_calloc(1, sizeof (struct ast_implicit_cast));
     ast->to = to;
     ast->body = body;
     return ast_node_init(AST_IMPLICIT_CAST, ast, line_no, col_no);
@@ -580,7 +580,7 @@ wur struct ast_node *ast_implicit_cast_init(
 void ast_implicit_cast_cleanup(struct ast_implicit_cast *ast)
 {
     ast_node_cleanup(ast->body);
-    weak_free(ast);
+    fcc_free(ast);
 }
 
 
@@ -666,8 +666,8 @@ void ast_node_cleanup(struct ast_node *ast)
         break;
     default: {
         enum ast_type t = ast->type;
-        weak_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
+        fcc_unreachable("Unknown AST type (%d, %s).", t, ast_type_to_string(t));
     }
     }
-    weak_free(ast);
+    fcc_free(ast);
 }

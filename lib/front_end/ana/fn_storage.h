@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_ANALYSIS_FN_STORAGE_H
-#define WEAK_COMPILER_FRONTEND_ANALYSIS_FN_STORAGE_H
+#ifndef FCC_FRONTEND_ANALYSIS_FN_STORAGE_H
+#define FCC_FRONTEND_ANALYSIS_FN_STORAGE_H
 
 #include "util/hashmap.h"
 
@@ -32,4 +32,4 @@ struct ast_fn_decl *fn_storage_lookup(
     const char   *name
 );
 
-#endif //WEAK_COMPILER_FRONTEND_ANALYSIS_FN_STORAGE_H
+#endif //FCC_FRONTEND_ANALYSIS_FN_STORAGE_H

@@ -33,7 +33,7 @@ const char *ir_type_to_string(enum ir_type t)
     case IR_PHI:          return "IR_PHI";
     case IR_STRING:       return "IR_STRING";
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", t);
+        fcc_unreachable("Unknown IR type (numeric: %d).", t);
     }
 }
 
@@ -82,7 +82,7 @@ static void ir_dump_imm(FILE *mem, struct ir_imm *ir)
     case IMM_FLOAT: fprintf(mem, "%f", ir->imm.__float); break;
     case IMM_INT:   fprintf(mem, "%d", ir->imm.__int); break;
     default:
-        weak_unreachable("Unknown immediate IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown immediate IR type (numeric: %d).", ir->type);
     }
 }
 
@@ -240,7 +240,7 @@ void ir_dump_node(FILE *mem, struct ir_node *ir)
     case IR_FN_CALL:      ir_dump_fn_call(mem, ir->ir); break;
     case IR_PHI:          ir_dump_phi(mem, ir->ir); break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 
     /* Too verbose. Makes sense to use only for

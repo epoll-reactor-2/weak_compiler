@@ -41,7 +41,7 @@ int ana_test(const char *path, unused const char *filename)
 
     get_init_comment(yyin, msg_stream, path);
 
-    if (!setjmp(weak_fatal_error_buf)) {
+    if (!setjmp(fcc_fatal_error_buf)) {
         analysis_fn(ast);
         /* Normal code. */
         if (!ignore_warns) {
@@ -92,7 +92,7 @@ void configure()
         .ignore_warns  = 0,
         .show_location = 0
     };
-    weak_diag_set_config(&config);
+    fcc_diag_set_config(&config);
 }
 
 int run(const char *dir)

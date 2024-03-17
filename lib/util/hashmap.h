@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_UTIL_HASHMAP_H
-#define WEAK_COMPILER_UTIL_HASHMAP_H
+#ifndef FCC_UTIL_HASHMAP_H
+#define FCC_UTIL_HASHMAP_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -43,4 +43,4 @@ bool     hashmap_has    (hashmap_t *map, uint64_t key);
                                  */                          \
         if ((map)->buckets[_i].is_occupied && !(map)->buckets[_i].is_deleted)
 
-#endif // WEAK_COMPILER_UTIL_HASHMAP_H
+#endif // FCC_UTIL_HASHMAP_H

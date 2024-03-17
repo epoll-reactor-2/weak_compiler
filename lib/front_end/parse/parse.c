@@ -28,7 +28,7 @@ struct token *require_token(enum token_type t)
     struct token *curr_tok = peek_current();
 
     if (curr_tok->type != t)
-        weak_compile_error(
+        fcc_compile_error(
             curr_tok->line_no,
             curr_tok->col_no,
             "Expected `%s`, got `%s`",
@@ -54,7 +54,7 @@ static enum data_type tok_to_data_type(enum token_type t)
     case TOK_BOOL:   return D_T_BOOL;
     case TOK_SYM:    return D_T_STRUCT;
     default:
-        weak_unreachable(
+        fcc_unreachable(
             "Cannot convert token `%s` to the data type",
             tok_to_string(t)
         );
@@ -88,7 +88,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
             // vector_push_back(global_stmts, parse_function_decl());
             break;
         default:
-            weak_compile_error(
+            fcc_compile_error(
                 curr->line_no,
                 curr->col_no,
                 "Unexpected token in global context: %s\n",
@@ -167,7 +167,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //             vector_push_back(global_stmts, parse_function_decl());
 //             break;
 //         default:
-//             weak_compile_error(
+//             fcc_compile_error(
 //                 curr->line_no,
 //                 curr->col_no,
 //                 "Unexpected token in global context: %s\n",
@@ -221,7 +221,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //         return dt;
 //     }
 //     default:
-//         weak_compile_error(
+//         fcc_compile_error(
 //             t->line_no,
 //             t->col_no,
 //             "Data type expected, got %s",
@@ -256,7 +256,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     struct token *var_name = peek_next();
 
 //     if (var_name->type != TOK_SYMBOL)
-//         weak_compile_error(
+//         fcc_compile_error(
 //             var_name->line_no,
 //             var_name->col_no,
 //             "Variable name expected"
@@ -265,7 +265,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     ast_array_t arity_list = {0};
 
 //     if (!tok_is(peek_current(), '['))
-//         weak_compile_error(
+//         fcc_compile_error(
 //             peek_current()->line_no,
 //             peek_current()->col_no,
 //             "`[` expected"
@@ -275,7 +275,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //         require_char('[');
 //         struct ast_node *constant = parse_constant();
 //         if (constant->type != AST_INT)
-//             weak_compile_error(
+//             fcc_compile_error(
 //                 constant->line_no,
 //                 constant->col_no,
 //                 "Integer size declarator expected"
@@ -310,7 +310,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     struct ast_array_decl *decl = ast->ast;
 
 //     if (decl->ptr_depth > 0 && !tok_is(peek_current(), '='))
-//         weak_compile_error(
+//         fcc_compile_error(
 //             ast->line_no,
 //             ast->col_no,
 //             "Pointer array declaration expects body"
@@ -340,7 +340,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //        what type of declaration there is. All other
 //        allocated strings are not needed. */
 //     if (dt.type_name)
-//         weak_free(dt.type_name);
+//         fcc_free(dt.type_name);
 
 //     switch (ptr->type) {
 //     case TOK_SYMBOL:
@@ -354,7 +354,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //         else
 //             return parse_var_decl_without_initializer();
 //     default:
-//         weak_unreachable(
+//         fcc_unreachable(
 //             "Data type expected, got `%s`.",
 //             tok_to_string(ptr->type)
 //         );
@@ -383,7 +383,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     struct token *var_name = peek_next();
 
 //     if (var_name->type != TOK_SYMBOL)
-//         weak_compile_error(
+//         fcc_compile_error(
 //             var_name->line_no,
 //             var_name->col_no,
 //             "Variable name expected"
@@ -419,7 +419,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //         return parse_array_decl();
 //     }
 
-//     weak_compile_error(
+//     fcc_compile_error(
 //         var_name->line_no,
 //         var_name->col_no,
 //         "Function, variable or array declaration expected"
@@ -442,7 +442,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     case TOK_BOOL: /* Fall through. */
 //         return parse_decl_without_initializer();
 //     default:
-//         weak_compile_error(
+//         fcc_compile_error(
 //             t->line_no,
 //             t->col_no,
 //             "Declaration expected"
@@ -571,7 +571,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     case TOK_OPEN_PAREN:
 //         return parse_primary();
 //     default:
-//         weak_compile_error(
+//         fcc_compile_error(
 //             t->line_no,
 //             t->col_no,
 //             "Unexpected token %s\n",
@@ -715,7 +715,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     case TOK_WHILE:
 //         return parse_while();
 //     default:
-//         weak_unreachable("Loop types are checked in the function above.");
+//         fcc_unreachable("Loop types are checked in the function above.");
 //     }
 // }
 
@@ -789,7 +789,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 
 //         struct token *curr = peek_current();
 //         struct localized_data_type dt = parse_type();
-//         weak_free(dt.type_name);
+//         fcc_free(dt.type_name);
 
 //         if (tok_is(peek_current() + 1, '=')) {
 //             /* Regular for. */
@@ -1181,7 +1181,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //         struct ast_node *constant = parse_constant();
 
 //         if (constant->type != AST_INT)
-//             weak_compile_error(
+//             fcc_compile_error(
 //                 constant->line_no,
 //                 constant->col_no,
 //                 "Integer size declarator expected"
@@ -1250,7 +1250,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     struct token *symbol = peek_next();
 
 //     if (!tok_is(peek_current(), '['))
-//         weak_compile_error(
+//         fcc_compile_error(
 //             symbol->line_no,
 //             symbol->col_no,
 //             "`[` expected"
@@ -1393,7 +1393,7 @@ struct ast_node *parse(const struct token *begin, const struct token *end)
 //     case TOK_FALSE:
 //         return ast_bool_init(strcmp(t->data, "true") == 0, t->line_no, t->col_no);
 //     default:
-//         weak_compile_error(
+//         fcc_compile_error(
 //             t->line_no,
 //             t->col_no,
 //             "Literal expected, got ",

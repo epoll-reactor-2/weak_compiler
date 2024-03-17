@@ -120,7 +120,7 @@ void ir_ddg_build(struct ir_fn_decl *decl)
         it = it->next;
     }
 
-    __weak_debug({
+    __fcc_debug({
         it = decl->body;
 
         while (it) {

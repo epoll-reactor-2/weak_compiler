@@ -3,7 +3,7 @@
 ##################################
 CFLAGS  += -Wall -Werror -Wextra -Wunused
 CFLAGS  += -I../tests -I../lib -Werror
-LDFLAGS += -L../build -lweak_compiler -lfl
+LDFLAGS += -L../build -lfcc_compiler -lfl
 
 ifeq ($(DEBUG_BUILD), 1)
 CFLAGS     += -O0 -ggdb

@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_ANA_H
-#define WEAK_COMPILER_FRONTEND_ANA_H
+#ifndef FCC_FRONTEND_ANA_H
+#define FCC_FRONTEND_ANA_H
 
 struct ast_node;
 
@@ -73,4 +73,4 @@ void ana_fn(struct ast_node *root);
     </table> */
 void ana_type(struct ast_node *root);
 
-#endif // WEAK_COMPILER_FRONTEND_ANA_H
+#endif // FCC_FRONTEND_ANA_H

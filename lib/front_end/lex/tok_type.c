@@ -33,6 +33,6 @@ enum token_type tok_char_to_tok(char c)
     case '(': return TOK_OPEN_PAREN;
     case ')': return TOK_CLOSE_PAREN;
     default:
-        weak_unreachable("Unknown character operation (char: `%c`).", c);
+        fcc_unreachable("Unknown character operation (char: `%c`).", c);
     }
 }

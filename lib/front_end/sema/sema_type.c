@@ -106,7 +106,7 @@ static enum data_type type_select_equal_size(enum data_type l, enum data_type r)
     if (any_of(l, r, D_T_INT) && any_of(l, r, D_T_BOOL))
         return D_T_INT;
 
-    weak_unreachable(
+    fcc_unreachable(
         "Unknown pair of types: %s and %s",
         data_type_to_string(l),
         data_type_to_string(r)
@@ -189,10 +189,10 @@ static void visit_fn_call(unused struct ast_node *ast)
     // struct ast_compound *args = stmt->args->ast;
 
     // if (!fn)
-    //     weak_fatal_error("`%s` function lookup failed", stmt->name);
+    //     fcc_fatal_error("`%s` function lookup failed", stmt->name);
 
     // if (args->size != fn->args_cnt)
-    //     weak_fatal_error(
+    //     fcc_fatal_error(
     //         "Mismatch between args count of stored function and "
     //         "call to it. Please run ana/fn_ana.c."
     //     );

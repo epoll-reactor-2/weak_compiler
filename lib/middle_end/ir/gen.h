@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_MIDDLE_END_IR_GEN_H
-#define WEAK_COMPILER_MIDDLE_END_IR_GEN_H
+#ifndef FCC_MIDDLE_END_IR_GEN_H
+#define FCC_MIDDLE_END_IR_GEN_H
 
 #include <stdint.h>
 #include "util/compiler.h"
@@ -26,4 +26,4 @@ wur struct ir_unit ir_gen(struct ast_node *ast);
 
 void ir_cfg_build(struct ir_fn_decl *decl);
 
-#endif // WEAK_COMPILER_MIDDLE_END_IR_GEN_H
+#endif // FCC_MIDDLE_END_IR_GEN_H

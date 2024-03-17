@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_EXECUTION_H
-#define WEAK_COMPILER_EXECUTION_H
+#ifndef FCC_EXECUTION_H
+#define FCC_EXECUTION_H
 
 #include "front_end/lex/data_type.h"
 #include <stdint.h>
@@ -30,4 +30,4 @@ struct value {
     };
 };
 
-#endif // WEAK_COMPILER_EXECUTION_H
+#endif // FCC_EXECUTION_H

@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef WEAK_COMPILER_FRONTEND_LEX_DATA_TYPE_H
-#define WEAK_COMPILER_FRONTEND_LEX_DATA_TYPE_H
+#ifndef FCC_FRONTEND_LEX_DATA_TYPE_H
+#define FCC_FRONTEND_LEX_DATA_TYPE_H
 
 #include "util/compiler.h"
 
@@ -27,7 +27,7 @@ extern int data_type_size[D_T_TOTAL];
 /** \return String representation of the token. Don't
             apply free() to the result.
    
-    \note   weak_unreachable() called on unknown integer value of dt. */
+    \note   fcc_unreachable() called on unknown integer value of dt. */
 wur const char *data_type_to_string(enum data_type dt);
 
-#endif // WEAK_COMPILER_FRONTEND_LEX_DATA_TYPE_H
+#endif // FCC_FRONTEND_LEX_DATA_TYPE_H

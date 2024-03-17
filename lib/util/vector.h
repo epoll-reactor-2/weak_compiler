@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef WEAK_COMPILER_UTIL_VECTOR_H
-#define WEAK_COMPILER_UTIL_VECTOR_H
+#ifndef FCC_UTIL_VECTOR_H
+#define FCC_UTIL_VECTOR_H
 
 #include <stdlib.h>
 #include "util/alloc.h"
@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     if ((vec).count >= (vec).size) { \
         (vec).size += (vec).size >> 1; \
         if ((vec).size == 0) (vec).size = 2; \
-        (vec).data = weak_realloc((vec).data, (vec).size * sizeof(*(vec).data)); \
+        (vec).data = fcc_realloc((vec).data, (vec).size * sizeof(*(vec).data)); \
     }
 
 #define vector_init(vec) \
@@ -108,4 +108,4 @@ do { \
 #define vector_foreach_back(vec, iter) \
     for (size_t iter=(vec).count; iter--;)
 
-#endif // WEAK_COMPILER_UTIL_VECTOR_H
+#endif // FCC_UTIL_VECTOR_H

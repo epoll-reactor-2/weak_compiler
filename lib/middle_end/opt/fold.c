@@ -26,13 +26,13 @@ static void fold_opt_reset()
 
 static void consts_mapping_add(uint64_t idx, uint64_t value)
 {
-    __weak_debug_msg("Consts mapping: put %lu:%lu\n", idx, value);
+    __fcc_debug_msg("Consts mapping: put %lu:%lu\n", idx, value);
     hashmap_put(&consts_mapping, idx, value);
 }
 
 static void consts_mapping_remove(uint64_t idx)
 {
-    __weak_debug_msg("Consts mapping: remove %lu\n", idx);
+    __fcc_debug_msg("Consts mapping: remove %lu\n", idx);
     hashmap_remove(&consts_mapping, idx);
 }
 
@@ -41,16 +41,16 @@ static union ir_imm_val consts_mapping_get(uint64_t idx)
     bool ok = 0;
     uint64_t got = hashmap_get(&consts_mapping, idx, &ok);
     if (!ok) {
-        weak_unreachable("Cannot get by index %lu", idx);
+        fcc_unreachable("Cannot get by index %lu", idx);
     }
-    __weak_debug_msg("Consts mapping: get %lu:%lu\n", idx, got);
+    __fcc_debug_msg("Consts mapping: get %lu:%lu\n", idx, got);
     return (union ir_imm_val) (int32_t) got;
 }
 
 static void consts_mapping_update(uint64_t idx, uint64_t value)
 {
     hashmap_remove(&consts_mapping, idx);
-    __weak_debug_msg("Consts mapping: update %lu:%lu\n", idx, value);
+    __fcc_debug_msg("Consts mapping: update %lu:%lu\n", idx, value);
     hashmap_put(&consts_mapping, idx, value);
 }
 
@@ -58,13 +58,13 @@ static bool consts_mapping_is_const(uint64_t idx)
 {
     bool ok = 0;
     hashmap_get(&consts_mapping, idx, &ok);
-    __weak_debug_msg("Consts mapping: is const? idx:%lu -> %d\n", idx, ok);
+    __fcc_debug_msg("Consts mapping: is const? idx:%lu -> %d\n", idx, ok);
     return ok;
 }
 
 static void loop_dependent_put(uint64_t sym_idx, uint64_t loop_idx)
 {
-    __weak_debug_msg("Loop dependence mapping: add idx:%lu, loop_idx:%lu\n", sym_idx, loop_idx);
+    __fcc_debug_msg("Loop dependence mapping: add idx:%lu, loop_idx:%lu\n", sym_idx, loop_idx);
     hashmap_put(&loop_dependent_stmts, sym_idx, loop_idx);
 }
 
@@ -72,7 +72,7 @@ static bool loop_dependent(uint64_t sym_idx)
 {
     bool ok = 0;
     hashmap_get(&loop_dependent_stmts, sym_idx, &ok);
-    __weak_debug_msg("Loop dependence mapping: is depends on loop conditions? idx:%lu -> %d\n", sym_idx, ok);
+    __fcc_debug_msg("Loop dependence mapping: is depends on loop conditions? idx:%lu -> %d\n", sym_idx, ok);
     return ok;
 }
 
@@ -84,7 +84,7 @@ static bool fold_booleans(enum token_type op, bool l, bool r)
     case TOK_BIT_XOR: return l ^ r;
     case TOK_ASSIGN:  return 0;
     default:
-        weak_unreachable("Unknown token type `%s`.", tok_to_string(op));
+        fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
 }
 
@@ -111,7 +111,7 @@ static int32_t fold_ints(enum token_type op, int32_t l, int32_t r)
     case TOK_MOD:     return l  % r;
     case TOK_ASSIGN:  return -1;
     default:
-        weak_unreachable("Unknown token type `%s`.", tok_to_string(op));
+        fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
 }
 
@@ -130,7 +130,7 @@ static float fold_floats(enum token_type op, float l, float r)
     case TOK_SLASH:   return l  / r;
     case TOK_ASSIGN:  return -1.0;
     default:
-        weak_unreachable("Unknown token type `%s`.", tok_to_string(op));
+        fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
 }
 
@@ -146,7 +146,7 @@ wur static struct ir_node *compute_imm(
     case IMM_FLOAT: return ir_imm_float_init(fold_floats  (op, lhs.__float, rhs.__float));
     case IMM_INT:   return ir_imm_int_init  (fold_ints    (op, lhs.__int,   rhs.__int));
     default:
-        weak_unreachable("Unknown immediate IR type (numeric: %d).", type);
+        fcc_unreachable("Unknown immediate IR type (numeric: %d).", type);
     }
 }
 
@@ -192,7 +192,7 @@ static bool fold_store_mark_loop_dependent(struct ir_node *ir)
 
     if (ir->meta.sym.loop) {
         loop_dependent_put(get_store_idx(store->idx), ir->meta.sym.loop_idx);
-        __weak_debug_msg("Added loop-dependent variable (loop attr) %p. Return\n", store->idx);
+        __fcc_debug_msg("Added loop-dependent variable (loop attr) %p. Return\n", store->idx);
         return 1;
     }
     return 0;
@@ -305,15 +305,15 @@ static struct ir_node *fold_bin(struct ir_bin *ir)
         if (!meta->sym.noalias) {
             l = fold_node(ir->lhs);
         } else {
-            __weak_debug_msg("Found noalias attribute for %%%lu\n", ir->lhs->instr_idx);
+            __fcc_debug_msg("Found noalias attribute for %%%lu\n", ir->lhs->instr_idx);
         }
     } else {
         l = fold_node(ir->lhs);
     }
 
     if (l) {
-        __weak_debug_msg("Bin: folded LHS -> ");
-        __weak_debug({
+        __fcc_debug_msg("Bin: folded LHS -> ");
+        __fcc_debug({
             if (!is_no_result(l)) {
                 ir_dump_node(stdout, l);
             } else {
@@ -328,15 +328,15 @@ static struct ir_node *fold_bin(struct ir_bin *ir)
         if (!meta->sym.noalias) {
             r = fold_node(ir->rhs);
         } else {
-            __weak_debug_msg("Found noalias attribute for %%%lu\n", ir->rhs->instr_idx);
+            __fcc_debug_msg("Found noalias attribute for %%%lu\n", ir->rhs->instr_idx);
         }
     } else {
         r = fold_node(ir->rhs);
     }
 
     if (r) {
-        __weak_debug_msg("Bin: folded RHS -> ");
-        __weak_debug({
+        __fcc_debug_msg("Bin: folded RHS -> ");
+        __fcc_debug({
             if (!is_no_result(r)) {
                 ir_dump_node(stdout, r);
             } else {
@@ -423,7 +423,7 @@ static struct ir_node *fold_node(struct ir_node *ir)
         fold_cond(ir->ir);
         break;
     default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
+        fcc_unreachable("Unknown IR type (numeric: %d).", ir->type);
     }
 
     return no_result();
