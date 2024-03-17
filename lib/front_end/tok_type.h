@@ -105,12 +105,6 @@
     take(TOK_COMMA, ",") \
     take(TOK_HASH, "#") \
     take(TOK_HASH_HASH, "##") \
-    take(TOK_LESS_COLON, "<:") \
-    take(TOK_COLON_GREATER, ":>") \
-    take(TOK_LESS_PERCENT, "<%") \
-    take(TOK_PERCENT_GREATER, "%>") \
-    take(TOK_PERCENT_COLON, "%:") \
-    take(TOK_PERCENT_PERCENT, "%:%:") \
     take(TOK_INT_LITERAL, "<integer literal>") \
     take(TOK_FLOAT_LITERAL, "<float literal>") \
     take(TOK_STRING_LITERAL, "<string literal>") \

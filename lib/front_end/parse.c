@@ -184,13 +184,6 @@ static enum token_type parse_punctuator() /* 6.4.6 */
     case TOK_COMMA: /* , */
     case TOK_HASH: /* # */
     case TOK_HASH_HASH: /* ## */
-
-    case TOK_LESS_COLON: /* <: */
-    case TOK_COLON_GREATER: /* :> */
-    case TOK_LESS_PERCENT: /* <% */
-    case TOK_PERCENT_GREATER: /* %> */
-    case TOK_PERCENT_COLON: /* %: */
-    case TOK_PERCENT_PERCENT: /* %:%: */
         return c->type;
     default:
         report_unexpected(c);
