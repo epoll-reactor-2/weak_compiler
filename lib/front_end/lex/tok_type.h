@@ -12,7 +12,7 @@
 #define __take_enum(x, y) x,
 #define __take_string(x, y) y,
 
-#define map_tokens(take) \
+#define map(take) \
     take(TOK_ALIGNOF, "alignof") \
     take(TOK_AUTO, "auto") \
     take(TOK_BREAK, "break") \
@@ -118,12 +118,12 @@
     take(TOK_SYM, "<symbol>")
 
 enum token_type {
-    map_tokens(__take_enum)
+    map(__take_enum)
 };
 
 really_inline static const char *tok_to_string(int t)
 {
-    static const char *names[] = { map_tokens(__take_string) };
+    static const char *names[] = { map(__take_string) };
     return names[t];
 }
 
@@ -131,6 +131,6 @@ enum token_type tok_char_to_tok(char c);
 
 #undef __take_string
 #undef __take_enum
-#undef map_tokens
+#undef map
 
 #endif // FCC_FRONTEND_LEX_TOK_TYPE_H

@@ -34,7 +34,6 @@ static void visit(struct ast_node *ast);
 static void visit_char  () { last_indir_lvl = 0; last_dt = D_T_CHAR; }
 static void visit_num   () { last_indir_lvl = 0; last_dt = D_T_INT; }
 static void visit_float () { last_indir_lvl = 0; last_dt = D_T_FLOAT; }
-static void visit_string() { last_indir_lvl = 0; last_dt = D_T_STRING; }
 static void visit_bool  () { last_indir_lvl = 0; last_dt = D_T_BOOL; }
 
 static void visit_implicit_cast(struct ast_node *ast)
@@ -200,7 +199,7 @@ static void visit_var_decl(struct ast_node *ast)
         visit(decl->body);
         bool are_correct = 0;
         are_correct |= decl->dt == last_dt;
-        are_correct |= decl->ptr_depth == 1 && last_dt == D_T_STRING;
+        are_correct |= decl->ptr_depth == 1;
         if (!are_correct)
             fcc_compile_error(
                 ast->line_no,
@@ -498,9 +497,6 @@ void visit(struct ast_node *ast)
         break;
     case AST_FLOAT:
         visit_float();
-        break;
-    case AST_STRING:
-        visit_string();
         break;
     case AST_BOOL:
         visit_bool();

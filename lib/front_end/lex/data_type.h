@@ -9,25 +9,40 @@
 
 #include "util/compiler.h"
 
+#define __take_enum(x, y) x,
+#define __take_string(x, y) y,
+
+#define map(take) \
+    take(D_T_UNKNOWN, "<unknown>") \
+    take(D_T_FUNC, "function") \
+    take(D_T_STRUCT, "struct") \
+    take(D_T_VOID, "void") \
+    take(D_T_CHAR, "char") \
+    take(D_T_SHORT, "short") \
+    take(D_T_INT, "int") \
+    take(D_T_LONG, "long") \
+    take(D_T_FLOAT, "float") \
+    take(D_T_DOUBLE, "double") \
+    take(D_T_SIGNED, "signed") \
+    take(D_T_UNSIGNED, "unsigned") \
+    take(D_T_BOOL, "bool") \
+    take(D_T_COMPLEX, "complex") \
+    take(D_T_TOTAL, "<total>")
+
 enum data_type {
-    D_T_UNKNOWN = 0,
-    D_T_FUNC,
-    D_T_STRUCT,
-    D_T_VOID,
-    D_T_INT,
-    D_T_CHAR,
-    D_T_STRING,
-    D_T_FLOAT,
-    D_T_BOOL,
-    D_T_TOTAL
+    map(__take_enum)
 };
+
+really_inline static const char *data_type_to_string(int t)
+{
+    static const char *names[] = { map(__take_string) };
+    return names[t];
+}
 
 extern int data_type_size[D_T_TOTAL];
 
-/** \return String representation of the token. Don't
-            apply free() to the result.
-   
-    \note   fcc_unreachable() called on unknown integer value of dt. */
-wur const char *data_type_to_string(enum data_type dt);
+#undef __take_string
+#undef __take_enum
+#undef map
 
 #endif // FCC_FRONTEND_LEX_DATA_TYPE_H

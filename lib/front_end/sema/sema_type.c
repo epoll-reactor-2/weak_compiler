@@ -132,7 +132,6 @@ static enum data_type type_select(enum data_type l, enum data_type r)
 static void visit_char  () { last_type = D_T_CHAR; }
 static void visit_num   () { last_type = D_T_INT; }
 static void visit_float () { last_type = D_T_FLOAT; }
-static void visit_string() { last_type = D_T_STRING; }
 static void visit_bool  () { last_type = D_T_BOOL; }
 
 static void visit_bin(struct ast_node **ast)
@@ -297,9 +296,6 @@ static void visit(struct ast_node **ast)
         break;
     case AST_FLOAT:
         visit_float();
-        break;
-    case AST_STRING:
-        visit_string();
         break;
     case AST_BOOL:
         visit_bool();

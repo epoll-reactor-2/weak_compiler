@@ -165,14 +165,6 @@ __visit_primitive(float, FLOAT)
 __visit_primitive(int,   INT  )
 #undef __visit_primitive
 
-static void visit_string(struct ast_string *ast)
-{
-    /* ast->value is allocated in AST also. We duplicate to do not
-       be dependent on AST cleanup. */
-    ir_last = ir_string_init(ast->len, strdup(ast->value));
-    ir_last_type = D_T_STRING;
-}
-
 static void visit_cast(struct ast_implicit_cast *ast)
 {
     visit(ast->body);
@@ -860,7 +852,6 @@ static void visit(struct ast_node *ast)
     case AST_CHAR:            visit_char(ptr); break;
     case AST_INT:             visit_int(ptr); break;
     case AST_FLOAT:           visit_float(ptr); break;
-    case AST_STRING:          visit_string(ptr); break;
     case AST_BOOL:            visit_bool(ptr); break;
     case AST_SYMBOL:          visit_sym(ptr); break;
     case AST_VAR_DECL:        visit_var_decl(ptr); break;
