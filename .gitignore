@@ -2,8 +2,6 @@ build
 PVS-*
 .gdb_*
 .idea*
-.vscode/
-
+.vs*
 **/*.swp
-
 TODO
