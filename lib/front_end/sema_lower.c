@@ -4,8 +4,8 @@
 //  * This file is distributed under the MIT license.
 //  */
 
-// #include "front_end/ast/ast.h"
-#include "front_end/sema/sema.h"
+// #include "front_end/ast.h"
+#include "front_end/sema.h"
 // #include "util/alloc.h"
 // #include "util/hashmap.h"
 // #include "util/crc32.h"

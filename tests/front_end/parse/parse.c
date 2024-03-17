@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ast/ast_dump.h"
+#include "front_end/ast_dump.h"
 #include "utils/test_utils.h"
 
 void *diag_error_memstream = NULL;

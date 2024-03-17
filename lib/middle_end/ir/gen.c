@@ -5,7 +5,7 @@
  */
 
 #include "middle_end/ir/gen.h"
-#include "front_end/ast/ast.h"
+#include "front_end/ast.h"
 #include "middle_end/ir/ir.h"
 #include "middle_end/ir/storage.h"
 #include "util/crc32.h"

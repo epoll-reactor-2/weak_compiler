@@ -7,7 +7,7 @@
 #ifndef FCC_MIDDLE_END_IR_STORAGE_H
 #define FCC_MIDDLE_END_IR_STORAGE_H
 
-#include "front_end/lex/data_type.h"
+#include "front_end/data_type.h"
 #include "util/compiler.h"
 #include <stdint.h>
 

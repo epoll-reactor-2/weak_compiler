@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ast/ast_type.h"
+#include "front_end/ast_type.h"
 #include "util/unreachable.h"
 
 const char *ast_type_to_string(enum ast_type t) {

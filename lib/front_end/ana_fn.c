@@ -1,12 +1,12 @@
-/* fn_ana.c - Function analyzer.
+/* ana_fn.c - Function analyzer.
  * Copyright (C) 2023 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ana/ana.h"
-#include "front_end/ana/fn_storage.h"
-#include "front_end/ast/ast.h"
+#include "front_end/ana.h"
+#include "front_end/fn_storage.h"
+#include "front_end/ast.h"
 #include "util/diagnostic.h"
 #include "util/hashmap.h"
 #include "util/unreachable.h"

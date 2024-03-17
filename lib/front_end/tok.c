@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/tok.h"
+#include "front_end/tok.h"
 
 bool tok_is(const struct token *tok, char symbol)
 {

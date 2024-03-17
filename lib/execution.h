@@ -7,7 +7,7 @@
 #ifndef FCC_EXECUTION_H
 #define FCC_EXECUTION_H
 
-#include "front_end/lex/data_type.h"
+#include "front_end/data_type.h"
 #include <stdint.h>
 
 /* This structure is moved out from

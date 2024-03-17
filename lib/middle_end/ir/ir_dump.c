@@ -5,7 +5,7 @@
  */
 
 #include "middle_end/ir/ir_dump.h"
-#include "front_end/lex/data_type.h"
+#include "front_end/data_type.h"
 #include "middle_end/ir/meta.h"
 #include "util/unreachable.h"
 #include <assert.h>

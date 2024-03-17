@@ -7,8 +7,8 @@
 #ifndef FCC_FRONTEND_ANA_AST_STORAGE_H
 #define FCC_FRONTEND_ANA_AST_STORAGE_H
 
-#include "front_end/ast/ast.h"
-#include "front_end/lex/data_type.h"
+#include "front_end/ast.h"
+#include "front_end/data_type.h"
 #include "util/compiler.h"
 #include "util/hashmap.h"
 #include "util/vector.h"

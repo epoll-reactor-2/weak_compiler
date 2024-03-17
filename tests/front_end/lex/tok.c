@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/tok.h"
+#include "front_end/tok.h"
 #include "utils/test_utils.h"
 
 void *diag_error_memstream = NULL;

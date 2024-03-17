@@ -4,12 +4,12 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ana/ana.h"
-#include "front_end/ast/ast.h"
-#include "front_end/ast/ast_dump.h"
-#include "front_end/lex/lex.h"
-#include "front_end/parse/parse.h"
-#include "front_end/sema/sema.h"
+#include "front_end/ana.h"
+#include "front_end/ast.h"
+#include "front_end/ast_dump.h"
+#include "front_end/lex.h"
+#include "front_end/parse.h"
+#include "front_end/sema.h"
 #include "util/diagnostic.h"
 #include "utils/test_utils.h"
 #include <stdio.h>

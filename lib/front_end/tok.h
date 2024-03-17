@@ -7,7 +7,7 @@
 #ifndef FCC_FRONTEND_LEX_TOK_H
 #define FCC_FRONTEND_LEX_TOK_H
 
-#include "front_end/lex/tok_type.h"
+#include "front_end/tok_type.h"
 #include "util/compiler.h"
 #include <stdbool.h>
 #include <stdint.h>

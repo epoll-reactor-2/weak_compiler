@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/tok_type.h"
+#include "front_end/tok_type.h"
 #include "util/unreachable.h"
 
 enum token_type tok_char_to_tok(char c)

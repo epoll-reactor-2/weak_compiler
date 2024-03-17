@@ -1,12 +1,12 @@
-/* type_ana.c - Type checker.
+/* ana_type.c - Type checker.
  * Copyright (C) 2023 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ana/ana.h"
-#include "front_end/ana/ast_storage.h"
-#include "front_end/ast/ast.h"
+#include "front_end/ana.h"
+#include "front_end/ast_storage.h"
+#include "front_end/ast.h"
 #include "util/diagnostic.h"
 #include "util/lexical.h"
 #include "util/unreachable.h"

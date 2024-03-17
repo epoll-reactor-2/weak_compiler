@@ -7,7 +7,7 @@
 #ifndef FCC_FRONTEND_PARSE_PARSE_H
 #define FCC_FRONTEND_PARSE_PARSE_H
 
-#include "front_end/lex/tok.h"
+#include "front_end/tok.h"
 #include "util/compiler.h"
 
 struct ast_node;

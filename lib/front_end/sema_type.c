@@ -4,9 +4,9 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ast/ast.h"
-#include "front_end/ana/fn_storage.h"
-#include "front_end/sema/sema.h"
+#include "front_end/ast.h"
+#include "front_end/fn_storage.h"
+#include "front_end/sema.h"
 #include "util/unreachable.h"
 #include <assert.h>
 #include <stdio.h>

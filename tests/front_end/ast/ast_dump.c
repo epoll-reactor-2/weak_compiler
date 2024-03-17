@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ast/ast.h"
-#include "front_end/ast/ast_dump.h"
+#include "front_end/ast.h"
+#include "front_end/ast_dump.h"
 #include "util/alloc.h"
 #include "utils/test_utils.h"
 #include <stdlib.h>

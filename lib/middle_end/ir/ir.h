@@ -7,8 +7,8 @@
 #ifndef FCC_MIDDLE_END_IR_H
 #define FCC_MIDDLE_END_IR_H
 
-#include "front_end/lex/data_type.h"
-#include "front_end/lex/tok_type.h"
+#include "front_end/data_type.h"
+#include "front_end/tok_type.h"
 #include "middle_end/ir/ir_ops.h"
 #include "middle_end/ir/meta.h"
 #include "middle_end/ir/type.h"

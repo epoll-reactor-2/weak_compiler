@@ -4,9 +4,9 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/ast/ast.h"
-#include "front_end/lex/data_type.h"
-#include "front_end/parse/parse.h"
+#include "front_end/ast.h"
+#include "front_end/data_type.h"
+#include "front_end/parse.h"
 #include "util/alloc.h"
 #include "util/diagnostic.h"
 #include "util/unreachable.h"

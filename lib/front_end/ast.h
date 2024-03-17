@@ -10,9 +10,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "util/compiler.h"
-#include "front_end/ast/ast_type.h"
-#include "front_end/lex/data_type.h"
-#include "front_end/lex/tok_type.h"
+#include "front_end/ast_type.h"
+#include "front_end/data_type.h"
+#include "front_end/tok_type.h"
 
 
 /**********************************************

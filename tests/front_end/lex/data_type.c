@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/data_type.h"
+#include "front_end/data_type.h"
 #include "utils/test_utils.h"
 
 void *diag_error_memstream = NULL;

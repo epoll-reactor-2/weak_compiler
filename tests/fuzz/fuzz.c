@@ -7,11 +7,11 @@
 /* Usage: scripts/fuzz.sh or other way to start process
           from user shell. */
 
-#include "front_end/lex/lex.h"
-#include "front_end/ana/ana.h"
-#include "front_end/ast/ast.h"
-#include "front_end/ast/ast_dump.h"
-#include "front_end/parse/parse.h"
+#include "front_end/lex.h"
+#include "front_end/ana.h"
+#include "front_end/ast.h"
+#include "front_end/ast_dump.h"
+#include "front_end/parse.h"
 #include "middle_end/ir/gen.h"
 #include "middle_end/ir/ir_dump.h"
 #include "util/vector.h"

@@ -6,7 +6,7 @@
 
 %{
 
-#include "front_end/lex/tok.h"
+#include "front_end/tok.h"
 
 int yycolumn = 1;
 

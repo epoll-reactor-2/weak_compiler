@@ -5,12 +5,12 @@
  */
 
 #undef NDEBUG
-#include "front_end/lex/lex.h"
-#include "front_end/ana/ana.h"
-#include "front_end/ast/ast.h"
-#include "front_end/ast/ast_dump.h"
-#include "front_end/sema/sema.h"
-#include "front_end/parse/parse.h"
+#include "front_end/lex.h"
+#include "front_end/ana.h"
+#include "front_end/ast.h"
+#include "front_end/ast_dump.h"
+#include "front_end/sema.h"
+#include "front_end/parse.h"
 #include "middle_end/ir/ir.h"
 #include "middle_end/ir/gen.h"
 #include "util/compiler.h"

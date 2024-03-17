@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/data_type.h"
+#include "front_end/data_type.h"
 #include "util/unreachable.h"
 
 /* extern */ int data_type_size[D_T_TOTAL] = {

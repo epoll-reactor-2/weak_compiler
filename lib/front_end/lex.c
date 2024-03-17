@@ -4,7 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
-#include "front_end/lex/lex.h"
+#include "front_end/lex.h"
 #include <stdio.h>
 #include <stdlib.h>
 
