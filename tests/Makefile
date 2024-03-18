@@ -38,7 +38,10 @@ files:
 ##################################
 # Sources                        #
 ##################################
-SRC = $(shell find front_end middle_end utils -name '*.c')
+# SRC = $(shell find front_end middle_end utils -name '*.c')
+SRC  = $(wildcard front_end/*.c)
+SRC += $(wildcard middle_end/*.c)
+SRC += $(wildcard utils/*.c)
 
 # ifeq ($(USE_BACKEND_EVAL), 1)
 # SRC += back_end/eval.c
