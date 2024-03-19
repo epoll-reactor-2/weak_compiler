@@ -11,6 +11,7 @@
 # define __fcc_gnu_exts 1
 #endif
 
+#define noreturn                _Noreturn
 #if defined(__fcc_gnu_exts)
 # define likely(x)              __builtin_expect(!!(x), 1)
 # define unlikely(x)            __builtin_expect(!!(x), 0)
@@ -19,7 +20,7 @@
 # define really_inline          inline __attribute__ ((always_inline))
 # define unused                 __attribute__ ((unused))
 # define fmt(...)               __attribute__ ((format (printf, ##__VA_ARGS__)))
-# define packed            __attribute__((packed))
+# define packed                 __attribute__((packed))
 #else
 # define likely(x)
 # define unlikely(x)

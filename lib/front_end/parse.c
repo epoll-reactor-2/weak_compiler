@@ -9,10 +9,10 @@
 #include "front_end/parse.h"
 #include "util/alloc.h"
 #include "util/diagnostic.h"
-
 #include "util/unreachable.h"
 #include "util/vector.h"
 #include <assert.h>
+#include <ctype.h>
 #include <string.h>
 
 typedef vector_t(struct ast_node *) ast_array_t;
@@ -25,14 +25,13 @@ struct localized_data_type {
     int16_t         col_no;
 };
 
-static void report_unexpected(struct token *t)
+noreturn static void report_unexpected(struct token *t)
 {
     fcc_compile_error(t->line_no, t->col_no, "Unexpected token `%s`", tok_to_string(t->type));
 }
 
 static struct token *tok_begin;
 static struct token *tok_end;
-static uint32_t      loops_depth = 0;
 
 static struct token *peek_current() { return tok_begin;   }
 static struct token *peek_next   () { return tok_begin++; }
@@ -58,7 +57,7 @@ struct token *require_char(char c)
     return require_token(tok_char_to_tok(c));
 }
 
-static enum data_type tok_to_data_type(enum token_type t)
+unused static enum data_type tok_to_data_type(enum token_type t)
 {
     switch (t) {
     case TOK_VOID:   return D_T_VOID;
@@ -76,15 +75,13 @@ static enum data_type tok_to_data_type(enum token_type t)
 }
 
 /* https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf */
-static enum token_type             parse_punctuator(); /* 6.4.6 */
-static struct ast_node            *parse_q_chars(); /* 6.4.7 */
-static struct ast_node            *parse_h_chars(); /* 6.4.7 */
-static struct ast_node            *parse_storage_class_specifier(); /* 6.7.1 */
-static struct localized_data_type  parse_type_specifier(); /* 6.7.2 */
-static enum token_type             parse_struct_or_union(); /* 6.7.2.1 */
-static struct ast_node            *parse_enum_specifier(); /* 6.7.2.2 */
-static enum token_type             parse_type_qualifier(); /* 6.7.3 */
-static enum token_type             parse_function_specifier(); /* 6.7.4 */
+unused static enum token_type             parse_punctuator(); /* 6.4.6 */
+unused static struct ast_node            *parse_storage_class_specifier(); /* 6.7.1 */
+unused static struct localized_data_type  parse_type_specifier(); /* 6.7.2 */
+unused static enum token_type             parse_struct_or_union(); /* 6.7.2.1 */
+unused static struct ast_node            *parse_enum_specifier(); /* 6.7.2.2 */
+unused static enum token_type             parse_type_qualifier(); /* 6.7.3 */
+unused static enum token_type             parse_function_specifier(); /* 6.7.4 */
 
 static enum token_type parse_punctuator() /* 6.4.6 */
 {
@@ -189,6 +186,7 @@ static struct localized_data_type parse_type_specifier() /* 6.7.2 */
     default:
         report_unexpected(c);
     }
+    dt.data_type = t;
 
     return dt;
 }
@@ -337,36 +335,36 @@ static void preprocess(const char *filename)
             return;
         }
 
-        char *line_ptr = line;
-        while (isspace(*line_ptr))
-            ++line_ptr;
+        char *p = line;
+        while (isspace(*p))
+            ++p;
 
-        printf("%s", line_ptr);
+        printf("%s", p);
 
         int pp_include_len = sizeof ("#include") - 1;
 
-        if (strncmp(line_ptr, "#include", pp_include_len))
+        if (strncmp(p, "#include", pp_include_len))
             continue;
 
-        line_ptr += pp_include_len;
+        p += pp_include_len;
 
-        /* line_ptr[0] must be " or <. */
+        /* p[0] must be " or <. */
 
-        while (isspace(*line_ptr))
-            ++line_ptr;
+        while (isspace(*p))
+            ++p;
 
         /* Consume " or <. */
-        ++line_ptr;
+        ++p;
 
         /* Cut " or > from include path. */
-        char *old_line_ptr = line_ptr;
-        while (*line_ptr != '"' && *line_ptr != '>')
-            ++line_ptr;
-        *line_ptr = '\0';
+        char *old_p = p;
+        while (*p != '"' && *p != '>')
+            ++p;
+        *p = '\0';
 
-        line_ptr = old_line_ptr;
+        p = old_p;
 
-        preprocess(line_ptr);
+        preprocess(p);
     }
 }
 
