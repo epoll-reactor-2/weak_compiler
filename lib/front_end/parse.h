@@ -12,6 +12,8 @@
 
 struct ast_node;
 
+void pp_add_include_path(const char *path);
+
 wur
 struct ast_node *parse(const char *filename);
 

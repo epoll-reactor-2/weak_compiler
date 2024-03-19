@@ -290,27 +290,59 @@ struct ast_node *parse_tokens(const struct token *begin, const struct token *end
  **             Preprocessor                 **
  **********************************************/
 
-/* TODO: -I option should append there. */
-static char *pp_default_paths[] = {
-    /* TODO: This depends on testing semantics.
-             Better to write shell scripts. */
-    "/home/fuck/fcc/build/inputs/parser",
-    /* TODO: Recursive search. */
-    "/usr/include",
-    "/usr/include/bits",
-    "/usr/include/linux",
-    "/usr/include/c++/13.2.1",
-    "/usr/include/c++/13.2.1/tr1",
-    "/usr/include/c++/13.2.1/bits",
-    "/usr/include/c++/13.2.1/x86_64-pc-linux-gnu"
-};
+really_inline static bool ws(char c)
+{
+    switch (c) {
+    case ' ':
+    case '\t':
+        return 1;
+    default:
+        return 0;
+    }
+}
 
-FILE *pp_try_open(const char *filename)
+static vector_t(char *) pp_paths;
+
+static void pp_init_include_paths()
+{
+    static char *p[] = {
+        "/usr/include",
+        "/usr/include/bits",
+        "/usr/include/linux",
+        "/usr/include/c++/13.2.1",
+        "/usr/include/c++/13.2.1/tr1",
+        "/usr/include/c++/13.2.1/bits",
+        "/usr/include/c++/13.2.1/x86_64-pc-linux-gnu",
+        "/usr/include/x86_64-linux-gnu",
+        NULL
+    };
+    char **it = p;
+
+    while (*it)
+        vector_push_back(pp_paths, strdup(*it++));
+}
+
+static void pp_deinit_include_paths()
+{
+    vector_foreach(pp_paths, i) {
+        char *s = vector_at(pp_paths, i);
+        free(s);
+    }
+    vector_free(pp_paths);
+}
+
+void pp_add_include_path(const char *path)
+{
+    vector_push_back(pp_paths, strdup(path));
+}
+
+static FILE *pp_try_open(const char *filename)
 {
     char path[512] = {0};
 
-    for (uint64_t i = 0; i < __fcc_array_size(pp_default_paths); ++i) {
-        snprintf(path, sizeof (path) - 1, "%s/%s", pp_default_paths[i], filename);
+    vector_foreach(pp_paths, i) {
+        const char *pp_path = vector_at(pp_paths, i);
+        snprintf(path, sizeof (path) - 1, "%s/%s", pp_path, filename);
 
         printf("PP: Searching %s\n", path);
 
@@ -323,7 +355,7 @@ FILE *pp_try_open(const char *filename)
     exit(-1);
 }
 
-static void preprocess(const char *filename)
+static void pp(const char *filename)
 {
     char line[8192];
 
@@ -336,7 +368,7 @@ static void preprocess(const char *filename)
         }
 
         char *p = line;
-        while (isspace(*p))
+        while (ws(*p))
             ++p;
 
         printf("%s", p);
@@ -350,7 +382,7 @@ static void preprocess(const char *filename)
 
         /* p[0] must be " or <. */
 
-        while (isspace(*p))
+        while (ws(*p))
             ++p;
 
         /* Consume " or <. */
@@ -364,7 +396,7 @@ static void preprocess(const char *filename)
 
         p = old_p;
 
-        preprocess(p);
+        pp(p);
     }
 }
 
@@ -375,9 +407,13 @@ static void preprocess(const char *filename)
 struct ast_node *parse(const char *filename)
 {
     puts("");
-    preprocess(filename);
+
+    pp_init_include_paths();
+    pp(filename);
+    pp_deinit_include_paths();
+
     fflush(stdout);
-    exit(1);
+    exit(-1);
     return parse_tokens(NULL, NULL);
 }
 
