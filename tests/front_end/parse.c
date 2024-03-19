@@ -10,9 +10,9 @@
 void *diag_error_memstream = NULL;
 void *diag_warn_memstream = NULL;
 
-void __parse_test(const char *path, unused const char *filename, FILE *out_stream)
+void __parse_test(unused const char *path, const char *filename, FILE *out_stream)
 {
-    struct ast_node *ast = gen_ast(path);
+    struct ast_node *ast = gen_ast(filename);
     ast_dump(out_stream, ast);
     ast_node_cleanup(ast);
 }

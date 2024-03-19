@@ -258,9 +258,7 @@ tok_array_t *gen_tokens(const char *filename)
 
 struct ast_node *gen_ast(const char *filename)
 {
-    tok_array_t *tokens = gen_tokens(filename);
-    struct ast_node *ast = parse(tokens->data, tokens->data + tokens->count);
-    tokens_cleanup(tokens);
+    struct ast_node *ast = parse(filename);
     return ast;
 }
 

@@ -13,6 +13,6 @@
 struct ast_node;
 
 wur
-struct ast_node *parse(const struct token *begin, const struct token *end);
+struct ast_node *parse(const char *filename);
 
 #endif // FCC_FRONTEND_PARSE_PARSE_H

@@ -9,6 +9,7 @@
 #include "front_end/parse.h"
 #include "util/alloc.h"
 #include "util/diagnostic.h"
+
 #include "util/unreachable.h"
 #include "util/vector.h"
 #include <assert.h>
@@ -84,48 +85,6 @@ static enum token_type             parse_struct_or_union(); /* 6.7.2.1 */
 static struct ast_node            *parse_enum_specifier(); /* 6.7.2.2 */
 static enum token_type             parse_type_qualifier(); /* 6.7.3 */
 static enum token_type             parse_function_specifier(); /* 6.7.4 */
-
-struct ast_node *parse(const struct token *begin, const struct token *end)
-{
-    tok_begin = (struct token *) begin;
-    tok_end   = (struct token *) end;
-
-    typedef vector_t(struct ast_node *) stmts_t;
-
-    stmts_t global_stmts = {0};
-    struct token *curr = NULL;
-
-    while (tok_begin < tok_end) {
-        curr = peek_next();
-        switch (curr->type) {
-        case TOK_TYPEDEF:
-        case TOK_STRUCT:
-            // vector_push_back(global_stmts, parse_struct_decl());
-            break;
-        case TOK_VOID:
-        case TOK_INT:
-        case TOK_CHAR:
-        case TOK_FLOAT:
-        case TOK_BOOL: /* Fall through. */
-            // vector_push_back(global_stmts, parse_function_decl());
-            break;
-        default:
-            fcc_compile_error(
-                curr->line_no,
-                curr->col_no,
-                "Unexpected token in global context: %s\n",
-                tok_to_string(curr->type)
-            );
-        }
-    }
-
-    return ast_compound_init(
-        /*size=*/global_stmts.count,
-        /*stmts=*/global_stmts.data,
-        /*line_no=*/0,
-        /*col_no=*/0
-    );
-}
 
 static enum token_type parse_punctuator() /* 6.4.6 */
 {
@@ -285,6 +244,143 @@ static enum token_type parse_function_specifier() /* 6.7.4 */
     default:
         report_unexpected(c);
     }
+}
+
+struct ast_node *parse_tokens(const struct token *begin, const struct token *end)
+{
+    tok_begin = (struct token *) begin;
+    tok_end   = (struct token *) end;
+
+    typedef vector_t(struct ast_node *) stmts_t;
+
+    stmts_t global_stmts = {0};
+    struct token *curr = NULL;
+
+    while (tok_begin < tok_end) {
+        curr = peek_next();
+        switch (curr->type) {
+        case TOK_TYPEDEF:
+        case TOK_STRUCT:
+            // vector_push_back(global_stmts, parse_struct_decl());
+            break;
+        case TOK_VOID:
+        case TOK_INT:
+        case TOK_CHAR:
+        case TOK_FLOAT:
+        case TOK_BOOL: /* Fall through. */
+            // vector_push_back(global_stmts, parse_function_decl());
+            break;
+        default:
+            fcc_compile_error(
+                curr->line_no,
+                curr->col_no,
+                "Unexpected token in global context: %s\n",
+                tok_to_string(curr->type)
+            );
+        }
+    }
+
+    return ast_compound_init(
+        /*size=*/global_stmts.count,
+        /*stmts=*/global_stmts.data,
+        /*line_no=*/0,
+        /*col_no=*/0
+    );
+}
+
+/**********************************************
+ **             Preprocessor                 **
+ **********************************************/
+
+/* TODO: -I option should append there. */
+static char *pp_default_paths[] = {
+    /* TODO: This depends on testing semantics.
+             Better to write shell scripts. */
+    "/home/fuck/fcc/build/inputs/parser",
+    /* TODO: Recursive search. */
+    "/usr/include",
+    "/usr/include/bits",
+    "/usr/include/linux",
+    "/usr/include/c++/13.2.1",
+    "/usr/include/c++/13.2.1/tr1",
+    "/usr/include/c++/13.2.1/bits",
+    "/usr/include/c++/13.2.1/x86_64-pc-linux-gnu"
+};
+
+FILE *pp_try_open(const char *filename)
+{
+    char path[512] = {0};
+
+    for (uint64_t i = 0; i < __fcc_array_size(pp_default_paths); ++i) {
+        snprintf(path, sizeof (path) - 1, "%s/%s", pp_default_paths[i], filename);
+
+        printf("PP: Searching %s\n", path);
+
+        FILE *f = fopen(path, "rb");
+        if (f)
+            return f;
+    }
+
+    printf("Cannot open file %s\n", filename);
+    exit(-1);
+}
+
+static void preprocess(const char *filename)
+{
+    char line[8192];
+
+    FILE *f = pp_try_open(filename);
+
+    while (1) {
+        if (!fgets(line, sizeof (line), f)) {
+            fclose(f);
+            return;
+        }
+
+        char *line_ptr = line;
+        while (isspace(*line_ptr))
+            ++line_ptr;
+
+        printf("%s", line_ptr);
+
+        int pp_include_len = sizeof ("#include") - 1;
+
+        if (strncmp(line_ptr, "#include", pp_include_len))
+            continue;
+
+        line_ptr += pp_include_len;
+
+        /* line_ptr[0] must be " or <. */
+
+        while (isspace(*line_ptr))
+            ++line_ptr;
+
+        /* Consume " or <. */
+        ++line_ptr;
+
+        /* Cut " or > from include path. */
+        char *old_line_ptr = line_ptr;
+        while (*line_ptr != '"' && *line_ptr != '>')
+            ++line_ptr;
+        *line_ptr = '\0';
+
+        line_ptr = old_line_ptr;
+
+        preprocess(line_ptr);
+    }
+}
+
+/**********************************************
+ **                Parser                    **
+ **********************************************/
+
+struct ast_node *parse(const char *filename)
+{
+    puts("");
+    preprocess(filename);
+    fflush(stdout);
+    exit(1);
+    return parse_tokens(NULL, NULL);
 }
 
 /*
