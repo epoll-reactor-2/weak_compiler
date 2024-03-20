@@ -12,6 +12,8 @@
 
 struct ast_node;
 
+void pp_init();
+void pp_deinit();
 void pp_add_include_path(const char *path);
 
 wur

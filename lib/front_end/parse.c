@@ -303,7 +303,7 @@ really_inline static bool ws(char c)
 
 static vector_t(char *) pp_paths;
 
-static void pp_init_include_paths()
+void pp_init()
 {
     static char *p[] = {
         "/usr/include",
@@ -322,7 +322,7 @@ static void pp_init_include_paths()
         vector_push_back(pp_paths, strdup(*it++));
 }
 
-static void pp_deinit_include_paths()
+void pp_deinit()
 {
     vector_foreach(pp_paths, i) {
         char *s = vector_at(pp_paths, i);
@@ -333,6 +333,7 @@ static void pp_deinit_include_paths()
 
 void pp_add_include_path(const char *path)
 {
+    printf("Adding %s\n", path);
     vector_push_back(pp_paths, strdup(path));
 }
 
@@ -355,6 +356,7 @@ static FILE *pp_try_open(const char *filename)
     exit(-1);
 }
 
+/* TODO: Run yylex() there. */
 static void pp(const char *filename)
 {
     char line[8192];
@@ -408,12 +410,10 @@ struct ast_node *parse(const char *filename)
 {
     puts("");
 
-    pp_init_include_paths();
     pp(filename);
-    pp_deinit_include_paths();
 
-    fflush(stdout);
-    exit(-1);
+    // fflush(stdout);
+    // exit(-1);
     return parse_tokens(NULL, NULL);
 }
 
