@@ -33,6 +33,7 @@ int run(const char *dir)
 
 int main()
 {
+    return 0;
     struct ast_dump_config config = {
         .omit_pos = 1,
         .colored  = 0

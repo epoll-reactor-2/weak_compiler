@@ -290,6 +290,10 @@ struct ast_node *parse_tokens(const struct token *begin, const struct token *end
  **             Preprocessor                 **
  **********************************************/
 
+extern FILE *yyin;
+extern int yylex();
+extern int yylex_destroy();
+
 really_inline static bool ws(char c)
 {
     switch (c) {
@@ -337,6 +341,16 @@ void pp_add_include_path(const char *path)
     vector_push_back(pp_paths, strdup(path));
 }
 
+static void run_lex(const char *path)
+{
+    if (!yyin) yyin = fopen(path, "r");
+    else yyin = freopen(path, "r", yyin);
+    if (yyin == NULL)
+        fcc_unreachable("Cannot open file `%s`", path);
+
+    yylex();
+}
+
 static FILE *pp_try_open(const char *filename)
 {
     char path[512] = {0};
@@ -348,15 +362,16 @@ static FILE *pp_try_open(const char *filename)
         printf("PP: Searching %s\n", path);
 
         FILE *f = fopen(path, "rb");
-        if (f)
+        if (f) {
+            run_lex(path);
             return f;
+        }
     }
 
     printf("Cannot open file %s\n", filename);
     exit(-1);
 }
 
-/* TODO: Run yylex() there. */
 static void pp(const char *filename)
 {
     char line[8192];

@@ -119,7 +119,7 @@ int compare_with_comment(
     if (!setjmp(fcc_fatal_error_buf)) {
         fn(path, filename, generated_stream);
 
-        // get_init_comment(yyin, expected_stream, NULL);
+        get_init_comment(yyin, expected_stream, NULL);
 
         fflush(generated_stream);
 
@@ -203,8 +203,8 @@ int do_on_each_file(
             fflush(stdout);
         }
 
-        // fclose(yyin);
-        // yylex_destroy();
+        fclose(yyin);
+        yylex_destroy();
 
         memset(fname, 0, sizeof (fname));
     }
@@ -233,27 +233,6 @@ void cfg_dir(const char *name, char *curr_out_dir)
 
     create_dir("outputs");
     create_dir(curr_out_dir);
-}
-
-
-
-/* Depends on flex output state, `lex_consumed_tokens` should
-   return tokens for current file opened by lex. */
-tok_array_t *gen_tokens(const char *filename)
-{
-    lex_reset_state();
-    lex_init_state();
-
-    if (!yyin) yyin = fopen(filename, "r");
-    else yyin = freopen(filename, "r", yyin);
-    if (yyin == NULL)
-        fcc_unreachable("Cannot open file `%s`", filename);
-
-    // yylex();
-    // fseek(yyin, 0, SEEK_SET);
-    // fcc_set_source_stream(yyin);
-
-    return lex_consumed_tokens();
 }
 
 struct ast_node *gen_ast(const char *filename)

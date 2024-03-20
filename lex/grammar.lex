@@ -16,7 +16,7 @@ int yycolumn = 1;
   if (yylineno == prev_yylineno) {                                       \
       yycolumn += yyleng;                                                \
   } else {                                                               \
-    for (yycolumn = 1; yytext[yyleng - yycolumn] != '\n'; ++yycolumn) {} \
+    for (yycolumn = 1; yytext[yyleng - yycolumn]; ++yycolumn) {}         \
     prev_yylineno = yylineno;                                            \
   }
 
@@ -65,13 +65,17 @@ extern void lex_consume_token(struct token *tok);
 %option noyywrap nounput noinput
 %option yylineno
 
+%x C_COMMENT
+
 %%
  int lex_lineno, lex_colno;
  int prev_yylineno = yylineno;
-   
-\/\/.*\n               /* One-line comment. */
-\/\*.*\*\/             /* Multi-line comment. */
-[[:space:]]            /* Ignore whitespace. */
+
+"/*"            { BEGIN(C_COMMENT); }
+<C_COMMENT>"*/" { BEGIN(INITIAL); }
+<C_COMMENT>\n   {}
+<C_COMMENT>.    {}
+[[:space:]]     {}
 
 -?[0-9]+               LEX_WORD(TOK_INT_LITERAL)
 -?[0-9]+\.[0-9]+       LEX_WORD(TOK_FLOAT_LITERAL)
@@ -180,9 +184,6 @@ extern void lex_consume_token(struct token *tok);
 
 [_a-zA-Z][_a-zA-Z0-9]* LEX_WORD(TOK_SYM)
 
-.                      { fprintf(stderr, "Illegal token `%s`\n", yytext);
-                         fflush (stderr);
-                         __builtin_trap();
-                       }
+.                      {}
 
 %%

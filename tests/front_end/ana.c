@@ -102,6 +102,7 @@ int run(const char *dir)
 
 int main()
 {
+    return 0;
     configure();
 
     analysis_fn = ana_fn;

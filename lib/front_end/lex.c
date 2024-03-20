@@ -12,6 +12,12 @@ static tok_array_t tokens = {0};
 
 void lex_consume_token(struct token *tok)
 {
+    printf("Consume %s %s\n",
+        tok_to_string(tok->type),
+        tok->data
+            ? tok->data
+            : "NULL"
+    );
     vector_push_back(tokens, *tok);
 }
 
