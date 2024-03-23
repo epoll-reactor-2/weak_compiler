@@ -12,7 +12,7 @@
 #include "util/compiler.h"
 #include "front_end/ast_type.h"
 #include "front_end/data_type.h"
-#include "front_end/tok_type.h"
+#include "front_end/tok.h"
 
 
 /**********************************************

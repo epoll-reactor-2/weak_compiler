@@ -7,7 +7,6 @@
 %{
 
 #include "front_end/tok.h"
-#include "front_end/tok_type.h"
 
 extern void lex_token(struct token *tok);
 
