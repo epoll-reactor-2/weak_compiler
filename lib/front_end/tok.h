@@ -16,6 +16,7 @@
 
 #define map(take) \
     take(T_NULL__, "") \
+    /* Keywords. */ \
     take(T_ALIGNOF, "alignof") \
     take(T_AUTO, "auto") \
     take(T_BREAK, "break") \
@@ -60,13 +61,25 @@
     take(T_NORETURN, "_Noreturn") \
     take(T_STATIC_ASSERT, "_Static_assert") \
     take(T_THREAD_LOCAL, "_Thread_local") \
-    take(T_INCLUDE, "include") \
-    take(T_DEFINE, "define") \
+    /* 6.10 if-group:
+       \
+        `if` keyword is present. */ \
     take(T_IFDEF, "ifdef") \
     take(T_IFNDEF, "ifndef") \
+    /* 6.10 elif-groups:
+       \
+        `else` keyword is present. */ \
     take(T_ELIF, "elif") \
+    /* 6.10 endif-line */ \
     take(T_ENDIF, "endif") \
+    /* 6.10 control-line */ \
+    take(T_INCLUDE, "include") \
+    take(T_DEFINE, "define") \
     take(T_UNDEF, "undef") \
+    take(T_LINE, "line") \
+    take(T_LINE, "error") \
+    take(T_LINE, "pragma") \
+    \
     take(T_OPEN_BRACKET, "[") \
     take(T_CLOSE_BRACKET, "]") \
     take(T_OPEN_PAREN, "(") \
