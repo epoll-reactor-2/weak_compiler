@@ -15,6 +15,7 @@
 #define __take_string(x, y) y,
 
 #define map(take) \
+    take(T_NULL__, "") \
     take(T_ALIGNOF, "alignof") \
     take(T_AUTO, "auto") \
     take(T_BREAK, "break") \
@@ -59,6 +60,13 @@
     take(T_NORETURN, "_Noreturn") \
     take(T_STATIC_ASSERT, "_Static_assert") \
     take(T_THREAD_LOCAL, "_Thread_local") \
+    take(T_INCLUDE, "include") \
+    take(T_DEFINE, "define") \
+    take(T_IFDEF, "ifdef") \
+    take(T_IFNDEF, "ifndef") \
+    take(T_ELIF, "elif") \
+    take(T_ENDIF, "endif") \
+    take(T_UNDEF, "undef") \
     take(T_OPEN_BRACKET, "[") \
     take(T_CLOSE_BRACKET, "]") \
     take(T_OPEN_PAREN, "(") \

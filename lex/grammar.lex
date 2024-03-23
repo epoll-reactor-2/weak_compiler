@@ -129,6 +129,13 @@ int yycolumn = 1;
 "_Noreturn"            LEX_WORD(T_NORETURN)
 "_Static_assert"       LEX_WORD(T_STATIC_ASSERT)
 "_Thread_local"        LEX_WORD(T_THREAD_LOCAL)
+"include"              LEX_WORD(T_INCLUDE)
+"define"               LEX_WORD(T_DEFINE)
+"ifdef"                LEX_WORD(T_IFDEF)
+"ifndef"               LEX_WORD(T_IFNDEF)
+"elif"                 LEX_WORD(T_ELIF)
+"endif"                LEX_WORD(T_ENDIF)
+"undef"                LEX_WORD(T_UNDEF)
 
 "["                    LEX_OP(T_OPEN_BRACKET)
 "]"                    LEX_OP(T_CLOSE_BRACKET)

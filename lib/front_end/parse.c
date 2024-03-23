@@ -14,6 +14,7 @@
 #include "util/vector.h"
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <string.h>
 
 /**********************************************
@@ -42,8 +43,17 @@ static struct token *peek_current()
     return &vector_back(token_stack);
 }
 
+/* TODO: Such API
+         1) Clear stack
+         2) peek_next(2)
+            \
+             Lex 2 elements, next process.
+         
+         Don't keep everything for no reason. */
 static struct token *peek_next()
 {
+    if (yylex() <= 0)
+        return NULL;
     struct token *t = peek_current();
     return t;
 }
@@ -78,6 +88,8 @@ struct token *require_token(enum token_type t)
             "Expected `%s`, got `%s`",
             tok_to_string(t), tok_to_string(curr_tok->type)
         );
+    
+    peek_next();
 
     return curr_tok;
 }
@@ -274,14 +286,6 @@ static enum token_type parse_function_specifier() /* 6.7.4 */
     }
 }
 
-static struct ast_node *parse_tokens()
-{
-
-
-    lex_free();
-    return NULL;
-}
-
 /**********************************************
  **             Preprocessor                 **
  **********************************************/
@@ -356,72 +360,95 @@ static FILE *pp_try_open(const char *filename)
     exit(-1);
 }
 
-const int pp_include_len = sizeof ("#include") - 1;
-const int pp_define_len  = sizeof ("#define") - 1;
-const int pp_ifdef_len   = sizeof ("#ifdef") - 1;
-const int pp_ifndef_len  = sizeof ("#ifndef") - 1;
-const int pp_endif_len   = sizeof ("#endif") - 1;
-const int pp_elif_len    = sizeof ("#elif") - 1;
+static void pp_read();
 
-static void pp(const char *filename);
-static void pp_include(char **p)
+static void seek_0(FILE *f)
 {
-    *p += pp_include_len;
-
-    /* p[0] must be " or <. */
-    while (ws(**p))
-        ++(*p);
-
-    /* Consume " or <. */
-    ++(*p);
-
-    /* Cut " or > from include path. */
-    char *old_p = (*p);
-    while (*(*p) != '"' && *(*p) != '>')
-        ++(*p);
-    *(*p) = '\0';
-
-    (*p) = old_p;
-
-    pp((*p));
+    if (fseek(f, 0, SEEK_SET) < 0)
+        fcc_fatal_errno("fseek()");
 }
 
 static void pp(const char *filename)
 {
-    char line[8192];
-
     FILE *f = pp_try_open(filename);
 
-    while (1) {
-        if (!fgets(line, sizeof (line), f)) {
-            fclose(f);
-            return;
+    seek_0(f);
+    uint64_t len = ftell(f);
+    seek_0(f);
+
+    char *buf = fcc_calloc(1, len);
+
+    fread(buf, 1, len, f);
+
+    seek_0(f);
+
+    yyin = f;
+
+    pp_read();
+
+    fcc_free(buf);
+}
+
+static void pp_include()
+{
+    struct token *t = peek_next();
+
+    bool is_system = tok_is(t, '<');
+    bool is_user   = t->type == T_STRING_LITERAL;
+
+    if (!is_system && !is_user)
+        report_unexpected(t);
+
+    char path[512] = {0};
+
+    if (is_user) {
+        strncpy(path, t->data, sizeof (path) - 1);
+    }
+
+    if (is_system) {
+        char *ptr = path;
+        t = peek_next();
+        while (!tok_is(t, '>')) {
+            ptr = strcat(ptr, t->data ? t->data : tok_to_string(t->type));
+            t = peek_next();
         }
+    }
 
-        char *p = line;
-        while (ws(*p))
-            ++p;
+    if (is_system)
+        require_char('>');
 
-        printf("p: %s", p);
+    pp(path);
+}
 
-#define MATCH(x) \
-    !strncmp(p, "#" #x, pp_##x##_len)
+static void pp_directive()
+{
+    struct token *t = peek_next();
 
-        if (MATCH(include)) {
-            pp_include(&p);
-        } else if (MATCH(define)) {
-        } else if (MATCH(ifdef)) {
-        } else if (MATCH(ifndef)) {
-        } else if (MATCH(elif)) {
-        } else if (MATCH(endif)) {
-        } else {
-            /* TODO: Expand #include, #define and don't feed
-                    lexer with it. */
-            fputs(line, yyin);
+    switch (t->type) {
+    case T_DEFINE:
+        printf("Parsed #define\n");
+        break;
+    case T_INCLUDE:
+        pp_include();
+        break;
+    default:
+        break;
+    }
+}
+
+static void pp_read()
+{
+    struct token *t = peek_next();
+
+    while (t) {
+        switch (t->type) {
+        case T_HASH:
+            pp_directive();
+            break;
+        default:
+            break;
         }
-
-#undef MATCH
-
+        t = peek_next();
     }
 }
 
@@ -431,17 +458,8 @@ static void pp(const char *filename)
 
 struct ast_node *parse(const char *filename)
 {
-    char *buf;
-    size_t _;
-    yyin = open_memstream(&buf, &_);
-    if (!yyin)
-        abort();
-
     pp(filename);
-
-    while (yylex() > 0)
-        ;
-
+    lex_free();
     return NULL;
 }
 
