@@ -90,12 +90,12 @@ struct token *require_char(char c)
 unused static enum data_type tok_to_data_type(enum token_type t)
 {
     switch (t) {
-    case TOK_VOID:   return D_T_VOID;
-    case TOK_INT:    return D_T_INT;
-    case TOK_FLOAT:  return D_T_FLOAT;
-    case TOK_CHAR:   return D_T_CHAR;
-    case TOK_BOOL:   return D_T_BOOL;
-    case TOK_SYM:    return D_T_STRUCT;
+    case T_VOID:   return D_T_VOID;
+    case T_INT:    return D_T_INT;
+    case T_FLOAT:  return D_T_FLOAT;
+    case T_CHAR:   return D_T_CHAR;
+    case T_BOOL:   return D_T_BOOL;
+    case T_SYM:    return D_T_STRUCT;
     default:
         fcc_unreachable(
             "Cannot convert token `%s` to the data type",
@@ -117,59 +117,59 @@ static enum token_type parse_punctuator() /* 6.4.6 */
 {
     struct token *c = peek_next();
     switch (c->type) {
-    case TOK_OPEN_BRACKET: /* [ */
-    case TOK_CLOSE_BRACKET: /* ] */
-    case TOK_OPEN_PAREN: /* ( */
-    case TOK_CLOSE_PAREN: /* ) */
-    case TOK_OPEN_BRACE: /* { */
-    case TOK_CLOSE_BRACE: /* } */
-    case TOK_DOT: /* . */
-    case TOK_ARROW: /* -> */
+    case T_OPEN_BRACKET: /* [ */
+    case T_CLOSE_BRACKET: /* ] */
+    case T_OPEN_PAREN: /* ( */
+    case T_CLOSE_PAREN: /* ) */
+    case T_OPEN_BRACE: /* { */
+    case T_CLOSE_BRACE: /* } */
+    case T_DOT: /* . */
+    case T_ARROW: /* -> */
 
-    case TOK_INC: /* ++ */
-    case TOK_DEC: /* -- */
-    case TOK_BIT_AND: /* & */
-    case TOK_STAR: /* * */
-    case TOK_PLUS: /* + */
-    case TOK_MINUS: /* - */
-    case TOK_TILDE: /* ~ */
-    case TOK_EXCLAMATION: /* ! */
+    case T_INC: /* ++ */
+    case T_DEC: /* -- */
+    case T_BIT_AND: /* & */
+    case T_STAR: /* * */
+    case T_PLUS: /* + */
+    case T_MINUS: /* - */
+    case T_TILDE: /* ~ */
+    case T_EXCLAMATION: /* ! */
 
-    case TOK_SLASH: /* / */
-    case TOK_MOD: /* % */
-    case TOK_SHL: /* << */
-    case TOK_SHR: /* >> */
-    case TOK_LT: /* < */
-    case TOK_GT: /* > */
-    case TOK_LE: /* <= */
-    case TOK_GE: /* >= */
-    case TOK_EQ: /* == */
-    case TOK_NEQ: /* != */
-    case TOK_BIT_XOR: /* ^ */
-    case TOK_BIT_OR: /* | */
-    case TOK_AND: /* && */
-    case TOK_OR: /* || */
+    case T_SLASH: /* / */
+    case T_MOD: /* % */
+    case T_SHL: /* << */
+    case T_SHR: /* >> */
+    case T_LT: /* < */
+    case T_GT: /* > */
+    case T_LE: /* <= */
+    case T_GE: /* >= */
+    case T_EQ: /* == */
+    case T_NEQ: /* != */
+    case T_BIT_XOR: /* ^ */
+    case T_BIT_OR: /* | */
+    case T_AND: /* && */
+    case T_OR: /* || */
 
-    case TOK_QUESTION_MARK: /* ? */
-    case TOK_COLON: /* : */
-    case TOK_SEMICOLON: /* ; */
-    case TOK_ELLIPSIS: /* ... */
+    case T_QUESTION_MARK: /* ? */
+    case T_COLON: /* : */
+    case T_SEMICOLON: /* ; */
+    case T_ELLIPSIS: /* ... */
 
-    case TOK_ASSIGN: /* = */
-    case TOK_MUL_ASSIGN: /* *= */
-    case TOK_DIV_ASSIGN: /* /= */
-    case TOK_MOD_ASSIGN: /* %= */
-    case TOK_PLUS_ASSIGN: /* += */
-    case TOK_MINUS_ASSIGN: /* -= */
-    case TOK_SHL_ASSIGN: /* <<= */
-    case TOK_SHR_ASSIGN: /* >>= */
-    case TOK_BIT_AND_ASSIGN: /* &= */
-    case TOK_BIT_XOR_ASSIGN: /* &= */
-    case TOK_BIT_OR_ASSIGN: /* |= */
+    case T_ASSIGN: /* = */
+    case T_MUL_ASSIGN: /* *= */
+    case T_DIV_ASSIGN: /* /= */
+    case T_MOD_ASSIGN: /* %= */
+    case T_PLUS_ASSIGN: /* += */
+    case T_MINUS_ASSIGN: /* -= */
+    case T_SHL_ASSIGN: /* <<= */
+    case T_SHR_ASSIGN: /* >>= */
+    case T_BIT_AND_ASSIGN: /* &= */
+    case T_BIT_XOR_ASSIGN: /* &= */
+    case T_BIT_OR_ASSIGN: /* |= */
 
-    case TOK_COMMA: /* , */
-    case TOK_HASH: /* # */
-    case TOK_HASH_HASH: /* ## */
+    case T_COMMA: /* , */
+    case T_HASH: /* # */
+    case T_HASH_HASH: /* ## */
         return c->type;
     default:
         report_unexpected(c);
@@ -180,12 +180,12 @@ static struct ast_node *parse_storage_class_specifier() /* 6.7.1 */
 {
     struct token *c = peek_next();
     switch (c->type) {
-    case TOK_TYPEDEF:
-    case TOK_EXTERN:
-    case TOK_STATIC:
-    case TOK_THREAD_LOCAL:
-    case TOK_AUTO:
-    case TOK_REGISTER:
+    case T_TYPEDEF:
+    case T_EXTERN:
+    case T_STATIC:
+    case T_THREAD_LOCAL:
+    case T_AUTO:
+    case T_REGISTER:
         return NULL;
     default:
         report_unexpected(c);
@@ -202,17 +202,17 @@ static struct localized_data_type parse_type_specifier() /* 6.7.2 */
     enum data_type t = 0;
 
     switch (c->type) {
-    case TOK_VOID: t = D_T_VOID; break;
-    case TOK_CHAR: t = D_T_CHAR; break;
-    case TOK_SHORT: t = D_T_SHORT; break;
-    case TOK_INT: t = D_T_INT; break;
-    case TOK_LONG: t = D_T_LONG; break;
-    case TOK_FLOAT: t = D_T_FLOAT; break;
-    case TOK_DOUBLE: t = D_T_DOUBLE; break;
-    case TOK_SIGNED: t = D_T_SIGNED; break;
-    case TOK_UNSIGNED: t = D_T_UNSIGNED; break;
-    case TOK_BOOL: t = D_T_BOOL; break;
-    case TOK_COMPLEX: t = D_T_COMPLEX; break;
+    case T_VOID: t = D_T_VOID; break;
+    case T_CHAR: t = D_T_CHAR; break;
+    case T_SHORT: t = D_T_SHORT; break;
+    case T_INT: t = D_T_INT; break;
+    case T_LONG: t = D_T_LONG; break;
+    case T_FLOAT: t = D_T_FLOAT; break;
+    case T_DOUBLE: t = D_T_DOUBLE; break;
+    case T_SIGNED: t = D_T_SIGNED; break;
+    case T_UNSIGNED: t = D_T_UNSIGNED; break;
+    case T_BOOL: t = D_T_BOOL; break;
+    case T_COMPLEX: t = D_T_COMPLEX; break;
     default:
         report_unexpected(c);
     }
@@ -225,8 +225,8 @@ static enum token_type parse_struct_or_union() /* 6.7.2.1 */
 {
     struct token *c = peek_next();
     switch (c->type) {
-    case TOK_STRUCT:
-    case TOK_UNION:
+    case T_STRUCT:
+    case T_UNION:
         return c->type;
     default:
         report_unexpected(c);
@@ -235,13 +235,13 @@ static enum token_type parse_struct_or_union() /* 6.7.2.1 */
 
 static struct ast_node *parse_enum_specifier() /* 6.7.2.2 */
 {
-    require_token(TOK_ENUM);
+    require_token(T_ENUM);
     struct token *c = peek_current();
 
     switch (c->type) {
-    case TOK_SYM:
+    case T_SYM:
         return NULL;
-    case TOK_OPEN_BRACE:
+    case T_OPEN_BRACE:
         return NULL;
     default:
         report_unexpected(c);
@@ -252,10 +252,10 @@ static enum token_type parse_type_qualifier() /* 6.7.3 */
 {
     struct token *c = peek_next();
     switch (c->type) {
-    case TOK_CONST:
-    case TOK_RESTRICT:
-    case TOK_VOLATILE:
-    case TOK_ATOMIC:
+    case T_CONST:
+    case T_RESTRICT:
+    case T_VOLATILE:
+    case T_ATOMIC:
         return c->type;
     default:
         report_unexpected(c);
@@ -266,8 +266,8 @@ static enum token_type parse_function_specifier() /* 6.7.4 */
 {
     struct token *c = peek_next();
     switch (c->type) {
-    case TOK_INLINE:
-    case TOK_NORETURN:
+    case T_INLINE:
+    case T_NORETURN:
         return c->type;
     default:
         report_unexpected(c);

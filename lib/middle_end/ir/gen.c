@@ -184,12 +184,12 @@ static void emit_assign(struct ast_binary *ast)
 static bool logical(enum token_type t)
 {
     switch (t) {
-    case TOK_EQ:
-    case TOK_NEQ:
-    case TOK_LE:
-    case TOK_GE:
-    case TOK_LT:
-    case TOK_GT:
+    case T_EQ:
+    case T_NEQ:
+    case T_LE:
+    case T_GE:
+    case T_LT:
+    case T_GT:
         return 1;
     default:
         return 0;
@@ -226,7 +226,7 @@ static void emit_bin(struct ast_binary *ast)
 static void visit_binary(struct ast_binary *ast)
 {
     /* Symbol. */
-    if (ast->op == TOK_ASSIGN)
+    if (ast->op == T_ASSIGN)
         emit_assign(ast);
     else
         emit_bin(ast);
@@ -322,7 +322,7 @@ static void visit_for(struct ast_for *ast)
     if (ast->condition) {
         next_iter_jump_idx       = ir_last->instr_idx + 1;
         visit(ast->condition);
-        struct ir_node *cond_bin = ir_bin_init(TOK_NEQ, ir_last, zero_cond_immediate());
+        struct ir_node *cond_bin = ir_bin_init(T_NEQ, ir_last, zero_cond_immediate());
         cond                     = ir_cond_init(cond_bin, /* Not used for now. */-1);
         exit_jmp                 = ir_jump_init(/* Not used for now. */-1);
         exit_jmp_ptr             = exit_jmp->ir;
@@ -383,7 +383,7 @@ static void visit_while(struct ast_while *ast)
     visit(ast->cond);
     ir_meta_is_loop = 0;
 
-    struct ir_node *cond_bin      = ir_bin_init(TOK_NEQ, ir_last, zero_cond_immediate());
+    struct ir_node *cond_bin      = ir_bin_init(T_NEQ, ir_last, zero_cond_immediate());
     struct ir_node *cond          = ir_cond_init(cond_bin, /*Not used for now.*/-1);
     struct ir_cond *cond_ptr      = cond->ir;
     struct ir_node *exit_jmp      = ir_jump_init(/*Not used for now.*/-1);
@@ -440,7 +440,7 @@ static void visit_do_while(struct ast_do_while *ast)
 
     struct ir_node *cond = ir_cond_init(
         ir_bin_init(
-            TOK_NEQ,
+            T_NEQ,
             ir_last,
             zero_cond_immediate()
         ),
@@ -488,7 +488,7 @@ static void visit_if(struct ast_if *ast)
        - if (1    ) -> if imm neq $0 goto ...
        - if (var  ) -> if sym neq $0 goto ... */
 
-    ir_last = ir_bin_init(TOK_NEQ, ir_last, zero_cond_immediate());
+    ir_last = ir_bin_init(T_NEQ, ir_last, zero_cond_immediate());
 
     struct ir_node *cond         = ir_cond_init(ir_last, /*Not used for now.*/-1);
     struct ir_cond *cond_ptr     = cond->ir;
@@ -556,9 +556,9 @@ really_inline static void visit_unary_arith(enum token_type op)
     struct ir_sym *sym = ir_last->ir;
 
     ir_last = ir_bin_init(
-        op == TOK_INC
-            ? TOK_PLUS
-            : TOK_MINUS, ir_last, ir_imm_int_init(1)
+        op == T_INC
+            ? T_PLUS
+            : T_MINUS, ir_last, ir_imm_int_init(1)
     );
     ir_last = ir_store_sym_init(sym->idx, ir_last);
     insert_last();
@@ -592,8 +592,8 @@ really_inline static void visit_unary_pointer(enum token_type op, bool immediate
 
     struct ir_sym *new_s = ir_last->ir;
     ir_type_map[new_s->idx] = ir_type_map[sym->idx];
-    new_s->deref   = op == TOK_STAR;
-    new_s->addr_of = op == TOK_BIT_AND;
+    new_s->deref   = op == T_STAR;
+    new_s->addr_of = op == T_BIT_AND;
 }
 
 static void visit_unary(struct ast_unary *ast)
@@ -609,13 +609,13 @@ static void visit_unary(struct ast_unary *ast)
 
     switch (op) {
     /* Arithmetic operations. */
-    case TOK_INC:
-    case TOK_DEC:
+    case T_INC:
+    case T_DEC:
         visit_unary_arith(op);
         break;
     /* Pointer operations. */
-    case TOK_STAR:    /* * */
-    case TOK_BIT_AND: /* & */
+    case T_STAR:    /* * */
+    case T_BIT_AND: /* & */
         visit_unary_pointer(op, ast->operand->type == AST_SYMBOL);
         break;
     default:
@@ -739,7 +739,7 @@ static void visit_array_access(struct ast_array_access *ast)
         ir_last = ir_store_init(
             ir_sym_init(next_idx),
             ir_bin_init(
-                TOK_PLUS,
+                T_PLUS,
                 ir_sym_init(record->sym_idx),
                 idx
             )

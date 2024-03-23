@@ -56,7 +56,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     struct ir_node *rhs = bin->rhs;
 
     /* x - x = 0 */
-    if (__match(TOK_MINUS, IR_SYM, IR_SYM)) {
+    if (__match(T_MINUS, IR_SYM, IR_SYM)) {
         struct ir_sym *l_sym = lhs->ir;
         struct ir_sym *r_sym = rhs->ir;
 
@@ -66,7 +66,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x + 0 = x */
-    if (__match(TOK_PLUS, IR_SYM, IR_IMM)) {
+    if (__match(T_PLUS, IR_SYM, IR_IMM)) {
         struct ir_sym *l_sym = lhs->ir;
         struct ir_imm *r_imm = rhs->ir;
 
@@ -75,7 +75,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x - 0 = x */
-    if (__match(TOK_MINUS, IR_SYM, IR_IMM)) {
+    if (__match(T_MINUS, IR_SYM, IR_IMM)) {
         struct ir_sym *l_sym = lhs->ir;
         struct ir_imm *r_imm = rhs->ir;
 
@@ -84,7 +84,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x * 0 = 0 */
-    if (__match(TOK_STAR, IR_SYM, IR_IMM)) {
+    if (__match(T_STAR, IR_SYM, IR_IMM)) {
         struct ir_imm *r_imm = rhs->ir;
 
         if (r_imm->imm.__int == 0)
@@ -92,7 +92,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x & 0 = 0 */
-    if (__match(TOK_BIT_AND, IR_SYM, IR_IMM)) {
+    if (__match(T_BIT_AND, IR_SYM, IR_IMM)) {
         struct ir_imm *r_imm = rhs->ir;
 
         if (r_imm->imm.__int == 0)
@@ -100,7 +100,7 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x | 0 = x */
-    if (__match(TOK_BIT_OR, IR_SYM, IR_IMM)) {
+    if (__match(T_BIT_OR, IR_SYM, IR_IMM)) {
         struct ir_sym *l_sym = lhs->ir;
         struct ir_imm *r_imm = rhs->ir;
 
@@ -109,13 +109,13 @@ static struct ir_node *opt_arith_bin(struct ir_bin *bin)
     }
 
     /* x * (power of 2) = x << (n'th bit) */
-    if (__match(TOK_STAR, IR_SYM, IR_IMM)) {
+    if (__match(T_STAR, IR_SYM, IR_IMM)) {
         struct ir_sym *l_sym = lhs->ir;
         struct ir_imm *r_imm = rhs->ir;
 
         if (is_power_of_two(r_imm->imm.__int))
             return ir_bin_init(
-                TOK_SHL,
+                T_SHL,
                 ir_sym_init(l_sym->idx),
                 ir_imm_int_init(nth_bit(r_imm->imm.__int))
             );

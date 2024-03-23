@@ -49,19 +49,19 @@ static bool correct_bin_ops(enum token_type op, enum data_type t)
     bool are_correct = false;
 
     switch (op) {
-    case TOK_ASSIGN: /* Fall through. */
+    case T_ASSIGN: /* Fall through. */
         /* We need only check if there are same types on assignment. */
         are_correct = true;
         break;
     /* Integer and floats. */
-    case TOK_LE:
-    case TOK_LT:
-    case TOK_GE:
-    case TOK_GT:
-    case TOK_EQ:
-    case TOK_NEQ:
-    case TOK_OR:
-    case TOK_AND: /* Fall through. */
+    case T_LE:
+    case T_LT:
+    case T_GE:
+    case T_GT:
+    case T_EQ:
+    case T_NEQ:
+    case T_OR:
+    case T_AND: /* Fall through. */
         switch (t) {
         case D_T_CHAR:
         case D_T_FLOAT: /* Fall through. */
@@ -69,32 +69,32 @@ static bool correct_bin_ops(enum token_type op, enum data_type t)
         default: break;
         }
         /* Fall through. */
-    case TOK_PLUS:
-    case TOK_MINUS:
-    case TOK_STAR:
-    case TOK_SLASH:
-    case TOK_MUL_ASSIGN:
-    case TOK_DIV_ASSIGN:
-    case TOK_PLUS_ASSIGN:
-    case TOK_MINUS_ASSIGN: /* Fall through. */
+    case T_PLUS:
+    case T_MINUS:
+    case T_STAR:
+    case T_SLASH:
+    case T_MUL_ASSIGN:
+    case T_DIV_ASSIGN:
+    case T_PLUS_ASSIGN:
+    case T_MINUS_ASSIGN: /* Fall through. */
         are_correct |= t == D_T_INT;
         are_correct |= t == D_T_CHAR;
         are_correct |= t == D_T_BOOL;
         are_correct |= t == D_T_FLOAT;
         break;
     /* Only integers. */
-    case TOK_BIT_OR:
-    case TOK_BIT_AND:
-    case TOK_BIT_XOR:
-    case TOK_SHL:
-    case TOK_SHR:
-    case TOK_MOD:
-    case TOK_MOD_ASSIGN:
-    case TOK_BIT_OR_ASSIGN:
-    case TOK_BIT_AND_ASSIGN:
-    case TOK_BIT_XOR_ASSIGN:
-    case TOK_SHL_ASSIGN:
-    case TOK_SHR_ASSIGN: /* Fall through. */
+    case T_BIT_OR:
+    case T_BIT_AND:
+    case T_BIT_XOR:
+    case T_SHL:
+    case T_SHR:
+    case T_MOD:
+    case T_MOD_ASSIGN:
+    case T_BIT_OR_ASSIGN:
+    case T_BIT_AND_ASSIGN:
+    case T_BIT_XOR_ASSIGN:
+    case T_SHL_ASSIGN:
+    case T_SHR_ASSIGN: /* Fall through. */
         are_correct |= t == D_T_INT;
         are_correct |= t == D_T_CHAR;
         are_correct |= t == D_T_BOOL;
@@ -155,8 +155,8 @@ static void visit_unary(struct ast_node *ast)
     enum data_type dt = last_dt;
 
     switch (stmt->op) {
-    case TOK_INC:
-    case TOK_DEC: /* Fall through. */
+    case T_INC:
+    case T_DEC: /* Fall through. */
         if (dt != D_T_CHAR && dt != D_T_INT)
             fcc_compile_error(
                 ast->line_no,
@@ -166,10 +166,10 @@ static void visit_unary(struct ast_node *ast)
                 data_type_to_string(dt)
             );
         break;
-    case TOK_BIT_AND: /* Address operator `&`. */
+    case T_BIT_AND: /* Address operator `&`. */
         ++last_indir_lvl;
         break;
-    case TOK_STAR: /* Dereference operator `*`. */
+    case T_STAR: /* Dereference operator `*`. */
         if (last_indir_lvl == 0)
             fcc_compile_error(
                 ast->line_no,

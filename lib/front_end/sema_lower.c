@@ -304,7 +304,7 @@ void sema_lower(unused struct ast_node **ast)
 
 //     struct ast_node *iter_body = ast_unary_init(
 //         AST_PREFIX_UNARY,
-//         TOK_BIT_AND,
+//         T_BIT_AND,
 //         ast_array_access_init(
 //             strdup(decl->name),
 //             ast_compound_init(
@@ -383,14 +383,14 @@ void sema_lower(unused struct ast_node **ast)
 //     *ast = ast_for_init(
 //         iterator,
 //         ast_binary_init(
-//             TOK_LT,
+//             T_LT,
 //             ast_sym_init(strdup(__i), 0, 0),
 //             ast_int_init(decl->top_arity, 0, 0),
 //             0, 0
 //         ),
 //         ast_unary_init(
 //             AST_PREFIX_UNARY,
-//             TOK_INC,
+//             T_INC,
 //             ast_sym_init(strdup(__i), 0, 0),
 //             0, 0
 //         ),

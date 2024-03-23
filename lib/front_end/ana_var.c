@@ -56,17 +56,17 @@ static void collect_ast(struct ast_node *ast)
 static bool is_assignment_op(enum token_type e)
 {
     switch (e) {
-    case TOK_ASSIGN:
-    case TOK_MUL_ASSIGN:
-    case TOK_DIV_ASSIGN:
-    case TOK_MOD_ASSIGN:
-    case TOK_PLUS_ASSIGN:
-    case TOK_MINUS_ASSIGN:
-    case TOK_SHL_ASSIGN:
-    case TOK_SHR_ASSIGN:
-    case TOK_BIT_AND_ASSIGN:
-    case TOK_BIT_OR_ASSIGN:
-    case TOK_BIT_XOR_ASSIGN:
+    case T_ASSIGN:
+    case T_MUL_ASSIGN:
+    case T_DIV_ASSIGN:
+    case T_MOD_ASSIGN:
+    case T_PLUS_ASSIGN:
+    case T_MINUS_ASSIGN:
+    case T_SHL_ASSIGN:
+    case T_SHR_ASSIGN:
+    case T_BIT_AND_ASSIGN:
+    case T_BIT_OR_ASSIGN:
+    case T_BIT_XOR_ASSIGN:
         return true;
     default:
         return false;
@@ -275,12 +275,12 @@ static void visit_unary(struct ast_node *ast)
         );
 
     switch (stmt->op) {
-    case TOK_INC: /* ++var */
-    case TOK_DEC: /* --var */
+    case T_INC: /* ++var */
+    case T_DEC: /* --var */
         use_add_write(op);
         break;
-    case TOK_STAR: /* *var */
-    case TOK_BIT_AND: /* &var */
+    case T_STAR: /* *var */
+    case T_BIT_AND: /* &var */
         use_add_read(op);
         break;
     default:

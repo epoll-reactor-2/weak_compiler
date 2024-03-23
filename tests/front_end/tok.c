@@ -14,18 +14,18 @@ int main()
 {
     struct token token1 = {
         .data    = "",
-        .type    = TOK_ASSIGN,
+        .type    = T_ASSIGN,
         .line_no = 0U,
         .col_no  = 0U
     };
     ASSERT_TRUE(tok_is(&token1, '='));
-    ASSERT_EQ(tok_to_string(TOK_EXCLAMATION), "!");
-    ASSERT_EQ(tok_to_string(TOK_STAR), "*");
-    ASSERT_EQ(tok_to_string(TOK_STATIC_ASSERT), "_Static_assert");
-    ASSERT_EQ(tok_char_to_tok('+'), TOK_PLUS);
-    ASSERT_EQ(tok_char_to_tok('*'), TOK_STAR);
-    ASSERT_EQ(tok_char_to_tok('&'), TOK_BIT_AND);
-    ASSERT_EQ(tok_char_to_tok('|'), TOK_BIT_OR);
-    ASSERT_EQ(tok_char_to_tok('['), TOK_OPEN_BRACKET);
-    ASSERT_EQ(tok_char_to_tok(']'), TOK_CLOSE_BRACKET);
+    ASSERT_EQ(tok_to_string(T_EXCLAMATION), "!");
+    ASSERT_EQ(tok_to_string(T_STAR), "*");
+    ASSERT_EQ(tok_to_string(T_STATIC_ASSERT), "_Static_assert");
+    ASSERT_EQ(tok_char_to_tok('+'), T_PLUS);
+    ASSERT_EQ(tok_char_to_tok('*'), T_STAR);
+    ASSERT_EQ(tok_char_to_tok('&'), T_BIT_AND);
+    ASSERT_EQ(tok_char_to_tok('|'), T_BIT_OR);
+    ASSERT_EQ(tok_char_to_tok('['), T_OPEN_BRACKET);
+    ASSERT_EQ(tok_char_to_tok(']'), T_CLOSE_BRACKET);
 }

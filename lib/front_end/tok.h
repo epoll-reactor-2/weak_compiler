@@ -4,8 +4,8 @@
  * This file is distributed under the MIT license.
  */
 
-#ifndef FCC_FRONTEND_TOK_H
-#define FCC_FRONTEND_TOK_H
+#ifndef FCC_FRONTEND_T_H
+#define FCC_FRONTEND_T_H
 
 #include "util/compiler.h"
 #include <stdbool.h>
@@ -15,103 +15,103 @@
 #define __take_string(x, y) y,
 
 #define map(take) \
-    take(TOK_ALIGNOF, "alignof") \
-    take(TOK_AUTO, "auto") \
-    take(TOK_BREAK, "break") \
-    take(TOK_CASE, "case") \
-    take(TOK_CHAR, "char") \
-    take(TOK_CONST, "const") \
-    take(TOK_CONTINUE, "continue") \
-    take(TOK_DEFAULT, "default") \
-    take(TOK_DO, "do") \
-    take(TOK_DOUBLE, "double") \
-    take(TOK_ELSE, "else") \
-    take(TOK_ENUM, "enum") \
-    take(TOK_EXTERN, "extern") \
-    take(TOK_FLOAT, "float") \
-    take(TOK_FOR, "for") \
-    take(TOK_GOTO, "goto") \
-    take(TOK_IF, "if") \
-    take(TOK_INLINE, "inline") \
-    take(TOK_INT, "int") \
-    take(TOK_LONG, "long") \
-    take(TOK_REGISTER, "register") \
-    take(TOK_RESTRICT, "restrict") \
-    take(TOK_RETURN, "return") \
-    take(TOK_SHORT, "short") \
-    take(TOK_SIGNED, "signed") \
-    take(TOK_SIZEOF, "sizeof") \
-    take(TOK_STATIC, "static") \
-    take(TOK_STRUCT, "struct") \
-    take(TOK_SWITCH, "switch") \
-    take(TOK_TYPEDEF, "typedef") \
-    take(TOK_UNION, "union") \
-    take(TOK_UNSIGNED, "unsigned") \
-    take(TOK_VOID, "void") \
-    take(TOK_VOLATILE, "volatile") \
-    take(TOK_WHILE, "while") \
-    take(TOK_ALIGNAS, "_Alignas") \
-    take(TOK_ATOMIC, "_Atomic") \
-    take(TOK_BOOL, "_Bool") \
-    take(TOK_COMPLEX, "_Complex") \
-    take(TOK_GENERIC, "_Generic") \
-    take(TOK_IMAGINARY, "_Imaginary") \
-    take(TOK_NORETURN, "_Noreturn") \
-    take(TOK_STATIC_ASSERT, "_Static_assert") \
-    take(TOK_THREAD_LOCAL, "_Thread_local") \
-    take(TOK_OPEN_BRACKET, "[") \
-    take(TOK_CLOSE_BRACKET, "]") \
-    take(TOK_OPEN_PAREN, "(") \
-    take(TOK_CLOSE_PAREN, ")") \
-    take(TOK_OPEN_BRACE, "{") \
-    take(TOK_CLOSE_BRACE, "}") \
-    take(TOK_DOT, ".") \
-    take(TOK_ARROW, "->") \
-    take(TOK_INC, "++") \
-    take(TOK_DEC, "--") \
-    take(TOK_BIT_AND, "&") \
-    take(TOK_STAR, "*") \
-    take(TOK_PLUS, "+") \
-    take(TOK_MINUS, "-") \
-    take(TOK_TILDE, "~") \
-    take(TOK_EXCLAMATION, "!") \
-    take(TOK_SLASH, "/") \
-    take(TOK_MOD, "%") \
-    take(TOK_SHL, "<<") \
-    take(TOK_SHR, ">>") \
-    take(TOK_LT, "<") \
-    take(TOK_GT, ">") \
-    take(TOK_LE, "<=") \
-    take(TOK_GE, ">=") \
-    take(TOK_EQ, "==") \
-    take(TOK_NEQ, "!=") \
-    take(TOK_BIT_XOR, "^") \
-    take(TOK_BIT_OR, "|") \
-    take(TOK_AND, "&&") \
-    take(TOK_OR, "||") \
-    take(TOK_QUESTION_MARK, "?") \
-    take(TOK_COLON, ":") \
-    take(TOK_SEMICOLON, ";") \
-    take(TOK_ELLIPSIS, "...") \
-    take(TOK_ASSIGN, "=") \
-    take(TOK_MUL_ASSIGN, "*=") \
-    take(TOK_DIV_ASSIGN, "/=") \
-    take(TOK_MOD_ASSIGN, "%=") \
-    take(TOK_PLUS_ASSIGN, "+=") \
-    take(TOK_MINUS_ASSIGN, "-=") \
-    take(TOK_SHL_ASSIGN, "<<=") \
-    take(TOK_SHR_ASSIGN, ">>=") \
-    take(TOK_BIT_AND_ASSIGN, "&=") \
-    take(TOK_BIT_XOR_ASSIGN, "^=") \
-    take(TOK_BIT_OR_ASSIGN, "|=") \
-    take(TOK_COMMA, ",") \
-    take(TOK_HASH, "#") \
-    take(TOK_HASH_HASH, "##") \
-    take(TOK_INT_LITERAL, "<integer literal>") \
-    take(TOK_FLOAT_LITERAL, "<float literal>") \
-    take(TOK_STRING_LITERAL, "<string literal>") \
-    take(TOK_CHAR_LITERAL, "<char literal>") \
-    take(TOK_SYM, "<symbol>")
+    take(T_ALIGNOF, "alignof") \
+    take(T_AUTO, "auto") \
+    take(T_BREAK, "break") \
+    take(T_CASE, "case") \
+    take(T_CHAR, "char") \
+    take(T_CONST, "const") \
+    take(T_CONTINUE, "continue") \
+    take(T_DEFAULT, "default") \
+    take(T_DO, "do") \
+    take(T_DOUBLE, "double") \
+    take(T_ELSE, "else") \
+    take(T_ENUM, "enum") \
+    take(T_EXTERN, "extern") \
+    take(T_FLOAT, "float") \
+    take(T_FOR, "for") \
+    take(T_GOTO, "goto") \
+    take(T_IF, "if") \
+    take(T_INLINE, "inline") \
+    take(T_INT, "int") \
+    take(T_LONG, "long") \
+    take(T_REGISTER, "register") \
+    take(T_RESTRICT, "restrict") \
+    take(T_RETURN, "return") \
+    take(T_SHORT, "short") \
+    take(T_SIGNED, "signed") \
+    take(T_SIZEOF, "sizeof") \
+    take(T_STATIC, "static") \
+    take(T_STRUCT, "struct") \
+    take(T_SWITCH, "switch") \
+    take(T_TYPEDEF, "typedef") \
+    take(T_UNION, "union") \
+    take(T_UNSIGNED, "unsigned") \
+    take(T_VOID, "void") \
+    take(T_VOLATILE, "volatile") \
+    take(T_WHILE, "while") \
+    take(T_ALIGNAS, "_Alignas") \
+    take(T_ATOMIC, "_Atomic") \
+    take(T_BOOL, "_Bool") \
+    take(T_COMPLEX, "_Complex") \
+    take(T_GENERIC, "_Generic") \
+    take(T_IMAGINARY, "_Imaginary") \
+    take(T_NORETURN, "_Noreturn") \
+    take(T_STATIC_ASSERT, "_Static_assert") \
+    take(T_THREAD_LOCAL, "_Thread_local") \
+    take(T_OPEN_BRACKET, "[") \
+    take(T_CLOSE_BRACKET, "]") \
+    take(T_OPEN_PAREN, "(") \
+    take(T_CLOSE_PAREN, ")") \
+    take(T_OPEN_BRACE, "{") \
+    take(T_CLOSE_BRACE, "}") \
+    take(T_DOT, ".") \
+    take(T_ARROW, "->") \
+    take(T_INC, "++") \
+    take(T_DEC, "--") \
+    take(T_BIT_AND, "&") \
+    take(T_STAR, "*") \
+    take(T_PLUS, "+") \
+    take(T_MINUS, "-") \
+    take(T_TILDE, "~") \
+    take(T_EXCLAMATION, "!") \
+    take(T_SLASH, "/") \
+    take(T_MOD, "%") \
+    take(T_SHL, "<<") \
+    take(T_SHR, ">>") \
+    take(T_LT, "<") \
+    take(T_GT, ">") \
+    take(T_LE, "<=") \
+    take(T_GE, ">=") \
+    take(T_EQ, "==") \
+    take(T_NEQ, "!=") \
+    take(T_BIT_XOR, "^") \
+    take(T_BIT_OR, "|") \
+    take(T_AND, "&&") \
+    take(T_OR, "||") \
+    take(T_QUESTION_MARK, "?") \
+    take(T_COLON, ":") \
+    take(T_SEMICOLON, ";") \
+    take(T_ELLIPSIS, "...") \
+    take(T_ASSIGN, "=") \
+    take(T_MUL_ASSIGN, "*=") \
+    take(T_DIV_ASSIGN, "/=") \
+    take(T_MOD_ASSIGN, "%=") \
+    take(T_PLUS_ASSIGN, "+=") \
+    take(T_MINUS_ASSIGN, "-=") \
+    take(T_SHL_ASSIGN, "<<=") \
+    take(T_SHR_ASSIGN, ">>=") \
+    take(T_BIT_AND_ASSIGN, "&=") \
+    take(T_BIT_XOR_ASSIGN, "^=") \
+    take(T_BIT_OR_ASSIGN, "|=") \
+    take(T_COMMA, ",") \
+    take(T_HASH, "#") \
+    take(T_HASH_HASH, "##") \
+    take(T_INT_LITERAL, "<integer literal>") \
+    take(T_FLOAT_LITERAL, "<float literal>") \
+    take(T_STRING_LITERAL, "<string literal>") \
+    take(T_CHAR_LITERAL, "<char literal>") \
+    take(T_SYM, "<symbol>")
 
 enum token_type {
     map(__take_enum)
@@ -141,4 +141,4 @@ wur really_inline bool tok_is(const struct token *tok, char symbol)
     return tok->type == tok_char_to_tok(symbol);
 }
 
-#endif // FCC_FRONTEND_TOK_H
+#endif // FCC_FRONTEND_T_H

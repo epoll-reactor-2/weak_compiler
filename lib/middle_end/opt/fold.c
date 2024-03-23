@@ -79,10 +79,10 @@ static bool loop_dependent(uint64_t sym_idx)
 static bool fold_booleans(enum token_type op, bool l, bool r)
 {
     switch (op) {
-    case TOK_BIT_AND: return l & r;
-    case TOK_BIT_OR:  return l | r;
-    case TOK_BIT_XOR: return l ^ r;
-    case TOK_ASSIGN:  return 0;
+    case T_BIT_AND: return l & r;
+    case T_BIT_OR:  return l | r;
+    case T_BIT_XOR: return l ^ r;
+    case T_ASSIGN:  return 0;
     default:
         fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
@@ -91,25 +91,25 @@ static bool fold_booleans(enum token_type op, bool l, bool r)
 static int32_t fold_ints(enum token_type op, int32_t l, int32_t r)
 {
     switch (op) {
-    case TOK_AND:     return l && r;
-    case TOK_OR:      return l || r;
-    case TOK_BIT_XOR: return l  ^ r;
-    case TOK_BIT_AND: return l  & r;
-    case TOK_BIT_OR:  return l  | r;
-    case TOK_EQ:      return l == r;
-    case TOK_NEQ:     return l != r;
-    case TOK_GT:      return l  > r;
-    case TOK_LT:      return l  < r;
-    case TOK_GE:      return l >= r;
-    case TOK_LE:      return l <= r;
-    case TOK_SHL:     return l << r;
-    case TOK_SHR:     return l >> r;
-    case TOK_PLUS:    return l  + r;
-    case TOK_MINUS:   return l  - r;
-    case TOK_STAR:    return l  * r;
-    case TOK_SLASH:   return l  / r;
-    case TOK_MOD:     return l  % r;
-    case TOK_ASSIGN:  return -1;
+    case T_AND:     return l && r;
+    case T_OR:      return l || r;
+    case T_BIT_XOR: return l  ^ r;
+    case T_BIT_AND: return l  & r;
+    case T_BIT_OR:  return l  | r;
+    case T_EQ:      return l == r;
+    case T_NEQ:     return l != r;
+    case T_GT:      return l  > r;
+    case T_LT:      return l  < r;
+    case T_GE:      return l >= r;
+    case T_LE:      return l <= r;
+    case T_SHL:     return l << r;
+    case T_SHR:     return l >> r;
+    case T_PLUS:    return l  + r;
+    case T_MINUS:   return l  - r;
+    case T_STAR:    return l  * r;
+    case T_SLASH:   return l  / r;
+    case T_MOD:     return l  % r;
+    case T_ASSIGN:  return -1;
     default:
         fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
@@ -118,17 +118,17 @@ static int32_t fold_ints(enum token_type op, int32_t l, int32_t r)
 static float fold_floats(enum token_type op, float l, float r)
 {
     switch (op) {
-    case TOK_EQ:      return l == r;
-    case TOK_NEQ:     return l != r;
-    case TOK_GT:      return l  > r;
-    case TOK_LT:      return l  < r;
-    case TOK_GE:      return l >= r;
-    case TOK_LE:      return l <= r;
-    case TOK_PLUS:    return l  + r;
-    case TOK_MINUS:   return l  - r;
-    case TOK_STAR:    return l  * r;
-    case TOK_SLASH:   return l  / r;
-    case TOK_ASSIGN:  return -1.0;
+    case T_EQ:      return l == r;
+    case T_NEQ:     return l != r;
+    case T_GT:      return l  > r;
+    case T_LT:      return l  < r;
+    case T_GE:      return l >= r;
+    case T_LE:      return l <= r;
+    case T_PLUS:    return l  + r;
+    case T_MINUS:   return l  - r;
+    case T_STAR:    return l  * r;
+    case T_SLASH:   return l  / r;
+    case T_ASSIGN:  return -1.0;
     default:
         fcc_unreachable("Unknown token type `%s`.", tok_to_string(op));
     }
