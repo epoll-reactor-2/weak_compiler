@@ -5,7 +5,6 @@
  */
 
 #undef NDEBUG
-#include "front_end/lex.h"
 #include "front_end/ana.h"
 #include "front_end/ast.h"
 #include "front_end/ast_dump.h"
@@ -42,16 +41,6 @@
 extern FILE *yyin;
 extern int yylex();
 extern int yylex_destroy();
-
-void tokens_cleanup(tok_array_t *toks)
-{
-    for (uint64_t i = 0; i < toks->count; ++i) {
-        struct token *t = &toks->data[i];
-        if (t->data)
-            free(t->data);
-    }
-    vector_free(*toks);
-}
 
 /* Get string represented as comment placed in the very
    beginning of file. For example,

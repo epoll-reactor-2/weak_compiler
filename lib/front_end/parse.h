@@ -7,10 +7,12 @@
 #ifndef FCC_FRONTEND_PARSE_PARSE_H
 #define FCC_FRONTEND_PARSE_PARSE_H
 
-#include "front_end/tok.h"
 #include "util/compiler.h"
 
 struct ast_node;
+struct token;
+
+void lex_token(struct token *t);
 
 void pp_init();
 void pp_deinit();

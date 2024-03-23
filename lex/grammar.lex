@@ -7,20 +7,21 @@
 %{
 
 #include "front_end/tok.h"
+#include "front_end/tok_type.h"
+
+extern void lex_token(struct token *tok);
 
 int yycolumn = 1;
 
 #define YY_USER_ACTION                                                   \
-  lex_lineno = prev_yylineno;                                            \
-  lex_colno = yycolumn;                                                  \
-  if (yylineno == prev_yylineno) {                                       \
-      yycolumn += yyleng;                                                \
-  } else {                                                               \
-    for (yycolumn = 1; yytext[yyleng - yycolumn]; ++yycolumn) {}         \
-    prev_yylineno = yylineno;                                            \
-  }
-
-extern void lex_consume_token(struct token *tok);
+    lex_lineno = prev_yylineno;                                          \
+    lex_colno = yycolumn;                                                \
+    if (yylineno == prev_yylineno) {                                     \
+        yycolumn += yyleng;                                              \
+    } else {                                                             \
+        for (yycolumn = 1; yytext[yyleng - yycolumn]; ++yycolumn) {}     \
+        prev_yylineno = yylineno;                                        \
+    }
 
 #define LEX_WORD(tok_type) do {                                          \
     struct token t = {                                                   \
@@ -29,7 +30,8 @@ extern void lex_consume_token(struct token *tok);
         .line_no = lex_lineno,                                           \
         .col_no  = lex_colno                                             \
     };                                                                   \
-    lex_consume_token(&t);                                               \
+    lex_token(&t);                                                       \
+    return tok_type;                                                     \
 } while (0);
 
 /* Don't include quotes to match. Lex has no lookahead in their regular
@@ -46,7 +48,8 @@ extern void lex_consume_token(struct token *tok);
     size_t data_len = strlen(t.data);                                    \
     if (data_len > 0)                                                    \
         t.data[data_len - 1] = '\0';                                     \
-    lex_consume_token(&t);                                               \
+    lex_token(&t);                                                       \
+    return tok_type;                                                     \
 } while (0);
 
 /* Operator can have no data, since all information about it contained
@@ -58,7 +61,8 @@ extern void lex_consume_token(struct token *tok);
         .line_no = lex_lineno,                                           \
         .col_no  = lex_colno                                             \
     };                                                                   \
-    lex_consume_token(&t);                                               \
+    lex_token(&t);                                                       \
+    return tok_type;                                                     \
 } while (0);
 
 %}
@@ -184,6 +188,9 @@ extern void lex_consume_token(struct token *tok);
 
 [_a-zA-Z][_a-zA-Z0-9]* LEX_WORD(TOK_SYM)
 
-.                      {}
+.                      { fprintf(stderr, "Illegal token `%s`\n", yytext);
+                         fflush (stderr);
+                         __builtin_trap();
+                       }
 
 %%

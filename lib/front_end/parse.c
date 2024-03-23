@@ -7,6 +7,7 @@
 #include "front_end/ast.h"
 #include "front_end/data_type.h"
 #include "front_end/parse.h"
+#include "front_end/tok.h"
 #include "util/alloc.h"
 #include "util/diagnostic.h"
 #include "util/unreachable.h"
@@ -14,6 +15,42 @@
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
+
+/**********************************************
+ **              Lex callback                **
+ **********************************************/
+
+extern int yylex();
+
+/* We use stack because C grammar may require from us
+   lookahead by few tokens. */
+static vector_t(struct token) token_stack;
+
+void lex_token(struct token *t)
+{
+    printf("Consume %s %s\n", tok_to_string(t->type), t->data);
+    vector_push_back(token_stack, *t);
+}
+
+static void lex_free()
+{
+    vector_free(token_stack);
+}
+
+static struct token *peek_current()
+{
+    return &vector_back(token_stack);
+}
+
+static struct token *peek_next()
+{
+    struct token *t = peek_current();
+    return t;
+}
+
+/**********************************************
+ **                Parser                    **
+ **********************************************/
 
 typedef vector_t(struct ast_node *) ast_array_t;
 
@@ -30,12 +67,6 @@ noreturn static void report_unexpected(struct token *t)
     fcc_compile_error(t->line_no, t->col_no, "Unexpected token `%s`", tok_to_string(t->type));
 }
 
-static struct token *tok_begin;
-static struct token *tok_end;
-
-static struct token *peek_current() { return tok_begin;   }
-static struct token *peek_next   () { return tok_begin++; }
-
 struct token *require_token(enum token_type t)
 {
     struct token *curr_tok = peek_current();
@@ -48,7 +79,6 @@ struct token *require_token(enum token_type t)
             tok_to_string(t), tok_to_string(curr_tok->type)
         );
 
-    ++tok_begin;
     return curr_tok;
 }
 
@@ -244,46 +274,12 @@ static enum token_type parse_function_specifier() /* 6.7.4 */
     }
 }
 
-struct ast_node *parse_tokens(const struct token *begin, const struct token *end)
+static struct ast_node *parse_tokens()
 {
-    tok_begin = (struct token *) begin;
-    tok_end   = (struct token *) end;
 
-    typedef vector_t(struct ast_node *) stmts_t;
 
-    stmts_t global_stmts = {0};
-    struct token *curr = NULL;
-
-    while (tok_begin < tok_end) {
-        curr = peek_next();
-        switch (curr->type) {
-        case TOK_TYPEDEF:
-        case TOK_STRUCT:
-            // vector_push_back(global_stmts, parse_struct_decl());
-            break;
-        case TOK_VOID:
-        case TOK_INT:
-        case TOK_CHAR:
-        case TOK_FLOAT:
-        case TOK_BOOL: /* Fall through. */
-            // vector_push_back(global_stmts, parse_function_decl());
-            break;
-        default:
-            fcc_compile_error(
-                curr->line_no,
-                curr->col_no,
-                "Unexpected token in global context: %s\n",
-                tok_to_string(curr->type)
-            );
-        }
-    }
-
-    return ast_compound_init(
-        /*size=*/global_stmts.count,
-        /*stmts=*/global_stmts.data,
-        /*line_no=*/0,
-        /*col_no=*/0
-    );
+    lex_free();
+    return NULL;
 }
 
 /**********************************************
@@ -337,18 +333,8 @@ void pp_deinit()
 
 void pp_add_include_path(const char *path)
 {
-    printf("Adding %s\n", path);
+    printf("PP: adding %s\n", path);
     vector_push_back(pp_paths, strdup(path));
-}
-
-static void run_lex(const char *path)
-{
-    if (!yyin) yyin = fopen(path, "r");
-    else yyin = freopen(path, "r", yyin);
-    if (yyin == NULL)
-        fcc_unreachable("Cannot open file `%s`", path);
-
-    yylex();
 }
 
 static FILE *pp_try_open(const char *filename)
@@ -362,10 +348,8 @@ static FILE *pp_try_open(const char *filename)
         printf("PP: Searching %s\n", path);
 
         FILE *f = fopen(path, "rb");
-        if (f) {
-            run_lex(path);
+        if (f)
             return f;
-        }
     }
 
     printf("Cannot open file %s\n", filename);
@@ -383,6 +367,10 @@ static void pp(const char *filename)
             fclose(f);
             return;
         }
+
+        /* TODO: Expand #include, #define and don't feed
+                 lexer with it. */
+        fputs(line, yyin);
 
         char *p = line;
         while (ws(*p))
@@ -423,13 +411,20 @@ static void pp(const char *filename)
 
 struct ast_node *parse(const char *filename)
 {
-    puts("");
+    char *buf;
+    size_t _;
+    yyin = open_memstream(&buf, &_);
+    if (!yyin)
+        abort();
 
     pp(filename);
 
-    // fflush(stdout);
-    // exit(-1);
-    return parse_tokens(NULL, NULL);
+    int ret = 1;
+    while ((ret = yylex()) > 0) {
+        printf("yylex(): %d\n", ret);
+    }
+
+    return NULL;
 }
 
 /*

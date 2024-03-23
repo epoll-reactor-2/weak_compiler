@@ -6,7 +6,6 @@
 
 #include "front_end/ana.h"
 #include "front_end/ast.h"
-#include "front_end/lex.h"
 #include "front_end/parse.h"
 #include "util/diagnostic.h"
 #include "utils/test_utils.h"
