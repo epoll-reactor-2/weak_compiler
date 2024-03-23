@@ -356,6 +356,36 @@ static FILE *pp_try_open(const char *filename)
     exit(-1);
 }
 
+const int pp_include_len = sizeof ("#include") - 1;
+const int pp_define_len  = sizeof ("#define") - 1;
+const int pp_ifdef_len   = sizeof ("#ifdef") - 1;
+const int pp_ifndef_len  = sizeof ("#ifndef") - 1;
+const int pp_endif_len   = sizeof ("#endif") - 1;
+const int pp_elif_len    = sizeof ("#elif") - 1;
+
+static void pp(const char *filename);
+static void pp_include(char **p)
+{
+    *p += pp_include_len;
+
+    /* p[0] must be " or <. */
+    while (ws(**p))
+        ++(*p);
+
+    /* Consume " or <. */
+    ++(*p);
+
+    /* Cut " or > from include path. */
+    char *old_p = (*p);
+    while (*(*p) != '"' && *(*p) != '>')
+        ++(*p);
+    *(*p) = '\0';
+
+    (*p) = old_p;
+
+    pp((*p));
+}
+
 static void pp(const char *filename)
 {
     char line[8192];
@@ -368,40 +398,30 @@ static void pp(const char *filename)
             return;
         }
 
-        /* TODO: Expand #include, #define and don't feed
-                 lexer with it. */
-        fputs(line, yyin);
-
         char *p = line;
         while (ws(*p))
             ++p;
 
-        printf("%s", p);
+        printf("p: %s", p);
 
-        int pp_include_len = sizeof ("#include") - 1;
+#define MATCH(x) \
+    !strncmp(p, "#" #x, pp_##x##_len)
 
-        if (strncmp(p, "#include", pp_include_len))
-            continue;
+        if (MATCH(include)) {
+            pp_include(&p);
+        } else if (MATCH(define)) {
+        } else if (MATCH(ifdef)) {
+        } else if (MATCH(ifndef)) {
+        } else if (MATCH(elif)) {
+        } else if (MATCH(endif)) {
+        } else {
+            /* TODO: Expand #include, #define and don't feed
+                    lexer with it. */
+            fputs(line, yyin);
+        }
 
-        p += pp_include_len;
+#undef MATCH
 
-        /* p[0] must be " or <. */
-
-        while (ws(*p))
-            ++p;
-
-        /* Consume " or <. */
-        ++p;
-
-        /* Cut " or > from include path. */
-        char *old_p = p;
-        while (*p != '"' && *p != '>')
-            ++p;
-        *p = '\0';
-
-        p = old_p;
-
-        pp(p);
     }
 }
 
@@ -419,10 +439,8 @@ struct ast_node *parse(const char *filename)
 
     pp(filename);
 
-    int ret = 1;
-    while ((ret = yylex()) > 0) {
-        printf("yylex(): %d\n", ret);
-    }
+    while (yylex() > 0)
+        ;
 
     return NULL;
 }

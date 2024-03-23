@@ -1,7 +1,7 @@
 /**
 Comment
 */
-#include <bits/a.out.h>
+#include <linux/ax25.h>
 int main() {
     return 0;
 }
