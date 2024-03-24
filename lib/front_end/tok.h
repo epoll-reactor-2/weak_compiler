@@ -131,6 +131,7 @@
     take(T_COMMA, ",") \
     take(T_HASH, "#") \
     take(T_HASH_HASH, "##") \
+    take(T_BACKSLASH, "\\") \
     take(T_INT_LITERAL, "<integer literal>") \
     take(T_FLOAT_LITERAL, "<float literal>") \
     take(T_STRING_LITERAL, "<string literal>") \

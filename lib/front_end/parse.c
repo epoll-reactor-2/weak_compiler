@@ -300,17 +300,6 @@ extern FILE *yyin;
 extern int yylex();
 extern int yylex_destroy();
 
-really_inline static bool ws(char c)
-{
-    switch (c) {
-    case ' ':
-    case '\t':
-        return 1;
-    default:
-        return 0;
-    }
-}
-
 static vector_t(char *) pp_paths;
 
 void pp_init()

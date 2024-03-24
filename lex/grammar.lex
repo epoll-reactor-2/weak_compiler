@@ -192,6 +192,7 @@ int yycolumn = 1;
 ","                    LEX_OP(T_COMMA)
 "#"                    LEX_OP(T_HASH)
 "##"                   LEX_OP(T_HASH_HASH)
+"\\"                   LEX_OP(T_BACKSLASH)
 "%:"                   LEX_OP(T_HASH)
 "%:%:"                 LEX_OP(T_HASH_HASH)
 
