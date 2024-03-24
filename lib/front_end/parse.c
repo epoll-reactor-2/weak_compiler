@@ -27,11 +27,11 @@ extern void yyrestart(FILE *input_file);
 /* We use stack because C grammar may require from us
    lookahead by few tokens. */
 static vector_t(struct token) token_stack;
+struct token current_token;
 
 void lex_token(struct token *t)
 {
-    printf("Consume %s %s\n", tok_to_string(t->type), t->data);
-    vector_push_back(token_stack, *t);
+    memcpy(&current_token, t, sizeof (*t));
 }
 
 static void lex_free()
@@ -41,7 +41,7 @@ static void lex_free()
 
 static struct token *peek_current()
 {
-    return &vector_back(token_stack);
+    return &current_token;
 }
 
 /* TODO: Such API
@@ -471,6 +471,7 @@ static void pp_read()
             break;
         default:
             /* Rest of tokens dedicated for parser not preprocessor. */
+            vector_push_back(token_stack, *t);
             break;
         }
         t = peek_next();
@@ -488,6 +489,11 @@ struct ast_node *parse(const char *filename)
     yyin = open_memstream(&_, &__);
 
     pp(filename);
+
+    vector_foreach(token_stack, i) {
+        struct token *t = &vector_at(token_stack, i);
+        printf("Consume %s %s\n", tok_to_string(t->type), t->data);
+    }
 
     lex_free();
     return NULL;
