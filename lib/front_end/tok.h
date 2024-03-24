@@ -14,6 +14,9 @@
 #define __take_enum(x, y) x,
 #define __take_string(x, y) y,
 
+/* NOTE: If you have some wierd lexed symbols after
+         edit this mapping, you probably forgot to regenerate
+         lex.yy.c. */
 #define map(take) \
     take(T_NULL__, "") \
     /* Keywords. */ \
@@ -77,8 +80,8 @@
     take(T_DEFINE, "define") \
     take(T_UNDEF, "undef") \
     take(T_LINE, "line") \
-    take(T_LINE, "error") \
-    take(T_LINE, "pragma") \
+    take(T_ERROR, "error") \
+    take(T_PRAGMA, "pragma") \
     \
     take(T_OPEN_BRACKET, "[") \
     take(T_CLOSE_BRACKET, "]") \

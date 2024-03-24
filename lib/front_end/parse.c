@@ -22,6 +22,7 @@
  **********************************************/
 
 extern int yylex();
+extern void yyrestart(FILE *input_file);
 
 /* We use stack because C grammar may require from us
    lookahead by few tokens. */
@@ -54,8 +55,7 @@ static struct token *peek_next()
 {
     if (yylex() <= 0)
         return NULL;
-    struct token *t = peek_current();
-    return t;
+    return peek_current();
 }
 
 /**********************************************
@@ -124,6 +124,7 @@ unused static enum token_type             parse_struct_or_union(); /* 6.7.2.1 */
 unused static struct ast_node            *parse_enum_specifier(); /* 6.7.2.2 */
 unused static enum token_type             parse_type_qualifier(); /* 6.7.3 */
 unused static enum token_type             parse_function_specifier(); /* 6.7.4 */
+unused static struct ast_node            *parse_translation_unit(); /* 6.9 */
 
 static enum token_type parse_punctuator() /* 6.4.6 */
 {
@@ -286,6 +287,11 @@ static enum token_type parse_function_specifier() /* 6.7.4 */
     }
 }
 
+static struct ast_node *parse_translation_unit() /* 6.9 */
+{
+    return NULL;
+}
+
 /**********************************************
  **             Preprocessor                 **
  **********************************************/
@@ -362,31 +368,41 @@ static FILE *pp_try_open(const char *filename)
 
 static void pp_read();
 
-static void seek_0(FILE *f)
-{
-    if (fseek(f, 0, SEEK_SET) < 0)
-        fcc_fatal_errno("fseek()");
-}
-
 static void pp(const char *filename)
 {
     FILE *f = pp_try_open(filename);
 
-    seek_0(f);
-    uint64_t len = ftell(f);
-    seek_0(f);
+    char line[512] = {0};
+    while (1) {
+        if (!fgets(line, 512, f)) {
+            fclose(f);
+            return;
+        }
 
-    char *buf = fcc_calloc(1, len);
+        fwrite(line, strlen(line), 1, yyin);
 
-    fread(buf, 1, len, f);
+        /* TODO: Now theoretically parser can operate on one
+                 source code fragment of some small size. As an
+                 option, we can put the whole source tokens into
+                 one token table and start to parse with it. */
+        pp_read();
+    }
+}
 
-    seek_0(f);
+static void pp_include_path_user(char *path)
+{
+    strcpy(path, peek_current()->data);
+}
 
-    yyin = f;
+static void pp_include_path_system(char *path)
+{
+    struct token *t = peek_next();
+    while (!tok_is(t, '>')) {
+        path = strcat(path, t->data ? t->data : tok_to_string(t->type));
+        t = peek_next();
+    }
 
-    pp_read();
-
-    fcc_free(buf);
+    require_char('>');
 }
 
 static void pp_include()
@@ -401,21 +417,8 @@ static void pp_include()
 
     char path[512] = {0};
 
-    if (is_user) {
-        strncpy(path, t->data, sizeof (path) - 1);
-    }
-
-    if (is_system) {
-        char *ptr = path;
-        t = peek_next();
-        while (!tok_is(t, '>')) {
-            ptr = strcat(ptr, t->data ? t->data : tok_to_string(t->type));
-            t = peek_next();
-        }
-    }
-
-    if (is_system)
-        require_char('>');
+    if (is_user)   pp_include_path_user(path);
+    if (is_system) pp_include_path_system(path);
 
     pp(path);
 }
@@ -425,14 +428,35 @@ static void pp_directive()
     struct token *t = peek_next();
 
     switch (t->type) {
-    case T_DEFINE:
-        printf("Parsed #define\n");
+    /* 6.10 if-group */
+    case T_IFDEF:
         break;
+    case T_IFNDEF:
+        break;
+    case T_IF:
+        break;
+    /* 6.10 elif-groups */
+    case T_ELIF:
+        break;
+    /* 6.10 endif-line */
+    case T_ENDIF:
+        break;
+    /* 6.10 control-line */
     case T_INCLUDE:
         pp_include();
         break;
-    default:
+    case T_DEFINE:
         break;
+    case T_UNDEF:
+        break;
+    case T_LINE:
+        break;
+    case T_ERROR:
+        break;
+    case T_PRAGMA:
+        break;
+    default:
+        report_unexpected(t);
     }
 }
 
@@ -446,6 +470,7 @@ static void pp_read()
             pp_directive();
             break;
         default:
+            /* Rest of tokens dedicated for parser not preprocessor. */
             break;
         }
         t = peek_next();
@@ -458,7 +483,12 @@ static void pp_read()
 
 struct ast_node *parse(const char *filename)
 {
+    char  *_  = NULL;
+    size_t __ = 0;
+    yyin = open_memstream(&_, &__);
+
     pp(filename);
+
     lex_free();
     return NULL;
 }
