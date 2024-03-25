@@ -18,7 +18,7 @@
          edit this mapping, you probably forgot to regenerate
          lex.yy.c. */
 #define map(take) \
-    take(T_NULL__, "") \
+    take(T_NULL__, "<NULL>") \
     /* Keywords. */ \
     take(T_ALIGNOF, "alignof") \
     take(T_AUTO, "auto") \
@@ -137,7 +137,8 @@
     take(T_FLOAT_LITERAL, "<float literal>") \
     take(T_STRING_LITERAL, "<string literal>") \
     take(T_CHAR_LITERAL, "<char literal>") \
-    take(T_SYM, "<symbol>")
+    take(T_SYM, "<symbol>") \
+    take(T_MACRO, "<macro name>")
 
 enum token_type {
     map(__take_enum)

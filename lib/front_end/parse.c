@@ -378,6 +378,10 @@ static void pp(const char *filename)
     }
 }
 
+/**********************************************
+ **                #include                  **
+ **********************************************/
+
 static void pp_include_path_user(char *path)
 {
     strcpy(path, peek_current()->data);
@@ -412,6 +416,44 @@ static void pp_include()
     pp(path);
 }
 
+/**********************************************
+ **                #define                   **
+ **********************************************/
+
+unused static void pp_define_macro(unused struct token *t)
+{}
+
+unused static void pp_define_id(unused struct token *t)
+{}
+
+/* 1. #define macro
+   2. #define macro(...) */
+static void pp_define()
+{
+    const struct token *t = peek_next();
+
+    if (t->type == T_MACRO)
+        pp_define_macro(t);
+    else
+        pp_define_id(t);
+
+    while (1) {
+        switch (peek_current()->type) {
+        case T_BACKSLASH:
+            peek_next();
+            break;
+        case T_NEWLINE:
+            goto out;
+        default:
+            peek_next();
+            break;
+        }
+    }
+
+out:
+    return;
+}
+
 static void pp_directive()
 {
     struct token *t = peek_next();
@@ -435,6 +477,7 @@ static void pp_directive()
         pp_include();
         break;
     case T_DEFINE:
+        pp_define();
         break;
     case T_UNDEF:
         break;
