@@ -78,7 +78,7 @@ int yycolumn = 1;
 <C_COMMENT>"*/" { BEGIN(INITIAL); }
 <C_COMMENT>\n   {}
 <C_COMMENT>.    {}
-[[:space:]]     {}
+(\ |\t|\v)      {}
 
 -?[0-9]+               LEX_WORD(T_INT_LITERAL)
 -?[0-9]+\.[0-9]+       LEX_WORD(T_FLOAT_LITERAL)
@@ -195,6 +195,7 @@ int yycolumn = 1;
 "\\"                   LEX_OP(T_BACKSLASH)
 "%:"                   LEX_OP(T_HASH)
 "%:%:"                 LEX_OP(T_HASH_HASH)
+"\n"                   LEX_OP(T_NEWLINE)
 
 [_a-zA-Z][_a-zA-Z0-9]* LEX_WORD(T_SYM)
 
