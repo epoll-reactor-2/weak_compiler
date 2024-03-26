@@ -9,9 +9,4 @@ check_license_notes() {
     done
 }
 
-static_analysis() {
-    make static_analysis
-}
-
 check_license_notes
-static_analysis

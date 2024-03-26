@@ -1,8 +1,8 @@
-// /* sema_lower.c - AST abstraction level lowering.
-//  * Copyright (C) 2023 epoll-reactor <glibcxx.chrono@gmail.com>
-//  *
-//  * This file is distributed under the MIT license.
-//  */
+/* sema_lower.c - AST abstraction level lowering.
+* Copyright (C) 2023 epoll-reactor <glibcxx.chrono@gmail.com>
+*
+* This file is distributed under the MIT license.
+*/
 
 // #include "front_end/ast.h"
 #include "front_end/sema.h"
