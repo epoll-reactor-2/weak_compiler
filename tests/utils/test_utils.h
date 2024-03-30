@@ -10,6 +10,7 @@
 #include "front_end/ast_dump.h"
 #include "front_end/sema.h"
 #include "front_end/parse.h"
+#include "front_end/pp.h"
 #include "middle_end/ir/ir.h"
 #include "middle_end/ir/gen.h"
 #include "util/compiler.h"
