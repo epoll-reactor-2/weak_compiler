@@ -9,6 +9,7 @@
 
 #include "util/compiler.h"
 #include <stdio.h>
+#include <errno.h>
 
 #define fcc_fatal_error(fmt, ...) do {       \
     printf("Fatal error ocurred at %s@%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \

@@ -137,8 +137,7 @@
     take(T_FLOAT_LITERAL, "<float literal>") \
     take(T_STRING_LITERAL, "<string literal>") \
     take(T_CHAR_LITERAL, "<char literal>") \
-    take(T_SYM, "<symbol>") \
-    take(T_MACRO, "<macro name>")
+    take(T_SYM, "<symbol>")
 
 enum token_type {
     map(__take_enum)

@@ -85,8 +85,6 @@ int yycolumn = 1;
 \"(([^\"\\]|\\.)*)\"   LEX_QUOTED_LITERAL(T_STRING_LITERAL)
 \'.\'                  LEX_QUOTED_LITERAL(T_CHAR_LITERAL)
 
-[_a-zA-Z][_a-zA-Z0-9]*\( LEX_WORD(T_MACRO)
-
 "alignof"              LEX_WORD(T_ALIGNOF)
 "auto"                 LEX_WORD(T_AUTO)
 "break"                LEX_WORD(T_BREAK)

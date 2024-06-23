@@ -6,10 +6,12 @@
 
 #include "front_end/pp.h"
 #include "util/diagnostic.h"
+#include "util/unreachable.h"
 #include <string.h>
 
 static tokens_t tokens;
 struct token current_token;
+static vector_t(char *) pp_paths;
 
 extern FILE *yyin;
 extern int yylex();
@@ -66,29 +68,9 @@ noreturn static void report_unexpected(struct token *t)
     fcc_compile_error(t->line_no, t->col_no, "Unexpected token `%s`", tok_to_string(t->type));
 }
 
-/**********************************************
- **            Preprocessor                  **
- **********************************************/
-
-static vector_t(char *) pp_paths;
-
 void pp_init()
 {
-    static char *p[] = {
-        "/usr/include",
-        "/usr/include/bits",
-        "/usr/include/linux",
-        "/usr/include/c++/13.2.1",
-        "/usr/include/c++/13.2.1/tr1",
-        "/usr/include/c++/13.2.1/bits",
-        "/usr/include/c++/13.2.1/x86_64-pc-linux-gnu",
-        "/usr/include/x86_64-linux-gnu",
-        NULL
-    };
-    char **it = p;
-
-    while (*it)
-        vector_push_back(pp_paths, strdup(*it++));
+    /* There you can add your fancy #include paths. */
 }
 
 void pp_deinit()
@@ -106,179 +88,76 @@ void pp_add_include_path(const char *path)
     vector_push_back(pp_paths, strdup(path));
 }
 
-static FILE *pp_try_open(const char *filename)
+static void cpp(const char *full_path, long siz)
+{
+    char cmd [512] = {0};
+    char line[512] = {0};
+
+    char   *__memstream = NULL;
+    size_t  __memstream_size = 0;
+    yyin = open_memstream(&__memstream, &__memstream_size);
+
+    if (yyin == NULL)
+        fcc_fatal_errno("open_memstream()");
+
+    /* TODO: Add -I list
+                 -I$(pp_paths[0])
+                 -I$(pp_paths[1])
+                 -I$(pp_paths[2]) */
+    snprintf(cmd, sizeof (cmd) - 1, "cpp %s", full_path);
+
+    FILE *fp = popen(cmd, "r");
+    if (fp == NULL)
+        fcc_fatal_errno("popen()");
+
+    while (fgets(line, 512, fp))
+        fwrite(line, strlen(line), 1, yyin);
+    fflush(yyin);
+
+    if (pclose(fp) < 0)
+        fcc_fatal_errno("pclose()");
+}
+
+static void preprocess(const char *filename)
 {
     char path[512] = {0};
+    FILE *fp = NULL;
 
     vector_foreach(pp_paths, i) {
         const char *pp_path = vector_at(pp_paths, i);
         snprintf(path, sizeof (path) - 1, "%s/%s", pp_path, filename);
-
+ 
         printf("PP: Searching %s\n", path);
-
-        FILE *f = fopen(path, "rb");
-        if (f)
-            return f;
+ 
+        fp = fopen(path, "rb");
     }
 
-    printf("Cannot open file %s\n", filename);
-    exit(-1);
-}
+    if (fp == NULL)
+        fcc_fatal_errno("fopen(%s)", filename);
 
-/**********************************************
- **                #include                  **
- **********************************************/
+    long size = ftell(fp);
+    if (size < 0)
+        fcc_fatal_errno("ftell()");
 
-static void pp_include_path_user(char *path)
-{
-    strcpy(path, peek_current()->data);
-}
+    fclose(fp);
 
-static void pp_include_path_system(char *path)
-{
-    struct token *t = peek_next();
-    while (!tok_is(t, '>')) {
-        path = strcat(path, t->data ? t->data : tok_to_string(t->type));
-        t = peek_next();
-    }
-
-    require_char('>');
-}
-
-static void pp_include()
-{
-    struct token *t = peek_next();
-
-    bool is_system = tok_is(t, '<');
-    bool is_user   = t->type == T_STRING_LITERAL;
-
-    if (!is_system && !is_user)
-        report_unexpected(t);
-
-    char path[512] = {0};
-
-    if (is_user)   pp_include_path_user(path);
-    if (is_system) pp_include_path_system(path);
-
-    pp(path);
-}
-
-/**********************************************
- **                #define                   **
- **********************************************/
-
-unused static void pp_define_macro(unused struct token *t)
-{}
-
-unused static void pp_define_id(unused struct token *t)
-{}
-
-/* 1. #define macro
-   2. #define macro(...) */
-static void pp_define()
-{
-    struct token *t = peek_next();
-
-    if (t->type == T_MACRO)
-        pp_define_macro(t);
-    else
-        pp_define_id(t);
-
-    while (1) {
-        switch (peek_current()->type) {
-        case T_BACKSLASH:
-            peek_next();
-            break;
-        case T_NEWLINE:
-            goto out;
-        default:
-            peek_next();
-            break;
-        }
-    }
-
-out:
-    return;
-}
-
-static void pp_directive()
-{
-    struct token *t = peek_next();
-
-    switch (t->type) {
-    /* 6.10 if-group */
-    case T_IFDEF:
-        break;
-    case T_IFNDEF:
-        break;
-    case T_IF:
-        break;
-    /* 6.10 elif-groups */
-    case T_ELIF:
-        break;
-    /* 6.10 endif-line */
-    case T_ENDIF:
-        break;
-    /* 6.10 control-line */
-    case T_INCLUDE:
-        pp_include();
-        break;
-    case T_DEFINE:
-        pp_define();
-        break;
-    case T_UNDEF:
-        break;
-    case T_LINE:
-        break;
-    case T_ERROR:
-        break;
-    case T_PRAGMA:
-        break;
-    default:
-        report_unexpected(t);
-    }
-}
-
-static void pp_read()
-{
-    struct token *t = peek_next();
-
-    while (t) {
-        switch (t->type) {
-        case T_HASH:
-            pp_directive();
-            break;
-        default:
-            /* Rest of tokens dedicated for parser not preprocessor. */
-            vector_push_back(tokens, *t);
-            break;
-        }
-        t = peek_next();
-    }
+    cpp(path, size);
 }
 
 tokens_t *pp(const char *filename)
 {
-    char  *_  = NULL;
-    size_t __ = 0;
-    yyin = open_memstream(&_, &__);
+    preprocess(filename);
 
-    FILE *f = pp_try_open(filename);
+    struct token *t = NULL;
 
-    char line[512] = {0};
-    while (1) {
-        if (!fgets(line, 512, f)) {
-            fclose(f);
-            break;
-        }
+    while ((t = peek_next())) {
+        /* Skip directives of shape
+           # 111 /path/... */
+        if (t->type == T_HASH)
+            while (t->type != T_NEWLINE)
+                t = peek_next();
 
-        fwrite(line, strlen(line), 1, yyin);
-
-        /* TODO: Now theoretically parser can operate on one
-                 source code fragment of some small size. As an
-                 option, we can put the whole source tokens into
-                 one token table and start to parse with it. */
-        pp_read();
+        vector_push_back(tokens, *t);
     }
 
     return &tokens;
