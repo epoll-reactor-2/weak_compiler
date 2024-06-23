@@ -1,9 +1,8 @@
 ##################################
 # Compiler flags                 #
 ##################################
-CFLAGS  += -Wall -Werror -Wextra -Wunused
-CFLAGS  += -I../tests -I../lib -Werror
-LDFLAGS += -L../build -lfcc_compiler -lfl
+CFLAGS  += -I../tests -I../lib
+LDFLAGS += -L../build/lib -lweak_compiler -lfl
 
 ifeq ($(DEBUG_BUILD), 1)
 CFLAGS     += -O0 -ggdb
@@ -38,21 +37,9 @@ files:
 ##################################
 # Sources                        #
 ##################################
-# SRC = $(shell find front_end middle_end utils -name '*.c')
 SRC  = $(wildcard front_end/*.c)
 SRC += $(wildcard middle_end/*.c)
 SRC += $(wildcard utils/*.c)
-
-# ifeq ($(USE_BACKEND_EVAL), 1)
-# SRC += back_end/eval.c
-# endif # USE_BACKEND_EVAL
-# 
-# ifeq ($(USE_BACKEND_RISC_V), 1)
-# SRC += back_end/risc_v.c
-# SRC += back_end/risc_v_instr.c
-# endif # USE_BACKEND_RISC_V
-# 
-# SRC += back_end/elf.c
 
 OBJ = $(SRC:.c=.o)
 
@@ -60,33 +47,41 @@ src: $(OBJ)
 
 $(OBJ): $(SRC)
 	@echo [CC] $(@F)
-	@$(CC) $(CFLAGS) $(@:.o=.c) -o ../build/$(notdir $(@:.o=))_test $(LDFLAGS)
+	@$(CC) $(CFLAGS) $(@:.o=.c) -o ../build/bin/$(notdir $(@:.o=))_test $(LDFLAGS)
 
 $(FUZZER_OBJ): $(FUZZER_SRC)
 	@echo [CC] $(@F)
-	@$(CC) $(CFLAGS) $^ -o ../build/fuzzer $(LDFLAGS)
+	@$(CC) $(CFLAGS) $^ -o ../build/bin/fuzzer $(LDFLAGS)
 
 ##################################
 # Phony targets                  #
 ##################################
 .PHONY: test
 test:
-	@for file in $(shell find ../build -executable -name '*_test' -printf "./%f\n"); do \
-		 (cd ../build; LD_LIBRARY_PATH=. $$file && \
+	@for file in $(shell find ../build/bin -executable -name '*_test' -printf "./%f\n"); do \
+		 (cd ../build; LD_LIBRARY_PATH=./lib ./bin/$$file && \
 		 ([ $$? -eq 0 ] && echo "OK") || \
 		 ([ $$? -ne 0 ] && echo "Test failed. Interrupt the rest."; kill -KILL $$$$);) \
 	 done
 
-VALGRIND_CMD = valgrind --leak-check=full --tool=memcheck --log-fd=1
-
 .PHONY: valgrind
 valgrind:
-	for file in $(shell find ../build -executable -name '*_test' -printf "./%f\n"); do \
+	@mkdir -p ../build/valgrind
+	@for file in $(shell find ../build/bin -executable -name '*_test' -printf "%f\n"); do \
 		 log="$$file.valgrind.log.txt"; \
 		 ( \
 		 	cd ../build; \
-		 	LD_LIBRARY_PATH=. $(VALGRIND_CMD) $$file > $$log; \
-		 	([ $$? -eq 0 ] && echo "OK") || \
+		 	export LD_LIBRARY_PATH=./lib; \
+		 	valgrind --leak-check=full --tool=memcheck --log-fd=1 bin/$$file > valgrind/$$log; \
+		 	([ $$? -eq 0 ] && echo $$file "processed") || \
 		 	([ $$? -ne 0 ] && cat $$log; kill -KILL $$$$); \
  		); \
 	 done
+
+.PHONY: fuzz
+fuzz:
+	( \
+		cd ../build; \
+		export LD_LIBRARY_PATH=./lib; \
+		while :; do ./bin/fuzzer; done \
+	)

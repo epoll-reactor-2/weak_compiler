@@ -1,6 +1,9 @@
 ##################################
 # Common variables               #
 ##################################
+
+# This is to use Bash-specific things like process substitution <().
+SHELL                = /bin/zsh
 NR_CPUS              = $(shell nproc 2> /dev/null)
 override MAKEFLAGS  += -j $(NR_CPUS)
 
@@ -57,8 +60,11 @@ all: dir library test_suite driver
 
 dir:
 	@if ! [ -d build ]; then \
-		mkdir build; \
-		flex --outfile=build/lex.yy.c lex/grammar.lex; \
+		mkdir -p build/bin; \
+		mkdir -p build/obj; \
+		mkdir -p build/lib; \
+		mkdir -p build/src; \
+		flex --outfile=build/src/lex.yy.c lex/grammar.lex; \
 	fi
 
 library:
@@ -75,7 +81,7 @@ driver: | library
 ##################################
 .PHONY: clean
 clean:
-	@rm -rf build;
+	@rm -rf build
 	@echo "Done"
 
 .PHONY: test
@@ -85,6 +91,10 @@ test:
 .PHONY: valgrind
 valgrind:
 	@make -C tests valgrind
+
+.PHONY: fuzz
+fuzz:
+	@make -C tests fuzz
 
 CPPCHECK_SUPPRESSIONS = incorrectStringBooleanError\nallocaCalled
 
@@ -96,3 +106,21 @@ static_analysis:
 	--suppressions-list=<(echo -e '${CPPCHECK_SUPPRESSIONS}') \
 	--language=c --std=c11 lib \
 	-Ilib
+
+COVERAGE_FILE = build/coverage.info
+COVERAGE_DIR  = build/coverage
+
+# Usage:
+# $ make COV=1
+# $ make cov
+.PHONY: cov
+cov:
+	lcov --zerocounters --directory $$PWD
+	lcov --capture --initial --directory $$PWD --output-file $(COVERAGE_FILE)
+	make test
+	lcov --no-checksum --directory $$PWD --capture --output-file $(COVERAGE_FILE)
+	genhtml --branch-coverage --highlight --legend --output-directory $(COVERAGE_DIR) $(COVERAGE_FILE)
+
+.PHONY: cyclomatic_complexity
+cyclomatic_complexity:
+	pmccabe -v -c `find lib -name '*.c'` | sort -k1,1n --numeric-sort
