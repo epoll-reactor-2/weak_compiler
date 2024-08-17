@@ -14,7 +14,7 @@
 using namespace std::string_view_literals;
 
 std::string_view Blacklist[] = {
-	"NestedStruct"
+  "NestedStruct"
 };
 
 /// \note Codegen tests do not return values greater than 256 due to the
@@ -78,7 +78,7 @@ void RunTest(std::string_view Path, bool IsValid) {
   else
     RunTestOnInvalidCode(Analyzers, CG, Program);
 
-  llvm::outs() << CG.ToString() << '\n';
+  // llvm::outs() << CG.ToString() << '\n';
 
   weak::PrintGeneratedWarns(std::cout);
 

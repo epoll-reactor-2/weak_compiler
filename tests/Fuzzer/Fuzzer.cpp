@@ -419,15 +419,18 @@ int main() {
       auto Tokens = Lex.Analyze();
       weak::Parser Parser(&Tokens.front(), &Tokens.back());
       auto AST = Parser.Parse();
-      std::vector<weak::Analysis *> Analyzers;
-      Analyzers.push_back(new weak::VariableUseAnalysis(AST.get()));
-      Analyzers.push_back(new weak::FunctionAnalysis(AST.get()));
-      Analyzers.push_back(new weak::TypeAnalysis(AST.get()));
+
+      weak::Analysis *Analyzers[] = {
+      	new weak::VariableUseAnalysis(AST.get()),
+      	new weak::FunctionAnalysis(AST.get()),
+      	new weak::TypeAnalysis(AST.get())
+      };
 
       for (auto *A : Analyzers) {
         A->Analyze();
         delete A;
       }
+
       weak::CodeGen CG(AST.get());
       CG.CreateCode();
       weak::RunBuiltinLLVMOptimizationPass(CG.Module(), O0);

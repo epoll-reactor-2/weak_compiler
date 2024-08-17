@@ -498,11 +498,11 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
 
       if (Decl->Is(AST_VAR_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
-        /*
+        
         llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
         llvm::outs() << "== MemberName is `" << MemberName << "`\n";
         llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
-        */
+        
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;
@@ -511,17 +511,19 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
 
       if (Decl->Is(AST_ARRAY_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
-        /*
+        
         llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
         llvm::outs() << "== MemberName is `" << MemberName << "`\n";
         llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
-        */
+        
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;
         }
       }
     }
+
+    llvm::outs() << "Idx set to " << Idx << '\n';
 
     if (Idx == -1)
       __builtin_trap();
@@ -532,10 +534,9 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
 }
 
 void CodeGen::Visit(ASTArrayDecl *Stmt) {
-  TypeResolver TR(mIRBuilder);
-  llvm::Type *ArrayTy = TR.Resolve(Stmt, Stmt->IndirectionLvl());
-  llvm::AllocaInst *ArrayDecl = mIRBuilder.CreateAlloca(ArrayTy);
-  mStorage.Push(Stmt->Name(), ArrayDecl);
+  mStorage.Push(Stmt->Name(),
+    mIRBuilder.CreateAlloca(
+      TypeResolver(mIRBuilder).Resolve(Stmt, Stmt->IndirectionLvl())));
 }
 
 void CodeGen::Visit(ASTVarDecl *Decl) {
@@ -569,11 +570,11 @@ void CodeGen::Visit(ASTVarDecl *Decl) {
     llvm::AllocaInst *Mem = mIRBuilder.CreateAlloca(ArrayType);
     llvm::Value *CastedPtr = mIRBuilder.CreateBitCast(Mem, mIRBuilder.getInt8PtrTy());
     mIRBuilder.CreateMemCpy(
-      /*Dst=*/CastedPtr,
-      /*DstAlign=*/llvm::MaybeAlign(1),
-      /*Src=*/LiteralValue,
-      /*SrcAlign=*/llvm::MaybeAlign(1),
-      /*Size=*/ArrayType->getNumElements(),
+      /*Dst=       */CastedPtr,
+      /*DstAlign=  */llvm::MaybeAlign(1),
+      /*Src=       */LiteralValue,
+      /*SrcAlign=  */llvm::MaybeAlign(1),
+      /*Size=      */ArrayType->getNumElements(),
       /*isVolatile=*/false
     );
     mStorage.Push(Decl->Name(), Mem);
