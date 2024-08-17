@@ -26,4 +26,5 @@ if (WEAK_COMPILER_SANITIZE)
   link_libraries(SanFlags)
 endif()
 
-include_directories(Compiler PUBLIC include)
+include_directories(include)
+# include_directories(Compiler PUBLIC include)

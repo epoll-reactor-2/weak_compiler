@@ -8,7 +8,13 @@
 #define WEAK_COMPILER_MIDDLE_END_SCALAR_EXPR_EMITTER_H
 
 #include "FrontEnd/Lex/TokenType.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
 #include "llvm/IR/IRBuilder.h"
+WEAK_PRAGMA_POP
 
 namespace llvm {
 class Value;

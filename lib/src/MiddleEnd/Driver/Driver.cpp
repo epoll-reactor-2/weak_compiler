@@ -5,12 +5,19 @@
  */
 
 #include "MiddleEnd/Driver/Driver.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
+WEAK_PRAGMA_POP
 
 namespace {
 
@@ -57,7 +64,8 @@ private:
     CompileCmd += OutFile;
     CompileCmd += " -o ";
     CompileCmd += OutFile.substr(0, OutFile.size() - 2);
-    system(CompileCmd.c_str());
+    if (system(CompileCmd.c_str()) < 0)
+      llvm::errs() << "Cannot do system(): " << strerror(errno) << '\n';
   }
 
   llvm::TargetMachine *CreateTM(const std::string &Triple) {

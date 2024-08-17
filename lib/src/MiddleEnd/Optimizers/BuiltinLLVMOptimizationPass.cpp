@@ -5,9 +5,15 @@
  */
 
 #include "MiddleEnd/Optimizers/Optimizers.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+WEAK_PRAGMA_POP
 
 void weak::RunBuiltinLLVMOptimizationPass(llvm::Module &IRModule, WeakOptimizationLevel OptLvl) {
   llvm::legacy::FunctionPassManager FPM(&IRModule);

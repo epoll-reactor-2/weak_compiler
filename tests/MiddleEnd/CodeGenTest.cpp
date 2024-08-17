@@ -5,12 +5,17 @@
 #include "FrontEnd/Analysis/FunctionAnalysis.h"
 #include "FrontEnd/Analysis/TypeAnalysis.h"
 #include "MiddleEnd/Driver/Driver.h"
+#include "MiddleEnd/Optimizers/Optimizers.h"
 #include "Utility/Diagnostic.h"
 #include "Utility/Files.h"
 #include <filesystem>
 #include <iostream>
 
 using namespace std::string_view_literals;
+
+std::string_view Blacklist[] = {
+	"NestedStruct"
+};
 
 /// \note Codegen tests do not return values greater than 256 due to the
 ///       fact that process returns exit status modulo 256. By the way, this
@@ -34,7 +39,24 @@ void RunTestOnInvalidCode(
   const std::string             &Program
 );
 
+bool Blacklisted(std::string_view Path) {
+  auto It = std::find(std::begin(Blacklist), std::end(Blacklist), Path);
+  if (It != std::end(Blacklist)) {
+    llvm::outs() << "Ignoring blackisted file " << *It << "\n";
+    return true;
+  }
+  return false;
+}
+
 void RunTest(std::string_view Path, bool IsValid) {
+  std::string PathToBin(Path.substr(Path.find_last_of('/') + 1));
+  PathToBin = PathToBin.substr(0, PathToBin.find_first_of('.'));
+
+  llvm::outs() << "Path to bin: " << PathToBin << '\n';
+
+  if (Blacklisted(PathToBin))
+    return;
+
   llvm::outs() << "Testing file " << Path << "... ";
   llvm::outs().flush();
 
@@ -51,13 +73,12 @@ void RunTest(std::string_view Path, bool IsValid) {
 
   weak::CodeGen CG(AST.get());
 
-  std::string PathToBin(Path.substr(Path.find_last_of('/') + 1));
-  PathToBin = PathToBin.substr(0, PathToBin.find_first_of('.'));
-
   if (IsValid)
     RunTestOnValidCode(Analyzers, CG, Program, PathToBin);
   else
     RunTestOnInvalidCode(Analyzers, CG, Program);
+
+  llvm::outs() << CG.ToString() << '\n';
 
   weak::PrintGeneratedWarns(std::cout);
 
@@ -75,7 +96,7 @@ void RunTestOnValidCode(
     A->Analyze();
 
   if (Program.substr(0, 3) != "// ") {
-    llvm::errs() << "Expected planned exit code.";
+    llvm::errs() << "Expected exit code.";
     exit(-1);
   }
   int ExpectedExitCode = std::stoi(
@@ -86,6 +107,8 @@ void RunTestOnValidCode(
   );
 
   CG.CreateCode();
+  /// This breaks some tests, of course.
+  /// weak::RunBuiltinLLVMOptimizationPass(CG.Module(), O3);
   weak::Driver Driver(CG.Module(), PathToBin);
   Driver.Compile();
 

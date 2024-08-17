@@ -1,2 +1,6 @@
 **/.config
 build
+**/*.o
+**/*.a
+**/*.gcno
+**/*.gcda

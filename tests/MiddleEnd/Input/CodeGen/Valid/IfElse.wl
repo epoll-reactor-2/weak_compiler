@@ -1,10 +1,10 @@
-// 111
+// 11
 int main() {
     bool arg = true;
     if (arg) {
-        return 111;
+        return 11;
     } else {
-        return 222;
+        return 22;
     }
-    return 333;
+    return 33;
 }

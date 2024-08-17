@@ -10,7 +10,14 @@
 #include "MiddleEnd/CodeGen/ScalarExprEmitter.h"
 #include "MiddleEnd/CodeGen/TypeResolver.h"
 #include "Utility/Unreachable.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
 #include "llvm/IR/Verifier.h"
+WEAK_PRAGMA_POP
+
 #include <iostream>
 
 namespace weak {
@@ -491,6 +498,11 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
 
       if (Decl->Is(AST_VAR_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
+        /*
+        llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
+        llvm::outs() << "== MemberName is `" << MemberName << "`\n";
+        llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
+        */
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;
@@ -499,6 +511,11 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
 
       if (Decl->Is(AST_ARRAY_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
+        /*
+        llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
+        llvm::outs() << "== MemberName is `" << MemberName << "`\n";
+        llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
+        */
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;

@@ -9,9 +9,15 @@
 
 #include "FrontEnd/AST/ASTVisitor.h"
 #include "MiddleEnd/Storage/Storage.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
+WEAK_PRAGMA_POP
 
 namespace weak {
 

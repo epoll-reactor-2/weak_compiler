@@ -8,7 +8,13 @@
 #define WEAK_COMPILER_MIDDLE_END_TYPE_RESOLVER_H
 
 #include "FrontEnd/Lex/DataType.h"
+#include "Utility/Compiler.h"
+
+WEAK_PRAGMA_PUSH
+WEAK_PRAGMA_IGNORE(-Wunused)
+WEAK_PRAGMA_IGNORE(-Wunused-parameter)
 #include "llvm/IR/IRBuilder.h"
+WEAK_PRAGMA_POP
 
 namespace llvm {
 class Type;
