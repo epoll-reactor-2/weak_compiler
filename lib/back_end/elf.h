@@ -20,9 +20,9 @@
            structure into a file.
 */
 
-#ifdef CONFIG_USE_BACKEND_RISC_V
+#if defined CONFIG_USE_BACKEND_RISC_V
 #define ELF_TARGET_ARCH     0xF3
-#elifdef CONFIG_USE_BACKEND_X86_64
+#elif defined CONFIG_USE_BACKEND_X86_64
 #define ELF_TARGET_ARCH     0x3E
 #endif
 

@@ -18,4 +18,5 @@ void back_end_init(struct codegen_output *output)
     output_code = output;
     back_end_native_mul(5, 5, 6);
     back_end_native_ret();
+    back_end_native_lwu(5, 1000, 0);
 }

@@ -28,16 +28,16 @@ int main()
     elf_init(&elf);
     elf_exit();
 
-#ifdef CONFIG_USE_BACKEND_RISC_V
+#if defined CONFIG_USE_BACKEND_RISC_V
     snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-readelf -a %s", elf_path);
-#elifdef CONFIG_USE_BACKEND_X86_64
+#elif defined CONFIG_USE_BACKEND_X86_64
     snprintf(cmd, sizeof (cmd) - 1, "readelf -a %s", elf_path);
 #endif
     system(cmd);
 
-#ifdef CONFIG_USE_BACKEND_RISC_V
+#if defined CONFIG_USE_BACKEND_RISC_V
     snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-objdump -D %s", elf_path);
-#elifdef CONFIG_USE_BACKEND_X86_64
+#elif defined CONFIG_USE_BACKEND_X86_64
     snprintf(cmd, sizeof (cmd) - 1, "objdump -D %s", elf_path);
 #endif
     system(cmd);

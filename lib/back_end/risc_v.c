@@ -31,6 +31,7 @@
 #define risc_v_I_ld                 (0b11 + (3 << 12)     )
 #define risc_v_I_lbu                (0b11 + (4 << 12)     )
 #define risc_v_I_lhu                (0b11 + (5 << 12)     )
+#define risc_v_I_lwu                (0b11 + (6 << 12)     )
 #define risc_v_S_sb                 (0b0100011            )
 #define risc_v_S_sh                 (0b0100011 + (1 << 12))
 #define risc_v_S_sw                 (0b0100011 + (2 << 12))
@@ -219,6 +220,7 @@ risc_v_i_opcode(lw)
 risc_v_i_opcode(ld)
 risc_v_i_opcode(lbu)
 risc_v_i_opcode(lhu)
+risc_v_i_opcode(lwu)
 risc_v_i_opcode(jalr)
 
 risc_v_s_opcode(sb)
@@ -273,6 +275,86 @@ void back_end_native_div(int dst, int reg1, int reg2)
 void back_end_native_mul(int dst, int reg1, int reg2)
 {
     put(risc_v_mul(dst, reg1, reg2));
+}
+
+void back_end_native_xor(int dst, int reg1, int reg2)
+{
+    put(risc_v_xor(dst, reg1, reg2));
+}
+
+void back_end_native_and(int dst, int reg1, int reg2)
+{
+    put(risc_v_and(dst, reg1, reg2));
+}
+
+void back_end_native_or(int dst, int reg1, int reg2)
+{
+    put(risc_v_or(dst, reg1, reg2));
+}
+
+void back_end_native_sra(int dst, int reg1, int reg2)
+{
+    put(risc_v_sra(dst, reg1, reg2));
+}
+
+void back_end_native_srl(int dst, int reg1, int reg2)
+{
+    put(risc_v_srl(dst, reg1, reg2));
+}
+
+void back_end_native_lb(int dst, int addr, int off)
+{
+    put(risc_v_lb(dst, addr, off));
+}
+
+void back_end_native_lbu(int dst, int addr, int off)
+{
+    put(risc_v_lbu(dst, addr, off));
+}
+
+void back_end_native_lh(int dst, int addr, int off)
+{
+    put(risc_v_lh(dst, addr, off));
+}
+
+void back_end_native_lhu(int dst, int addr, int off)
+{
+    put(risc_v_lhu(dst, addr, off));
+}
+
+void back_end_native_lw(int dst, int addr, int off)
+{
+    put(risc_v_lw(dst, addr, off));
+}
+
+void back_end_native_lwu(int dst, int addr, int off)
+{
+    put(risc_v_lwu(dst, addr, off));
+}
+
+void back_end_native_ld(int dst, int addr, int off)
+{
+    put(risc_v_ld(dst, addr, off));
+}
+
+void back_end_native_sb(int dst, int addr, int off)
+{
+    put(risc_v_sb(dst, addr, off));
+}
+
+void back_end_native_sh(int dst, int addr, int off)
+{
+    put(risc_v_sh(dst, addr, off));
+}
+
+void back_end_native_sw(int dst, int addr, int off)
+{
+    put(risc_v_sw(dst, addr, off));
+}
+
+void back_end_native_sd(int dst, int addr, int off)
+{
+    put(risc_v_sd(dst, addr, off));
 }
 
 void back_end_native_ret()
