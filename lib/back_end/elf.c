@@ -33,7 +33,6 @@
 #define ELF64_ST_TYPE(info)         ((info) & 0xf)
 #define ELF64_ST_INFO(bind, type)   (((bind)<<4)+((type)&0xf))
 
-static int arch         = 0x00;
 static int text_size    = 0x00;
 static int syms_cnt     = 0x00;
 static int strtab_size  = 0x00;
@@ -214,7 +213,7 @@ static void emit_elf()
     struct elf_fhdr fhdr = {
         .ident     = "\x7F\x45\x4C\x46\x02\x01\x01",
         .type      = ET_EXEC,
-        .machine   = arch,
+        .machine   = ELF_TARGET_ARCH,
         .version   = 1,
         .entry     = ELF_ENTRY_ADDR,
         .phoff     = ELF_PHDR_OFF,
@@ -235,8 +234,8 @@ static void elf_put_code()
 {
     void *start = map + ELF_TEXT_OFF;
     memcpy(start,
-        codegen_output->instrs.data,
-        codegen_output->instrs.size
+        codegen_output->text.data,
+        codegen_output->text.size
     );
 
     /* +1 is due to first NULL byte for NULL section. */
@@ -258,7 +257,7 @@ static void elf_put_code()
         s = emit_symtab_entry(&str_it, &sym_it, s, ELF_ENTRY_ADDR + off, name);
     }
 
-    text_size = codegen_output->instrs.count;
+    text_size = codegen_output->text.count;
 }
 
 static void elf_reset()
@@ -280,7 +279,6 @@ void elf_init(struct elf_entry *e)
     if ((void *) map == MAP_FAILED)
         weak_fatal_errno("mmap()");
 
-    arch = e->arch;
     codegen_output = &e->output;
 
     elf_reset();

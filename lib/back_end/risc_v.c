@@ -1,416 +1,286 @@
-/* risc_v.c - RISC-V code generator.
- * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
- *
- * This file is distributed under the MIT license.
- */
-
-#include "back_end/risc_v.h"
-#include "back_end/risc_v_encode.h"
-#include "middle_end/ir/ir.h"
-#include "middle_end/ir/ir_dump.h"
-#include "middle_end/ir/regalloc.h"
-#include "util/compiler.h"
-#include "util/crc32.h"
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <asm-generic/unistd.h>
-
-/* Please note that RISC-V interpreter in Linux wants
-   from us an asm-generic interface. */
+#include "back_end/back_end.h"
 
 /**********************************************
- **        Code generation routines          **
+ **         Instruction encoding             **
  **********************************************/
+/* R type */
+#define risc_v_R_add                (0b110011 + (0 << 12))
+#define risc_v_R_sub                (0b110011 + (0 << 12) + (0x20 << 25))
+#define risc_v_R_xor                (0b110011 + (4 << 12))
+#define risc_v_R_or                 (0b110011 + (6 << 12))
+#define risc_v_R_and                (0b110011 + (7 << 12))
+#define risc_v_R_sll                (0b110011 + (1 << 12))
+#define risc_v_R_srl                (0b110011 + (5 << 12))
+#define risc_v_R_sra                (0b110011 + (5 << 12) + (0x20 << 25))
+#define risc_v_R_slt                (0b110011 + (2 << 12))
+#define risc_v_R_sltu               (0b110011 + (3 << 12))
+/* I type */
+#define risc_v_I_addi               (0b0010011)
+#define risc_v_I_xori               (0b0010011 + (4 << 12))
+#define risc_v_I_ori                (0b0010011 + (6 << 12))
+#define risc_v_I_andi               (0b0010011 + (7 << 12))
+#define risc_v_I_slli               (0b0010011 + (1 << 12))
+#define risc_v_I_srli               (0b0010011 + (5 << 12))
+#define risc_v_I_srai               (0b0010011 + (5 << 12) + (0x20 << 25))
+#define risc_v_I_slti               (0b0010011 + (2 << 12))
+#define risc_v_I_sltiu              (0b0010011 + (3 << 12))
+/* Load/store */
+#define risc_v_I_lb                 (0b11                 )
+#define risc_v_I_lh                 (0b11 + (1 << 12)     )
+#define risc_v_I_lw                 (0b11 + (2 << 12)     )
+#define risc_v_I_ld                 (0b11 + (3 << 12)     )
+#define risc_v_I_lbu                (0b11 + (4 << 12)     )
+#define risc_v_I_lhu                (0b11 + (5 << 12)     )
+#define risc_v_S_sb                 (0b0100011            )
+#define risc_v_S_sh                 (0b0100011 + (1 << 12))
+#define risc_v_S_sw                 (0b0100011 + (2 << 12))
+#define risc_v_S_sd                 (0b0100011 + (3 << 12))
+/* Branches */
+#define risc_v_B_beq                (0b1100011            )
+#define risc_v_B_bne                (0b1100011 + (1 << 12))
+#define risc_v_B_blt                (0b1100011 + (4 << 12))
+#define risc_v_B_bge                (0b1100011 + (5 << 12))
+#define risc_v_B_bltu               (0b1100011 + (6 << 12))
+#define risc_v_B_bgeu               (0b1100011 + (7 << 12))
+/* Jumps */
+#define risc_v_I_jal                (0b1101111)
+#define risc_v_I_jalr               (0b1100111)
+/* Misc */
+#define risc_v_I_lui                (0b0110111)
+#define risc_v_I_auipc              (0b0010111)
+#define risc_v_I_ecall              (0b1110011)
+#define risc_v_I_ebreak             (0b1110011 + (1 << 20))
+/* M */
+#define risc_v_M_mul                (0b0110011 + (1 << 25))
+#define risc_v_M_div                (0b0110011 + (1 << 25) + (4 << 12))
+#define risc_v_M_mod                (0b0110011 + (1 << 25) + (6 << 12))
 
-/* CRC-32 hash <=> symbol offset mapping.
-   \
-    Used in RISC-V generator to make calls. */
-static hashmap_t fn_addr_map;
-/* IR index <=> stack offset mapping.
-   \
-    Used to refer variables on stack. */
-static hashmap_t var_map;
-/* fn_offsets: String pointer value <=> symbol offset mapping.
-   \
-    Used in ELF generator. */
-static struct    codegen_output *codegen_output;
-static uint64_t  emitted_bytes;
-/* How far we advanced from function begin. */
-static uint64_t  fn_off;
+/* Registers */
+#define risc_v_reg_zero              0
+#define risc_v_reg_ra                1
+#define risc_v_reg_sp                2
+#define risc_v_reg_gp                3
+#define risc_v_reg_tp                4
+#define risc_v_reg_t0                5
+#define risc_v_reg_t1                6
+#define risc_v_reg_t2                7
+#define risc_v_reg_s0                8
+#define risc_v_reg_s1                9
+#define risc_v_reg_a0               10
+#define risc_v_reg_a1               11
+#define risc_v_reg_a2               12
+#define risc_v_reg_a3               13
+#define risc_v_reg_a4               14
+#define risc_v_reg_a5               15
+#define risc_v_reg_a6               16
+#define risc_v_reg_a7               17
+#define risc_v_reg_s2               18
+#define risc_v_reg_s3               19
+#define risc_v_reg_s4               20
+#define risc_v_reg_s5               21
+#define risc_v_reg_s6               22
+#define risc_v_reg_s7               23
+#define risc_v_reg_s8               24
+#define risc_v_reg_s9               25
+#define risc_v_reg_s10              26
+#define risc_v_reg_s11              27
+#define risc_v_reg_t3               28
+#define risc_v_reg_t4               29
+#define risc_v_reg_t5               30
+#define risc_v_reg_t6               31
 
-static int risc_v_accum_reg = risc_v_reg_t0;
-
-static void put_sym(const char *sym)
+static int risc_v_extract_bits(int imm, int i_start, int i_end, int d_start, int d_end)
 {
-    uint64_t hash = crc32_string(sym);
-    hashmap_put(&codegen_output->fn_offsets, (uint64_t) sym, emitted_bytes);
-    hashmap_put(&fn_addr_map, hash, emitted_bytes);
+    int v;
+
+    if (d_end - d_start != i_end - i_start || i_start > i_end ||
+        d_start > d_end)
+        weak_fatal_error("Invalid bit copy");
+
+    v = imm >> i_start;
+    v = v & ((2 << (i_end - i_start)) - 1);
+    v = v << d_start;
+    return v;
 }
 
-static uint64_t get_sym(const char *sym)
+static int risc_v_hi(int val)
 {
-    uint64_t hash = crc32_string(sym);
-    bool ok = 0;
-    uint64_t off = hashmap_get(&fn_addr_map, hash, &ok);
-    if (!ok)
-        weak_fatal_error("Cannot get offset for `%s`", sym);
-    return off;
+    if ((val & (1 << 11)) != 0)
+        return val + 4096;
+    return val;
 }
 
-static void replace(uint64_t at, int code)
+static int risc_v_lo(int val)
 {
-    uint8_t *slice = (uint8_t *) &code;
-    vector_at(codegen_output->instrs, at + 0) = slice[0];
-    vector_at(codegen_output->instrs, at + 1) = slice[1];
-    vector_at(codegen_output->instrs, at + 2) = slice[2];
-    vector_at(codegen_output->instrs, at + 3) = slice[3];
+    if ((val & (1 << 11)) != 0)
+        return (val & 0xFFF) - 4096;
+    return val & 0xFFF;
 }
 
-static void put(int code)
+static int risc_v_encode_R(int op, int rd, int rs1, int rs2)
 {
-    uint8_t *slice = (uint8_t *) &code;
-    vector_push_back(codegen_output->instrs, slice[0]);
-    vector_push_back(codegen_output->instrs, slice[1]);
-    vector_push_back(codegen_output->instrs, slice[2]);
-    vector_push_back(codegen_output->instrs, slice[3]);
-
-    emitted_bytes += 4;
-    fn_off += 4;
+    return op + (rd << 7) + (rs1 << 15) + (rs2 << 20);
 }
+
+static int risc_v_encode_I(int op, int rd, int rs1, int imm)
+{
+    if (imm > 2047 || imm < -2048)
+        weak_fatal_error("Offset too large");
+
+    if (imm < 0) {
+        imm += 4096;
+        imm &= (1 << 13) - 1;
+    }
+    return op + (rd << 7) + (rs1 << 15) + (imm << 20);
+}
+
+static int risc_v_encode_S(int op, int rs1, int rs2, int imm)
+{
+    if (imm > 2047 || imm < -2048)
+        weak_fatal_error("Offset too large");
+
+    if (imm < 0) {
+        imm += 4096;
+        imm &= (1 << 13) - 1;
+    }
+    return op + (rs1 << 15) + (rs2 << 20) +
+           risc_v_extract_bits(imm, 0,  4,  7, 11) +
+           risc_v_extract_bits(imm, 5, 11, 25, 31);
+}
+
+static int risc_v_encode_B(int op, int rs1, int rs2, int imm)
+{
+    int sign = 0;
+
+    /* 13 signed bits, with bit zero ignored */
+    if (imm > 4095 || imm < -4096)
+        weak_fatal_error("Offset too large");
+
+    if (imm < 0)
+        sign = 1;
+
+    return op + (sign << 31) + (rs1 << 15) + (rs2 << 20) +
+           risc_v_extract_bits(imm, 11, 11,  7,  7) +
+           risc_v_extract_bits(imm,  1,  4,  8, 11) +
+           risc_v_extract_bits(imm,  5, 10, 25, 30);
+}
+
+static int risc_v_encode_J(int op, int rd, int imm)
+{
+    int sign = 0;
+
+    if (imm < 0) {
+        sign = 1;
+        imm = -imm;
+        imm = (1 << 21) - imm;
+    }
+    return op + (sign << 31) + (rd << 7) +
+           risc_v_extract_bits(imm,  1, 10, 21, 30) +
+           risc_v_extract_bits(imm, 11, 11, 20, 20) +
+           risc_v_extract_bits(imm, 12, 19, 12, 19);
+}
+
+static int risc_v_encode_U(int op,  int rd,  int imm)
+{
+    return op + (rd << 7) + risc_v_extract_bits(imm, 12, 31, 12, 31);
+}
+
+#define risc_v_opcode(x, t) \
+    static int risc_v_##x(int rd, int l, int r) { return risc_v_encode_##t(risc_v_##t##_##x, rd, l, r); }
+
+#define risc_v_r_opcode(x) risc_v_opcode(x, R)
+#define risc_v_i_opcode(x) risc_v_opcode(x, I)
+#define risc_v_s_opcode(x) risc_v_opcode(x, S)
+#define risc_v_b_opcode(x) risc_v_opcode(x, B)
+
+risc_v_r_opcode(add)
+risc_v_r_opcode(sub)
+risc_v_r_opcode(or)
+risc_v_r_opcode(xor)
+risc_v_r_opcode(and)
+risc_v_r_opcode(sll)
+risc_v_r_opcode(srl)
+risc_v_r_opcode(sra)
+risc_v_r_opcode(slt)
+risc_v_r_opcode(sltu)
+
+risc_v_i_opcode(addi)
+risc_v_i_opcode(xori)
+risc_v_i_opcode(ori)
+risc_v_i_opcode(andi)
+risc_v_i_opcode(slli)
+risc_v_i_opcode(srli)
+risc_v_i_opcode(srai)
+risc_v_i_opcode(slti)
+risc_v_i_opcode(sltiu)
+risc_v_i_opcode(lb)
+risc_v_i_opcode(lh)
+risc_v_i_opcode(lw)
+risc_v_i_opcode(ld)
+risc_v_i_opcode(lbu)
+risc_v_i_opcode(lhu)
+risc_v_i_opcode(jalr)
+
+risc_v_s_opcode(sb)
+risc_v_s_opcode(sh)
+risc_v_s_opcode(sw)
+risc_v_s_opcode(sd)
+
+risc_v_b_opcode(beq)
+risc_v_b_opcode(bne)
+risc_v_b_opcode(blt)
+risc_v_b_opcode(bge)
+risc_v_b_opcode(bltu)
+risc_v_b_opcode(bgeu)
+
+/* Rest. */
+static int risc_v_jal     (int rd,          int imm) { return risc_v_encode_J(risc_v_I_jal, rd, imm); }
+static int risc_v_lui     (int rd,          int imm) { return risc_v_encode_U(risc_v_I_lui, rd, imm); }
+static int risc_v_auipc   (int rd,          int imm) { return risc_v_encode_U(risc_v_I_auipc, rd, imm); }
+static int risc_v_ecall   (                        ) { return risc_v_encode_I(risc_v_I_ecall,  risc_v_reg_zero, risc_v_reg_zero, 0); }
+static int risc_v_ebreak  (                        ) { return risc_v_encode_I(risc_v_I_ebreak, risc_v_reg_zero, risc_v_reg_zero, 1); }
+static int risc_v_nop     (                        ) { return risc_v_addi(risc_v_reg_zero, risc_v_reg_zero, 0); }
+static int risc_v_mul     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_mul, rd, rs1, rs2); }
+static int risc_v_div     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_div, rd, rs1, rs2); }
+static int risc_v_mod     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_mod, rd, rs1, rs2); }
+static int risc_v_ret     (                        ) { return risc_v_jalr(risc_v_reg_zero, risc_v_reg_ra, 0); }
+static int risc_v_li      (int rd,          int imm) { return risc_v_addi(rd, risc_v_reg_zero, imm); }
 
 /**********************************************
- **          Register allocation             **
+ **         Generic instructions             **
  **********************************************/
 
-struct reg {
-    int  num;
-    bool free;
-};
-
-static struct reg allocatable_regs[] = {
-    { risc_v_reg_t0, 1 },
-    { risc_v_reg_t1, 1 },
-    { risc_v_reg_t2, 1 },
-    { risc_v_reg_t3, 1 },
-    { risc_v_reg_t4, 1 },
-    { risc_v_reg_t5, 1 },
-    { risc_v_reg_t6, 1 }
-};
-
-static int last_free_reg = -1;
-
-really_inline static int reg_alloc_reg(struct ir_node *ir)
+void back_end_native_add(int dst, int reg1, int reg2)
 {
-    assert(ir->claimed_reg != IR_NO_CLAIMED_REG);
-
-    return allocatable_regs[ir->claimed_reg].num;
+    put(risc_v_add(dst, reg1, reg2));
 }
 
-really_inline static int allocate_free_reg()
+void back_end_native_addi(int dst, int reg1, int imm)
 {
-    for (uint64_t i = 0; i < __weak_array_size(allocatable_regs); ++i)
-        if (allocatable_regs[i].free) {
-            last_free_reg = allocatable_regs[i].num;
-            allocatable_regs[i].free = 0;
-            return last_free_reg;
-        }
-
-    weak_fatal_error("No free registers");
+    put(risc_v_addi(dst, reg1, imm));
 }
 
-really_inline static int free_reg(int num)
+void back_end_native_sub(int dst, int reg1, int reg2)
 {
-    allocatable_regs[num].free = 1;
-    last_free_reg = -1;
+    put(risc_v_sub(dst, reg1, reg2));
 }
 
-/**********************************************
- **              IR traversal                **
- **********************************************/
-
-static char *current_fn;
-
-static void emit_instr(struct ir_node *ir);
-static void emit_alloca(unused struct ir_alloca *ir) {}
-static void emit_alloca_array(unused struct ir_alloca_array *ir) {}
-
-static void emit_imm(struct ir_imm *ir)
+void back_end_native_div(int dst, int reg1, int reg2)
 {
-    switch (ir->type) {
-    case IMM_BOOL:  break;
-    case IMM_CHAR:  break;
-    case IMM_FLOAT: break;
-    case IMM_INT:   put(risc_v_li(allocate_free_reg(), ir->imm.__int)); break;
-    default:
-        weak_fatal_error("Unknown immediate type: %d", ir->type);
-    }
+    put(risc_v_div(dst, reg1, reg2));
 }
 
-static void emit_sym(struct ir_node *ir)
+void back_end_native_mul(int dst, int reg1, int reg2)
 {
-    struct ir_sym *sym = ir->ir;
-
-    bool ok = 0;
-    uint64_t off = hashmap_get(&var_map, sym->idx, &ok);
-    if (!ok)
-        weak_fatal_error("Failed to get stack offset for %%%lu\n", sym->idx);
-
-    switch (sym->type_info.dt) {
-    case D_T_INT: put(risc_v_lw(reg_alloc_reg(ir), risc_v_reg_sp, -off)); break;
-    default:
-        break;
-    }
-
-    risc_v_accum_reg = reg_alloc_reg(ir);
+    put(risc_v_mul(dst, reg1, reg2));
 }
 
-/*  li    t0, 123
-    addi  t1, sp, 25
-    sw    t0, 0(t1) */
-static void emit_store(struct ir_store *ir)
+void back_end_native_ret()
 {
-    if (ir->idx->type != IR_SYM)
-        weak_fatal_error("TODO: Implement arrays");
-
-    struct ir_sym *sym = ir->idx->ir;
-    bool ok = 0;
-    uint64_t off = hashmap_get(&var_map, sym->idx, &ok);
-    if (!ok)
-        weak_fatal_error("Failed to get stack offset for %%%lu\n", sym->idx);
-
-    if (ir->body->type == IR_IMM) {
-        struct ir_imm *imm = ir->body->ir;
-        int i = imm->imm.__int;
-        put(risc_v_lui(reg_alloc_reg(ir->idx), risc_v_hi(i)));
-        put(risc_v_addi(reg_alloc_reg(ir->idx), risc_v_accum_reg, risc_v_lo(i)));
-    }
-
-    if (ir->body->type == IR_FN_CALL) {
-        emit_instr(ir->body);
-        put(risc_v_sw(risc_v_reg_sp, risc_v_accum_reg, -off));
-    }
-
-    if (ir->body->type == IR_BIN) {
-        emit_instr(ir->body);
-    }
-}
-
-/* TODO: Correct register allocation use. */
-static void emit_bin(unused struct ir_bin *ir)
-{
-    emit_instr(ir->lhs);
-    int lhs_reg = last_free_reg;
-
-    emit_instr(ir->rhs);
-    int rhs_reg = last_free_reg;
-
-    /* This accumulates result in left register. */
-    switch (ir->op) {
-    case TOK_MINUS: put(risc_v_sub(lhs_reg, lhs_reg, rhs_reg)); break;
-    case TOK_PLUS:  put(risc_v_add(lhs_reg, lhs_reg, rhs_reg)); break;
-    case TOK_STAR:  put(risc_v_mul(lhs_reg, lhs_reg, rhs_reg)); break;
-    case TOK_SLASH: put(risc_v_div(lhs_reg, lhs_reg, rhs_reg)); break;
-    default:
-        weak_fatal_error("Unknown binary operator: %d\n", ir->op);
-    }
-
-    free_reg(lhs_reg);
-    free_reg(rhs_reg);
-}
-
-static void emit_jump(unused struct ir_jump *ir) {}
-static void emit_cond(unused struct ir_cond *ir) {}
-
-static void emit_ret(struct ir_ret *ir)
-{
-    if (ir->body)
-        emit_instr(ir->body);
-}
-
-static void emit_phi(unused struct ir_phi *ir) {}
-
-static void emit_fn_call(struct ir_fn_call *ir)
-{
-    /* jal operates on relative offset. So if we
-       refer to a defined above function, we use negative offset. */
-    int off = get_sym(ir->name) - get_sym(current_fn);
-    /* Take local function offset into account. */
-    off -= fn_off;
-    put(risc_v_jal(risc_v_reg_sp, off));
-}
-
-static void emit_instr(struct ir_node *ir)
-{
-    switch (ir->type) {
-    case IR_ALLOCA:       emit_alloca(ir->ir); break;
-    case IR_ALLOCA_ARRAY: emit_alloca_array(ir->ir); break;
-    case IR_IMM:          emit_imm(ir->ir); break;
-    case IR_SYM:          emit_sym(ir); break;
-    case IR_STORE:        emit_store(ir->ir); break;
-    case IR_BIN:          emit_bin(ir->ir); break;
-    case IR_JUMP:         emit_jump(ir->ir); break;
-    case IR_COND:         emit_cond(ir->ir); break;
-    case IR_RET:          emit_ret(ir->ir); break;
-    case IR_FN_CALL:      emit_fn_call(ir->ir); break;
-    case IR_PHI:          emit_phi(ir->ir); break;
-    default:
-        weak_unreachable("Unknown IR type (numeric: %d).", ir->type);
-    }
-}
-
-static uint64_t _stack_bytes_used = 0x00;
-
-/* We want to know how much space on stack we will
-   need. `sp`, `ra` registers pushed and all declared
-   variables inside a function body.
-
-   TODO: Function arguments >= 5 or 6 also goes to stack. */
-static void calculate_stack_usage(struct ir_fn_decl *fn)
-{
-    _stack_bytes_used = 0x00;
-    _stack_bytes_used += 8; /* sp */
-    _stack_bytes_used += 8; /* ra */
-
-    struct ir_node *it = fn->body;
-
-    while (it) {
-        if (it->type == IR_ALLOCA) {
-            struct ir_alloca *a = it->ir;
-            hashmap_put(&var_map, a->idx, _stack_bytes_used);
-            _stack_bytes_used += data_type_size[a->dt];
-        }
-
-        /* TODO: IR_ALLOCA_ARRAY */
-
-        it = it->next;
-    }
-}
-
-static void emit_prologue()
-{
-    put(risc_v_addi(risc_v_reg_sp, risc_v_reg_sp, -_stack_bytes_used));
-    put(risc_v_sd(risc_v_reg_sp, risc_v_reg_sp, 0));
-    put(risc_v_sd(risc_v_reg_sp, risc_v_reg_ra, 8));
-}
-/* TODO: Follow some convention about return values. Most compilers
-         stores return value in `a0` or `a5`. */
-static void emit_epilogue()
-{
-    put(risc_v_ld(risc_v_reg_ra, risc_v_reg_sp, 8));
-    put(risc_v_ld(risc_v_reg_sp, risc_v_reg_sp, 0));
-    put(risc_v_addi(risc_v_reg_sp, risc_v_reg_sp, _stack_bytes_used));
-}
-
-static void emit_fn_args(unused struct ir_fn_decl *fn) {}
-static void emit_fn_body(struct ir_fn_decl *fn)
-{
-    struct ir_node *it = fn->body;
-    while (it) {
-        emit_instr(it);
-        it = it->next;
-    }
-}
-
-static void emit_fn(unused struct ir_fn_decl *fn)
-{
-    current_fn = fn->name;
-    fn_off = 0;
-    put_sym(fn->name);
-
-    calculate_stack_usage(fn);
-    emit_prologue();
-
-    emit_fn_args(fn);
-    emit_fn_body(fn);
-
-    emit_epilogue();
-
     put(risc_v_ret());
 }
 
-/**********************************************
- **                Driver code               **
- **********************************************/
-static uint64_t _entry_main_call_addr = 0x00;
-
-static void emit_entry_fn()
+void back_end_native_jmp_reg(int reg)
 {
-    hashmap_init(&var_map, 512);
-
-    put_sym("_start");
-    _entry_main_call_addr = emitted_bytes;
-    /* We don't know where `main` is located at this
-       point of codegen. Now we occupy space with some
-       senseless instruction.
-
-       Will be replaced with
-       \
-        jal ra, <main_offset> */
-    put(0);
-    /* Ensure `a0` first parameter is occupied by some
-       computation result */
-    put(risc_v_xor(risc_v_reg_a0, risc_v_reg_a0,risc_v_reg_a0));
-    put(risc_v_add(risc_v_reg_a0, risc_v_reg_a0, risc_v_reg_t0));
-    put(risc_v_li(risc_v_reg_a7, __NR_exit));
-    put(risc_v_ecall());
+    put(risc_v_jalr(risc_v_reg_zero, reg, 0));
 }
-
-/**********************************************
- **                Driver code               **
- **********************************************/
-void risc_v_gen(struct codegen_output *output, struct ir_unit *unit)
-{
-    codegen_output = output;
-    emitted_bytes = 0;
-
-    ir_reg_alloc(unit, __weak_array_size(allocatable_regs));
-    ir_dump_unit(stdout, unit);
-    hashmap_init(&fn_addr_map, 512);
-
-    emit_entry_fn();
-
-    struct ir_node *ir = unit->fn_decls;
-    while (ir) {
-        emit_fn(ir->ir);
-        ir = ir->next;
-    }
-
-    /* Replace previosly emitted 0x00 instruction in place
-       of `main` call, because only now we know where `main`
-       is located. */
-    replace(
-        _entry_main_call_addr,
-        risc_v_jal(risc_v_reg_ra, get_sym("main"))
-    );
-
-    hashmap_destroy(&fn_addr_map);
-    hashmap_destroy(&var_map);
-}
-
-/*
-Эти портреты безлики
-Он написал их на чёрном холсте
-Безобразным движением кисти
-
-Эти картины тревожны
-И он их прятал во тьме
-Может вовсе не он был художник
-А кто-то извне?
-
-Все узоры
-Пропитаны горем
-В болезненной форме
-В гнетущей тоске
-
-Когда дрожь пробирает по коже
-Когда мысли ничтожны
-Взгляд понурый, поникший во мгле
-Они снова берутся за краски
-
-Однотонные мрачные краски
-Краски дьявола
-Они вместе рисуют смерть
-Монохромно на чёрном холсте
-*/

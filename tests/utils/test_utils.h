@@ -11,8 +11,8 @@
 #include "front_end/ast/ast_dump.h"
 #include "front_end/sema/sema.h"
 #include "front_end/parse/parse.h"
-#include "middle_end/ir/ir.h"
-#include "middle_end/ir/gen.h"
+// #include "middle_end/ir/ir.h"
+// #include "middle_end/ir/gen.h"
 #include "util/compiler.h"
 #include "util/diagnostic.h"
 #include "util/lexical.h"
@@ -264,17 +264,17 @@ struct ast_node *gen_ast(const char *filename)
     return ast;
 }
 
-struct ir_unit gen_ir(const char *filename)
-{
-    struct ast_node *ast = gen_ast(filename);
-
-    /* Preconditions for IR generator. */
-    ana_var_usage(ast);
-    sema_type(&ast);
-    ana_fn(ast);
-    ana_type(ast);
-    
-    struct ir_unit unit = ir_gen(ast);
-    ast_node_cleanup(ast);
-    return unit;
-}
+// struct ir_unit gen_ir(const char *filename)
+// {
+//     struct ast_node *ast = gen_ast(filename);
+// 
+//     /* Preconditions for IR generator. */
+//     ana_var_usage(ast);
+//     sema_type(&ast);
+//     ana_fn(ast);
+//     ana_type(ast);
+//     
+//     struct ir_unit unit = ir_gen(ast);
+//     ast_node_cleanup(ast);
+//     return unit;
+// }

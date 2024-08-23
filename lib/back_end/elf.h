@@ -20,8 +20,11 @@
            structure into a file.
 */
 
-#define ARCH_RISC_V         0xF3
-#define ARCH_X86_64         0x3E
+#ifdef CONFIG_USE_BACKEND_RISC_V
+#define ELF_TARGET_ARCH     0xF3
+#elifdef CONFIG_USE_BACKEND_X86_64
+#define ELF_TARGET_ARCH     0x3E
+#endif
 
 #define EI_NIDENT             16
 
@@ -177,12 +180,11 @@ typedef vector_t(uint8_t) instr_vector_t;
          ... */
 struct codegen_output {
     hashmap_t         fn_offsets;
-    instr_vector_t    instrs;
+    instr_vector_t    text;
 };
 
 struct elf_entry {
     const char *filename;
-    int         arch;
     struct codegen_output
                 output;
 };
