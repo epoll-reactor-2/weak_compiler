@@ -1,368 +1,230 @@
+/* risc_v.c - RISC-V encoding.
+ * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
+ *
+ * This file is distributed under the MIT license.
+ */
+
 #include "back_end/back_end.h"
-
-/**********************************************
- **         Instruction encoding             **
- **********************************************/
-/* R type */
-#define risc_v_R_add                (0b110011 + (0 << 12))
-#define risc_v_R_sub                (0b110011 + (0 << 12) + (0x20 << 25))
-#define risc_v_R_xor                (0b110011 + (4 << 12))
-#define risc_v_R_or                 (0b110011 + (6 << 12))
-#define risc_v_R_and                (0b110011 + (7 << 12))
-#define risc_v_R_sll                (0b110011 + (1 << 12))
-#define risc_v_R_srl                (0b110011 + (5 << 12))
-#define risc_v_R_sra                (0b110011 + (5 << 12) + (0x20 << 25))
-#define risc_v_R_slt                (0b110011 + (2 << 12))
-#define risc_v_R_sltu               (0b110011 + (3 << 12))
-/* I type */
-#define risc_v_I_addi               (0b0010011)
-#define risc_v_I_xori               (0b0010011 + (4 << 12))
-#define risc_v_I_ori                (0b0010011 + (6 << 12))
-#define risc_v_I_andi               (0b0010011 + (7 << 12))
-#define risc_v_I_slli               (0b0010011 + (1 << 12))
-#define risc_v_I_srli               (0b0010011 + (5 << 12))
-#define risc_v_I_srai               (0b0010011 + (5 << 12) + (0x20 << 25))
-#define risc_v_I_slti               (0b0010011 + (2 << 12))
-#define risc_v_I_sltiu              (0b0010011 + (3 << 12))
-/* Load/store */
-#define risc_v_I_lb                 (0b11                 )
-#define risc_v_I_lh                 (0b11 + (1 << 12)     )
-#define risc_v_I_lw                 (0b11 + (2 << 12)     )
-#define risc_v_I_ld                 (0b11 + (3 << 12)     )
-#define risc_v_I_lbu                (0b11 + (4 << 12)     )
-#define risc_v_I_lhu                (0b11 + (5 << 12)     )
-#define risc_v_I_lwu                (0b11 + (6 << 12)     )
-#define risc_v_S_sb                 (0b0100011            )
-#define risc_v_S_sh                 (0b0100011 + (1 << 12))
-#define risc_v_S_sw                 (0b0100011 + (2 << 12))
-#define risc_v_S_sd                 (0b0100011 + (3 << 12))
-/* Branches */
-#define risc_v_B_beq                (0b1100011            )
-#define risc_v_B_bne                (0b1100011 + (1 << 12))
-#define risc_v_B_blt                (0b1100011 + (4 << 12))
-#define risc_v_B_bge                (0b1100011 + (5 << 12))
-#define risc_v_B_bltu               (0b1100011 + (6 << 12))
-#define risc_v_B_bgeu               (0b1100011 + (7 << 12))
-/* Jumps */
-#define risc_v_I_jal                (0b1101111)
-#define risc_v_I_jalr               (0b1100111)
-/* Misc */
-#define risc_v_I_lui                (0b0110111)
-#define risc_v_I_auipc              (0b0010111)
-#define risc_v_I_ecall              (0b1110011)
-#define risc_v_I_ebreak             (0b1110011 + (1 << 20))
-/* M */
-#define risc_v_M_mul                (0b0110011 + (1 << 25))
-#define risc_v_M_div                (0b0110011 + (1 << 25) + (4 << 12))
-#define risc_v_M_mod                (0b0110011 + (1 << 25) + (6 << 12))
-
-/* Registers */
-#define risc_v_reg_zero              0
-#define risc_v_reg_ra                1
-#define risc_v_reg_sp                2
-#define risc_v_reg_gp                3
-#define risc_v_reg_tp                4
-#define risc_v_reg_t0                5
-#define risc_v_reg_t1                6
-#define risc_v_reg_t2                7
-#define risc_v_reg_s0                8
-#define risc_v_reg_s1                9
-#define risc_v_reg_a0               10
-#define risc_v_reg_a1               11
-#define risc_v_reg_a2               12
-#define risc_v_reg_a3               13
-#define risc_v_reg_a4               14
-#define risc_v_reg_a5               15
-#define risc_v_reg_a6               16
-#define risc_v_reg_a7               17
-#define risc_v_reg_s2               18
-#define risc_v_reg_s3               19
-#define risc_v_reg_s4               20
-#define risc_v_reg_s5               21
-#define risc_v_reg_s6               22
-#define risc_v_reg_s7               23
-#define risc_v_reg_s8               24
-#define risc_v_reg_s9               25
-#define risc_v_reg_s10              26
-#define risc_v_reg_s11              27
-#define risc_v_reg_t3               28
-#define risc_v_reg_t4               29
-#define risc_v_reg_t5               30
-#define risc_v_reg_t6               31
-
-static int risc_v_extract_bits(int imm, int i_start, int i_end, int d_start, int d_end)
-{
-    int v;
-
-    if (d_end - d_start != i_end - i_start || i_start > i_end ||
-        d_start > d_end)
-        weak_fatal_error("Invalid bit copy");
-
-    v = imm >> i_start;
-    v = v & ((2 << (i_end - i_start)) - 1);
-    v = v << d_start;
-    return v;
-}
-
-static int risc_v_hi(int val)
-{
-    if ((val & (1 << 11)) != 0)
-        return val + 4096;
-    return val;
-}
-
-static int risc_v_lo(int val)
-{
-    if ((val & (1 << 11)) != 0)
-        return (val & 0xFFF) - 4096;
-    return val & 0xFFF;
-}
-
-static int risc_v_encode_R(int op, int rd, int rs1, int rs2)
-{
-    return op + (rd << 7) + (rs1 << 15) + (rs2 << 20);
-}
-
-static int risc_v_encode_I(int op, int rd, int rs1, int imm)
-{
-    if (imm > 2047 || imm < -2048)
-        weak_fatal_error("Offset too large");
-
-    if (imm < 0) {
-        imm += 4096;
-        imm &= (1 << 13) - 1;
-    }
-    return op + (rd << 7) + (rs1 << 15) + (imm << 20);
-}
-
-static int risc_v_encode_S(int op, int rs1, int rs2, int imm)
-{
-    if (imm > 2047 || imm < -2048)
-        weak_fatal_error("Offset too large");
-
-    if (imm < 0) {
-        imm += 4096;
-        imm &= (1 << 13) - 1;
-    }
-    return op + (rs1 << 15) + (rs2 << 20) +
-           risc_v_extract_bits(imm, 0,  4,  7, 11) +
-           risc_v_extract_bits(imm, 5, 11, 25, 31);
-}
-
-static int risc_v_encode_B(int op, int rs1, int rs2, int imm)
-{
-    int sign = 0;
-
-    /* 13 signed bits, with bit zero ignored */
-    if (imm > 4095 || imm < -4096)
-        weak_fatal_error("Offset too large");
-
-    if (imm < 0)
-        sign = 1;
-
-    return op + (sign << 31) + (rs1 << 15) + (rs2 << 20) +
-           risc_v_extract_bits(imm, 11, 11,  7,  7) +
-           risc_v_extract_bits(imm,  1,  4,  8, 11) +
-           risc_v_extract_bits(imm,  5, 10, 25, 30);
-}
-
-static int risc_v_encode_J(int op, int rd, int imm)
-{
-    int sign = 0;
-
-    if (imm < 0) {
-        sign = 1;
-        imm = -imm;
-        imm = (1 << 21) - imm;
-    }
-    return op + (sign << 31) + (rd << 7) +
-           risc_v_extract_bits(imm,  1, 10, 21, 30) +
-           risc_v_extract_bits(imm, 11, 11, 20, 20) +
-           risc_v_extract_bits(imm, 12, 19, 12, 19);
-}
-
-static int risc_v_encode_U(int op,  int rd,  int imm)
-{
-    return op + (rd << 7) + risc_v_extract_bits(imm, 12, 31, 12, 31);
-}
-
-#define risc_v_opcode(x, t) \
-    static int risc_v_##x(int rd, int l, int r) { return risc_v_encode_##t(risc_v_##t##_##x, rd, l, r); }
-
-#define risc_v_r_opcode(x) risc_v_opcode(x, R)
-#define risc_v_i_opcode(x) risc_v_opcode(x, I)
-#define risc_v_s_opcode(x) risc_v_opcode(x, S)
-#define risc_v_b_opcode(x) risc_v_opcode(x, B)
-
-risc_v_r_opcode(add)
-risc_v_r_opcode(sub)
-risc_v_r_opcode(or)
-risc_v_r_opcode(xor)
-risc_v_r_opcode(and)
-risc_v_r_opcode(sll)
-risc_v_r_opcode(srl)
-risc_v_r_opcode(sra)
-risc_v_r_opcode(slt)
-risc_v_r_opcode(sltu)
-
-risc_v_i_opcode(addi)
-risc_v_i_opcode(xori)
-risc_v_i_opcode(ori)
-risc_v_i_opcode(andi)
-risc_v_i_opcode(slli)
-risc_v_i_opcode(srli)
-risc_v_i_opcode(srai)
-risc_v_i_opcode(slti)
-risc_v_i_opcode(sltiu)
-risc_v_i_opcode(lb)
-risc_v_i_opcode(lh)
-risc_v_i_opcode(lw)
-risc_v_i_opcode(ld)
-risc_v_i_opcode(lbu)
-risc_v_i_opcode(lhu)
-risc_v_i_opcode(lwu)
-risc_v_i_opcode(jalr)
-
-risc_v_s_opcode(sb)
-risc_v_s_opcode(sh)
-risc_v_s_opcode(sw)
-risc_v_s_opcode(sd)
-
-risc_v_b_opcode(beq)
-risc_v_b_opcode(bne)
-risc_v_b_opcode(blt)
-risc_v_b_opcode(bge)
-risc_v_b_opcode(bltu)
-risc_v_b_opcode(bgeu)
-
-/* Rest. */
-static int risc_v_jal     (int rd,          int imm) { return risc_v_encode_J(risc_v_I_jal, rd, imm); }
-static int risc_v_lui     (int rd,          int imm) { return risc_v_encode_U(risc_v_I_lui, rd, imm); }
-static int risc_v_auipc   (int rd,          int imm) { return risc_v_encode_U(risc_v_I_auipc, rd, imm); }
-static int risc_v_ecall   (                        ) { return risc_v_encode_I(risc_v_I_ecall,  risc_v_reg_zero, risc_v_reg_zero, 0); }
-static int risc_v_ebreak  (                        ) { return risc_v_encode_I(risc_v_I_ebreak, risc_v_reg_zero, risc_v_reg_zero, 1); }
-static int risc_v_nop     (                        ) { return risc_v_addi(risc_v_reg_zero, risc_v_reg_zero, 0); }
-static int risc_v_mul     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_mul, rd, rs1, rs2); }
-static int risc_v_div     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_div, rd, rs1, rs2); }
-static int risc_v_mod     (int rd, int rs1, int rs2) { return risc_v_encode_R(risc_v_M_mod, rd, rs1, rs2); }
-static int risc_v_ret     (                        ) { return risc_v_jalr(risc_v_reg_zero, risc_v_reg_ra, 0); }
-static int risc_v_li      (int rd,          int imm) { return risc_v_addi(rd, risc_v_reg_zero, imm); }
+#include "back_end/risc_v.h"
 
 /**********************************************
  **         Generic instructions             **
  **********************************************/
 
+static void write_uint32_le_m(void *addr, uint32_t v)
+{
+    uint8_t *mem = (uint8_t *) addr;
+    mem[0] = (v      ) & 0xFF;
+    mem[1] = (v >>  8) & 0xFF;
+    mem[2] = (v >> 16) & 0xFF;
+    mem[3] = (v >> 24) & 0xFF;
+}
+
+static bool risc_v_is_valid_imm(int32_t imm)
+{
+    return (((int32_t) (((uint32_t) imm) << 20)) >> 20) == imm;
+}
+
+static void risc_v_20_imm_op(uint32_t op, int32_t reg, int32_t imm)
+{
+    uint8_t code[4] = {0};
+    write_uint32_le_m(code, op | (reg << 7) | (imm & 0xFFFFF000));
+    put(code, 4);
+}
+
+/* Load [31:12] bits of the register from 20-bit imm, signextend & zero lower bits */
+static void risc_v_lui(int32_t reg, int32_t imm)
+{
+    risc_v_20_imm_op(0x37, reg, imm);
+}
+
+/* Load PC + [31:12] imm to register */
+static void risc_v_auipc(int32_t reg, int32_t imm)
+{
+    risc_v_20_imm_op(0x17, reg, imm);
+}
+
+static void risc_v_r_op(int op, int rds, int r1, int r2)
+{
+    uint8_t code[4] = {0};
+    write_uint32_le_m(code, op | (rds << 7) | (r1 << 15) | (r2 << 20));
+    put(code, 4);
+}
+
+/* I-type operation (sign-extended 12-bit immediate) */
+static void risc_v_i_op_internal(int op, int rds, int r, uint32_t imm)
+{
+    uint8_t code[4];
+    write_uint32_le_m(code, op | (rds << 7) | (r << 15) | (((uint32_t) imm) << 20));
+    put(code, 4);
+}
+
+/* Set native register reg to sign-extended 32-bit imm */
+static void risc_v_native_setreg32s(int reg, int imm)
+{
+    if (!risc_v_is_valid_imm(imm)) {
+        /* Upper 20 bits aren't sign-extension. */
+        if (imm & 0x800)
+            /* Lower 12-bit part will sign-extend and subtract 0x1000 from LUI value */
+            imm += 0x1000;
+        risc_v_lui(reg, imm);
+        if ((imm & 0xFFF) != 0) {
+            risc_v_i_op_internal(risc_v_I_addi, reg, reg, imm & 0xFFF);
+        }
+    } else {
+        risc_v_i_op_internal(risc_v_I_addi, reg, risc_v_reg_zero, imm & 0xFFF);
+    }
+}
+
+static void risc_v_native_setreg32(int reg, int imm)
+{
+    risc_v_native_setreg32(reg, imm);
+}
+
+static int risc_v_i_to_r(int op)
+{
+    return op | 0x20;
+}
+
+static int risc_v_is_load_op(int op)
+{
+    return (op & 0xFF) == 0x03;
+}
+
+static void risc_v_i_op(int op, int rds, int r, uint32_t imm)
+{
+    if (risc_v_is_valid_imm(imm)) {
+        risc_v_i_op_internal(op, rds, r, imm);
+    } else if (!risc_v_is_load_op(op)) {
+        if (op == risc_v_I_addi || op == risc_v_I_addiw && risc_v_is_valid_imm(imm >> 1)) {
+            /* Lower to two consequent addi. */
+            risc_v_i_op_internal(op, rds, r, imm >> 1);
+            risc_v_i_op_internal(op, rds, rds, imm - (imm >> 1));
+        } else {
+            /* Reclaim register, load 32-bit imm, use in R-type op. */
+            /* TODO: Claim regs. */
+        }
+    } else {
+
+    }
+}
+
 void back_end_native_add(int dst, int reg1, int reg2)
 {
-    put(risc_v_add(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_add, dst, reg1, reg2);
 }
 
 void back_end_native_addi(int dst, int reg1, int imm)
 {
-    put(risc_v_addi(dst, reg1, imm));
+    risc_v_i_op(risc_v_I_addi, dst, reg1, imm);
+}
+
+void back_end_native_addiw(int dst, int reg1, int imm)
+{
+    risc_v_i_op(risc_v_I_addiw, dst, reg1, imm);
 }
 
 void back_end_native_sub(int dst, int reg1, int reg2)
 {
-    put(risc_v_sub(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_sub, dst, reg1, reg2);
 }
 
 void back_end_native_div(int dst, int reg1, int reg2)
 {
-    put(risc_v_div(dst, reg1, reg2));
+    risc_v_r_op(risc_v_M_div, dst, reg1, reg2);
 }
 
 void back_end_native_mul(int dst, int reg1, int reg2)
 {
-    put(risc_v_mul(dst, reg1, reg2));
+    risc_v_r_op(risc_v_M_mul, dst, reg1, reg2);
 }
 
 void back_end_native_xor(int dst, int reg1, int reg2)
 {
-    put(risc_v_xor(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_xor, dst, reg1, reg2);
 }
 
 void back_end_native_and(int dst, int reg1, int reg2)
 {
-    put(risc_v_and(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_and, dst, reg1, reg2);
 }
 
 void back_end_native_or(int dst, int reg1, int reg2)
 {
-    put(risc_v_or(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_or, dst, reg1, reg2);
 }
 
 void back_end_native_sra(int dst, int reg1, int reg2)
 {
-    put(risc_v_sra(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_sra, dst, reg1, reg2);
 }
 
 void back_end_native_srl(int dst, int reg1, int reg2)
 {
-    put(risc_v_srl(dst, reg1, reg2));
+    risc_v_r_op(risc_v_R_srl, dst, reg1, reg2);
 }
 
 void back_end_native_lb(int dst, int addr, int off)
 {
-    put(risc_v_lb(dst, addr, off));
+     risc_v_i_op(risc_v_I_lb, dst, addr, off);
 }
 
 void back_end_native_lbu(int dst, int addr, int off)
 {
-    put(risc_v_lbu(dst, addr, off));
+     risc_v_i_op(risc_v_I_lbu, dst, addr, off);
 }
 
 void back_end_native_lh(int dst, int addr, int off)
 {
-    put(risc_v_lh(dst, addr, off));
+     risc_v_i_op(risc_v_I_lh, dst, addr, off);
 }
 
 void back_end_native_lhu(int dst, int addr, int off)
 {
-    put(risc_v_lhu(dst, addr, off));
+     risc_v_i_op(risc_v_I_lhu, dst, addr, off);
 }
 
 void back_end_native_lw(int dst, int addr, int off)
 {
-    put(risc_v_lw(dst, addr, off));
+     risc_v_i_op(risc_v_I_lw, dst, addr, off);
 }
 
 void back_end_native_lwu(int dst, int addr, int off)
 {
-    put(risc_v_lwu(dst, addr, off));
+     risc_v_i_op(risc_v_I_lwu, dst, addr, off);
 }
 
 void back_end_native_ld(int dst, int addr, int off)
 {
-    put(risc_v_ld(dst, addr, off));
+     risc_v_i_op(risc_v_I_ld, dst, addr, off);
 }
 
 void back_end_native_sb(int dst, int addr, int off)
 {
-    put(risc_v_sb(dst, addr, off));
+    // put(risc_v_sb(dst, addr, off));
 }
 
 void back_end_native_sh(int dst, int addr, int off)
 {
-    put(risc_v_sh(dst, addr, off));
+    // put(risc_v_sh(dst, addr, off));
 }
 
 void back_end_native_sw(int dst, int addr, int off)
 {
-    put(risc_v_sw(dst, addr, off));
+    // put(risc_v_sw(dst, addr, off));
 }
 
 void back_end_native_sd(int dst, int addr, int off)
 {
-    put(risc_v_sd(dst, addr, off));
+    // put(risc_v_sd(dst, addr, off));
 }
 
 void back_end_native_ret()
 {
-    put(risc_v_ret());
+    // put(risc_v_ret());
 }
 
 void back_end_native_jmp_reg(int reg)
 {
-    put(risc_v_jalr(risc_v_reg_zero, reg, 0));
+    // put(risc_v_jalr(risc_v_reg_zero, reg, 0));
 }

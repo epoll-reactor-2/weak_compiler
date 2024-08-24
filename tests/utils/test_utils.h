@@ -27,9 +27,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define ASSERT_TRUE(expr)   assert((expr));
-#define ASSERT_FALSE(expr)  assert(!(expr));
-#define ASSERT_EQ(lhs, rhs) assert((lhs) == (rhs));
+#define ASSERT_TRUE(expr)   { fflush(stdout); fflush(stderr); assert((expr)); }
+#define ASSERT_FALSE(expr)  { fflush(stdout); fflush(stderr); assert(!(expr)); }
+#define ASSERT_EQ(lhs, rhs) { fflush(stdout); fflush(stderr); assert((lhs) == (rhs)); }
 
 #define ASSERT_STREQ(lhs, rhs) do {     \
     int32_t rc = strcmp((lhs), (rhs));  \
