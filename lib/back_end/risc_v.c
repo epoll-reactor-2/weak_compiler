@@ -221,7 +221,7 @@ void back_end_native_sd(int dst, int addr, int off)
 
 void back_end_native_ret()
 {
-    // put(risc_v_ret());
+    risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, risc_v_reg_ra, 0);
 }
 
 void back_end_native_jmp_reg(int reg)

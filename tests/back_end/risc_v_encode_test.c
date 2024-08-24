@@ -53,12 +53,6 @@ int match(uint64_t len, const char *bytes)
 
     be_to_le(output.text.data, len);
 
-        // printf("RISC-V encoding failed\n ");
-        // dump_bytes(output.text.data, output.text.count);
-        // printf(" got,\n ");
-        // dump_bytes(bytes, len);
-        // printf(" expected\n");
-
     if (memcmp(output.text.data, bytes, len)) {
         printf("RISC-V encoding failed\n ");
         dump_bytes(output.text.data, output.text.count);
@@ -110,4 +104,7 @@ int main()
 
     back_end_native_ld(risc_v_reg_t0, risc_v_reg_t1, 2047);
     match(4, "\x7f\xf3\x32\x83");
+
+    back_end_native_ret();
+    match(4, "\x00\x00\x80\x67");
 }
