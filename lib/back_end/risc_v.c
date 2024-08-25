@@ -8,7 +8,7 @@
 #include "back_end/risc_v.h"
 
 /**********************************************
- **         Generic instructions             **
+ **            RISC-V encoding               **
  **********************************************/
 
 static void write_uint32_le_m(void *addr, uint32_t v)
@@ -57,6 +57,28 @@ static void risc_v_i_op_internal(int op, int rds, int r, uint32_t imm)
     uint8_t code[4];
     write_uint32_le_m(code, op | (rds << 7) | (r << 15) | (((uint32_t) imm) << 20));
     put(code, 4);
+}
+
+static void risc_v_s_op_internal(int op, int reg, int addr, int off)
+{
+    uint8_t code[4];
+    write_uint32_le_m(
+        code, op
+            | ((off  & 0x1F)    <<  7)
+            | ( addr            << 15)
+            | ( reg             << 20)
+            | ( ((uint32_t) off >>  5) << 25)
+    );
+    put(code, 4);
+}
+
+static void risc_v_s_op(int op, int reg, int addr, int off)
+{
+    if (risc_v_is_valid_imm(off)) {
+        risc_v_s_op_internal(op, reg, addr, off);
+    } else {
+        /* TODO: Claim regs. */
+    }
 }
 
 /* Set native register reg to sign-extended 32-bit imm */
@@ -108,6 +130,10 @@ static void risc_v_i_op(int op, int rds, int r, uint32_t imm)
 
     }
 }
+
+/**********************************************
+ **         Generic instructions             **
+ **********************************************/
 
 void back_end_native_add(int dst, int reg1, int reg2)
 {
@@ -201,22 +227,22 @@ void back_end_native_ld(int dst, int addr, int off)
 
 void back_end_native_sb(int dst, int addr, int off)
 {
-    // put(risc_v_sb(dst, addr, off));
+    risc_v_s_op(risc_v_S_sb, dst, addr, off);
 }
 
 void back_end_native_sh(int dst, int addr, int off)
 {
-    // put(risc_v_sh(dst, addr, off));
+    risc_v_s_op(risc_v_S_sh, dst, addr, off);
 }
 
 void back_end_native_sw(int dst, int addr, int off)
 {
-    // put(risc_v_sw(dst, addr, off));
+    risc_v_s_op(risc_v_S_sw, dst, addr, off);
 }
 
 void back_end_native_sd(int dst, int addr, int off)
 {
-    // put(risc_v_sd(dst, addr, off));
+    risc_v_s_op(risc_v_S_sd, dst, addr, off);
 }
 
 void back_end_native_ret()
@@ -226,5 +252,5 @@ void back_end_native_ret()
 
 void back_end_native_jmp_reg(int reg)
 {
-    // put(risc_v_jalr(risc_v_reg_zero, reg, 0));
+    risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, reg, 0);
 }

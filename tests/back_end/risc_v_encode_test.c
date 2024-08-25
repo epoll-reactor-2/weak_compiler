@@ -70,6 +70,9 @@ int main()
     hashmap_init(&output.fn_offsets, 1);
     back_end_init(&output);
 
+    back_end_native_sub(risc_v_reg_a2, risc_v_reg_a3, risc_v_reg_a4);
+    match(4, "\x40\xe6\x86\x33");
+
     back_end_native_addiw(risc_v_reg_t0, risc_v_reg_t0, 1);
     match(4, "\x00\x12\x82\x9b");
 
@@ -105,6 +108,18 @@ int main()
     back_end_native_ld(risc_v_reg_t0, risc_v_reg_t1, 2047);
     match(4, "\x7f\xf3\x32\x83");
 
+    back_end_native_sb(risc_v_reg_t0, risc_v_reg_t1, 2047);
+    match(4, "\x7e\x53\x0f\xa3");
+
+    back_end_native_sd(risc_v_reg_t0, risc_v_reg_t1, 2047);
+    match(4, "\x7e\x53\x3f\xa3");
+
+    back_end_native_sw(risc_v_reg_t0, risc_v_reg_t1, 2047);
+    match(4, "\x7e\x53\x2f\xa3");
+
     back_end_native_ret();
     match(4, "\x00\x00\x80\x67");
+
+    back_end_native_jmp_reg(risc_v_reg_s10);
+    match(4, "\x00\x0d\x00\x67");
 }
