@@ -254,3 +254,27 @@ void back_end_native_jmp_reg(int reg)
 {
     risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, reg, 0);
 }
+
+static int align_to_16_bytes(int num)
+{
+    return (num + 15) & ~15;
+}
+
+void back_end_native_prologue(int stack_usage)
+{
+    int extra_stack_usage = align_to_16_bytes(stack_usage);
+
+    back_end_native_addi(risc_v_reg_sp, risc_v_reg_sp, -(extra_stack_usage + 16));
+    back_end_native_sd(risc_v_reg_ra, risc_v_reg_sp,    (extra_stack_usage +  8));
+    back_end_native_sd(risc_v_reg_s0, risc_v_reg_sp,    (extra_stack_usage +  0));
+    back_end_native_addi(risc_v_reg_s0, risc_v_reg_sp,  (extra_stack_usage + 16));
+}
+
+void back_end_native_epilogue(int stack_usage)
+{
+    int extra_stack_usage = align_to_16_bytes(stack_usage);
+
+    back_end_native_ld(risc_v_reg_ra, risc_v_reg_sp,   (extra_stack_usage +  8));
+    back_end_native_ld(risc_v_reg_s0, risc_v_reg_sp,   (extra_stack_usage +  0));
+    back_end_native_addi(risc_v_reg_sp, risc_v_reg_sp, (extra_stack_usage + 16));
+}

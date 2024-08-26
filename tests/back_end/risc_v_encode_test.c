@@ -122,4 +122,89 @@ int main()
 
     back_end_native_jmp_reg(risc_v_reg_s10);
     match(4, "\x00\x0d\x00\x67");
+
+    back_end_native_prologue(/*stack_usage=*/0);
+    match(16,
+                           /* Reverse instructions order (endiannes)! */
+        "\x01\x01\x04\x13" /* addi s0, sp, 16  */
+        "\x00\x81\x30\x23" /* sd s0, 0(sp)     */
+        "\x00\x11\x34\x23" /* sd ra, 8(sp)     */
+        "\xff\x01\x01\x13" /* addi sp, sp, -16 */
+    );
+
+    back_end_native_epilogue(/*stack_usage=*/0);
+    match(12,
+                           /* Reverse instructions order (endiannes)! */
+        "\x01\x01\x01\x13" /* addi sp, sp,  16 */
+        "\x00\x01\x34\x03" /* ld s0, 0(sp)     */
+        "\x00\x81\x30\x83" /* ld ra, 8(sp)     */
+    );
+
+    back_end_native_prologue(/*stack_usage=*/4);
+    match(16,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x04\x13" /* addi s0, sp, 32  */
+        "\x00\x81\x38\x23" /* sd s0, 16(sp)    */
+        "\x00\x11\x3c\x23" /* sd ra, 24(sp)    */
+        "\xfe\x01\x01\x13" /* addi sp, sp, -32 */
+    );
+
+    back_end_native_epilogue(/*stack_usage=*/4);
+    match(12,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x01\x13" /* addi sp, sp, 32  */
+        "\x01\x01\x34\x03" /* ld s0, 16(sp)    */
+        "\x01\x81\x30\x83" /* ld ra, 24(sp)    */
+    );
+
+    back_end_native_prologue(/*stack_usage=*/8);
+    match(16,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x04\x13" /* addi s0, sp, 32  */
+        "\x00\x81\x38\x23" /* sd s0, 16(sp)    */
+        "\x00\x11\x3c\x23" /* sd ra, 24(sp)    */
+        "\xfe\x01\x01\x13" /* addi sp, sp, -32 */
+    );
+
+    back_end_native_epilogue(/*stack_usage=*/8);
+    match(12,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x01\x13" /* addi sp, sp, 32  */
+        "\x01\x01\x34\x03" /* ld s0, 16(sp)    */
+        "\x01\x81\x30\x83" /* ld ra, 24(sp)    */
+    );
+
+    back_end_native_prologue(/*stack_usage=*/16);
+    match(16,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x04\x13" /* addi s0, sp, 32  */
+        "\x00\x81\x38\x23" /* sd s0, 16(sp)    */
+        "\x00\x11\x3c\x23" /* sd ra, 24(sp)    */
+        "\xfe\x01\x01\x13" /* addi sp, sp, -32 */
+    );
+
+    back_end_native_epilogue(/*stack_usage=*/16);
+    match(12,
+                           /* Reverse instructions order (endiannes)! */
+        "\x02\x01\x01\x13" /* addi sp, sp, 32  */
+        "\x01\x01\x34\x03" /* ld s0, 16(sp)    */
+        "\x01\x81\x30\x83" /* ld ra, 24(sp)    */
+    );
+
+    back_end_native_prologue(/*stack_usage=*/20);
+    match(16,
+                           /* Reverse instructions order (endiannes)! */
+        "\x03\x01\x04\x13" /* addi s0, sp, 48  */
+        "\x02\x81\x30\x23" /* sd s0, 32(sp)    */
+        "\x02\x11\x34\x23" /* sd ra, 40(sp)    */
+        "\xfd\x01\x01\x13" /* addi sp, sp, -48 */
+    );
+
+    back_end_native_epilogue(/*stack_usage=*/20);
+    match(12,
+                           /* Reverse instructions order (endiannes)! */
+        "\x03\x01\x01\x13" /* addi sp, sp, 48  */
+        "\x02\x01\x34\x03" /* ld s0, 32(sp)    */
+        "\x02\x81\x30\x83" /* ld ra, 40(sp)    */
+    );
 }
