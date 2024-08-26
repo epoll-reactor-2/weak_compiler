@@ -8,6 +8,53 @@
 #include "back_end/risc_v.h"
 
 /**********************************************
+ **          Register allocation             **
+ **********************************************/
+
+#define MAX_REGISTERS  32
+#define FREE_REG_START  5  // Start from `t0` (register 5)
+#define FREE_REG_END   31  // End at `t6` (register 31)
+
+static int reg_lru[MAX_REGISTERS] = {0};
+
+__attribute__ ((constructor)) static void init_lru()
+{
+    int idx = 0;
+    for (int i = FREE_REG_START; i <= FREE_REG_END; i++) {
+        reg_lru[idx++] = i;
+    }
+}
+
+static void update_lru(int reg)
+{
+    int i;
+    for (i = 0; i < MAX_REGISTERS; i++) {
+        if (reg_lru[i] == reg) {
+            break;
+        }
+    }
+    /* Shift elements to the left */
+    for (int j = i; j < MAX_REGISTERS - 1; j++) {
+        reg_lru[j] = reg_lru[j + 1];
+    }
+    /* Place the used register at the end */
+    reg_lru[MAX_REGISTERS - 1] = reg;
+}
+
+static int allocate_register()
+{
+    for (int i = FREE_REG_START; i <= FREE_REG_END; i++) {
+        /* Reclaim the least recently used register */
+        if (reg_lru[0] == i) {
+            int reg = reg_lru[0];
+            update_lru(reg);
+            return reg;
+        }
+    }
+    return -1;
+}
+
+/**********************************************
  **            RISC-V encoding               **
  **********************************************/
 
@@ -100,7 +147,7 @@ static void risc_v_native_setreg32s(int reg, int imm)
 
 static void risc_v_native_setreg32(int reg, int imm)
 {
-    risc_v_native_setreg32(reg, imm);
+    risc_v_native_setreg32s(reg, imm);
 }
 
 static int risc_v_i_to_r(int op)
@@ -113,21 +160,57 @@ static int risc_v_is_load_op(int op)
     return (op & 0xFF) == 0x03;
 }
 
-static void risc_v_i_op(int op, int rds, int r, uint32_t imm)
+static int64_t sign_extend(uint64_t val, uint8_t bits)
+{
+    return ((int64_t)(val << (64 - bits))) >> (64 - bits);
+}
+
+static void risc_v_i_op(int op, int rds, int r, int32_t imm)
 {
     if (risc_v_is_valid_imm(imm)) {
         risc_v_i_op_internal(op, rds, r, imm);
     } else if (!risc_v_is_load_op(op)) {
-        if (op == risc_v_I_addi || op == risc_v_I_addiw && risc_v_is_valid_imm(imm >> 1)) {
+        if ((op == risc_v_I_addi || op == risc_v_I_addiw) && risc_v_is_valid_imm(imm >> 1)) {
             /* Lower to two consequent addi. */
             risc_v_i_op_internal(op, rds, r, imm >> 1);
             risc_v_i_op_internal(op, rds, rds, imm - (imm >> 1));
         } else {
+            fflush(stdout);
             /* Reclaim register, load 32-bit imm, use in R-type op. */
-            /* TODO: Claim regs. */
+            int rtmp = allocate_register();
+            if (rtmp == -1) {
+                printf("No regs\n");
+                fflush(stdout);
+                abort();
+            }
+            printf("1 Allocated %d\n", rtmp);
+            fflush(stdout);
+            risc_v_native_setreg32(rtmp, imm);
+            risc_v_r_op(risc_v_i_to_r(op), rds, r, rtmp);
+            update_lru(rtmp);
         }
     } else {
+        int32_t imm_lo = sign_extend(imm, 12);
+        printf("%x sign extend %x\n", imm, imm_lo);
+        int rtmp = allocate_register();
+        if (rtmp == -1) {
+            printf("No regs\n");
+            fflush(stdout);
+            abort();
+        }
+        printf("2 Allocated %d\n", rtmp);
+        fflush(stdout);
 
+        risc_v_lui(rtmp, imm - imm_lo);
+        printf("lui %d, %x\n", rtmp, imm - imm_lo);
+
+        risc_v_r_op(risc_v_R_add, rtmp, rtmp, r);
+        printf("add %d, %d, %d\n", rtmp, rtmp, r);
+
+        risc_v_i_op_internal(op, rds, rtmp, imm_lo);
+        printf("lb %d, %d, %x\n", rds, rtmp, imm_lo);
+
+        update_lru(rtmp);
     }
 }
 
