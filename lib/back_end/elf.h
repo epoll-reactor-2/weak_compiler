@@ -170,6 +170,12 @@ struct packed elf_sym {
 
 typedef vector_t(uint8_t) instr_vector_t;
 
+struct elf_section {
+    char           name[128];
+    uint64_t       size;
+    instr_vector_t instrs;
+};
+
 /* TODO: Make some comfortable API to initialize all
          needed sections:
          .text
@@ -180,7 +186,7 @@ typedef vector_t(uint8_t) instr_vector_t;
          ... */
 struct codegen_output {
     hashmap_t         fn_offsets;
-    instr_vector_t    text;
+    hashmap_t         sections;
 };
 
 struct elf_entry {
@@ -188,6 +194,17 @@ struct elf_entry {
     struct codegen_output
                 output;
 };
+
+void elf_init_section(
+    struct codegen_output *codegen,
+    const char            *section,
+    uint64_t               size
+);
+
+instr_vector_t *elf_lookup_section(
+    struct codegen_output *codegen,
+    const char            *section
+);
 
 void elf_init(struct elf_entry *e);
 void elf_exit();

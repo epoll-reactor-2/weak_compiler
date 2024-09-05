@@ -1,7 +1,10 @@
-#include "back_end/back_end.h"
+/* elf.c - Test cases for ELF generator.
+ * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
+ *
+ * This file is distributed under the MIT license.
+ */
+#include "back_end/elf.h"
 #include "utils/test_utils.h"
-#include <stddef.h>
-#include <stdio.h>
 
 void *diag_error_memstream = NULL;
 void *diag_warn_memstream = NULL;
@@ -10,7 +13,6 @@ char current_output_dir[128];
 
 int main()
 {
-    return 0;
     cfg_dir("back_end", current_output_dir);
     char elf_path[256] = {0};
     char cmd[512] = {0};
@@ -19,7 +21,25 @@ int main()
     struct codegen_output output = {0};
 
     hashmap_init(&output.fn_offsets, 512);
-    back_end_init(&output);
+    hashmap_init(&output.sections,    32);
+
+    /* TODO: Don't work as should if we change order
+             of sections. */
+    static const char *sections[] = {
+        ".text",
+        ".data",
+        ".rodata",
+        ".strtab",
+        ".shstrtab",
+        // ".symtab",
+        ".init_array",
+        ".fini_array",
+        ".ctors",
+        ".dtors",
+    };
+
+    for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
+        elf_init_section(&output, sections[i], 100);
 
     struct elf_entry elf = {
         .filename = elf_path,
@@ -36,10 +56,5 @@ int main()
 #endif
     system(cmd);
 
-#if defined CONFIG_USE_BACKEND_RISC_V
-    snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-objdump -D %s", elf_path);
-#elif defined CONFIG_USE_BACKEND_X86_64
-    snprintf(cmd, sizeof (cmd) - 1, "objdump -D %s", elf_path);
-#endif
-    system(cmd);
+    return -1;
 }
