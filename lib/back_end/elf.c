@@ -83,21 +83,19 @@ static int dispatch_section_type(const char *name)
     weak_unreachable("Don't know which section type assign to `%s`", name);
 }
 
-static uint16_t emit_phdrs(uint64_t text_off, uint64_t size)
+static uint16_t emit_phdrs(uint64_t text_off, uint64_t size, uint64_t sections_size)
 {
     uint16_t phnum = 0;
 
-    /* TODO: Find out what is Section to Segment mapping. Map
-             all needed things. */
     struct elf_phdr phdr = {
-        .type   = 0x01,
-        .flags  = 7,
-        .off    = 0,
-        .vaddr  = 0,
-        .paddr  = 0x12C,
-        .memsz  = 0x12C,
-        .filesz = 0x12C,
-        .align  = 0x1
+        .type   = PT_LOAD,
+        .flags  = PF_R | PF_W,
+        .off    = 0x40,
+        .vaddr  = 0x40,
+        .paddr  = 0x40,
+        .memsz  = sections_size,
+        .filesz = sections_size,
+        .align  = 0x16
     };
     emit_phdr(phnum++, &phdr);
 
@@ -119,17 +117,17 @@ void elf_init(struct elf_entry *e)
      * Stage: Emit section headers
      **********************/
 
-    uint64_t idx = 0;
-    uint64_t off = 0;
-    uint64_t name_off = 0;
-    uint64_t strtab_off = 0;
-    uint64_t strtab_idx = 0;
-    uint64_t symtab_off = 0;
-    uint64_t shstrtab_off = 0;
-    uint64_t shstrtab_idx = 0;
-    uint64_t text_off = 0;
-    uint64_t text_size = 0;
-    uint64_t shnum = 0;
+    uint64_t idx            = 0;
+    uint64_t off            = ELF_PHDR_OFF;
+    uint64_t name_off       = 0;
+    uint64_t strtab_off     = 0;
+    uint64_t strtab_idx     = 0;
+    uint64_t symtab_off     = 0;
+    uint64_t shstrtab_off   = 0;
+    uint64_t shstrtab_idx   = 0;
+    uint64_t text_off       = 0;
+    uint64_t text_size      = 0;
+    uint64_t shnum          = 0;
 
     struct elf_shdr null_shdr = {
         0
@@ -161,11 +159,13 @@ void elf_init(struct elf_entry *e)
         printf("Name: %s\n", section->name);
 
         struct elf_shdr shdr = {
-            .name_ptr = 0x01 + name_off,
-            .type     = dispatch_section_type(section->name),
-            .addr     = off,
-            .off      = off,
-            .size     = section->size,
+            .name_ptr  = 0x01 + name_off,
+            .type      = dispatch_section_type(section->name),
+            .addr      = off,
+            .off       = off,
+            .size      = section->size,
+            .flags     = PF_W,
+            .addralign = 0x4
         };
 
         name_off += strlen(section->name) + /* NULL byte */ 1;
@@ -235,7 +235,7 @@ void elf_init(struct elf_entry *e)
         .flags     = 0x00,
         .ehsize    = 0x40,
         .phentsize = ELF_PHDR_SIZE,
-        .phnum     = emit_phdrs(text_off, text_size), /* TODO: Fix. */
+        .phnum     = emit_phdrs(text_off, text_size, off), /* TODO: Fix. */
         .shentsize = ELF_SH_SIZE,
         .shnum     = e->output.sections.size,
         .shstrndx  = shstrtab_idx
