@@ -193,17 +193,11 @@ struct elf_section {
     instr_vector_t instrs;
 };
 
-/* TODO: Make some comfortable API to initialize all
-         needed sections:
-         .text
-         .symtab
-         .rodata
-         .init_array
-         .fini_array
-         ... */
+typedef vector_t(struct elf_section) section_vector_t;
+
 struct codegen_output {
     hashmap_t         fn_offsets;
-    hashmap_t         sections;
+    section_vector_t  sections;
 };
 
 struct elf_entry {
@@ -213,18 +207,17 @@ struct elf_entry {
 };
 
 void elf_init_section(
-    struct codegen_output *codegen,
+    struct codegen_output *output,
     const char            *section,
     uint64_t               size
 );
 
 instr_vector_t *elf_lookup_section(
-    struct codegen_output *codegen,
+    struct codegen_output *output,
     const char            *section
 );
 
 void elf_init(struct elf_entry *e);
-void elf_exit();
-// void elf_put_code(uint8_t *code, uint64_t size);
+void elf_exit(struct elf_entry *e);
 
 #endif // WEAK_COMPILER_BACKEND_ELF_H

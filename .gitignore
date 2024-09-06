@@ -8,3 +8,4 @@ PVS-*
 coverage_output
 out
 TODO
+.config

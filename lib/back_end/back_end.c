@@ -15,7 +15,6 @@ void back_end_init(struct codegen_output *output)
     output_code = output;
 
     hashmap_init(&output_code->fn_offsets, 32);
-    hashmap_init(&output_code->sections,   32);
 
     static const char *sections[] = {
         ".text",

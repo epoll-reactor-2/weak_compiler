@@ -35,6 +35,9 @@ static char *elf_map;
 #define emit_bytes(addr, data) \
     { memcpy(&((uint8_t *) elf_map)[(addr)], (data), sizeof (*(data))); }
 
+#define emit_bytes_cnt(addr, data, size) \
+    { memcpy(&((uint8_t *) elf_map)[(addr)], (data), (size)); }
+
 static char *emit_symbol(char *start, const char *section)
 {
     uint64_t len = strlen(section);
@@ -134,9 +137,8 @@ void elf_init(struct elf_entry *e)
     emit_shdr(shnum++, &null_shdr);
 
     idx = 1;
-    hashmap_foreach(&e->output.sections, crc, __section) {
-        (void) crc;
-        struct elf_section *section = (struct elf_section *) __section;
+    vector_foreach(e->output.sections, i) {
+        struct elf_section *section = &vector_at(e->output.sections, i);
 
         if (!strcmp(section->name, ".strtab"))
             strtab_idx = idx;
@@ -147,13 +149,9 @@ void elf_init(struct elf_entry *e)
         ++idx;
     }
 
-    printf(".strtab   idx = %ld\n", strtab_idx);
-    printf(".shstrtab idx = %ld\n", shstrtab_idx);
-
     idx = 1;
-    hashmap_foreach(&e->output.sections, crc, __section) {
-        (void) crc;
-        struct elf_section *section = (struct elf_section *) __section;
+    vector_foreach(e->output.sections, i) {
+        struct elf_section *section = &vector_at(e->output.sections, i);
 
         printf("Name: %s\n", section->name);
 
@@ -197,7 +195,7 @@ void elf_init(struct elf_entry *e)
     printf(".shstrtab off = %lx\n", shstrtab_off);
 
     /**********************
-     * Stage: Strtab contents
+     * Stage: Emit .shstrtab
      **********************/
     char *s = &elf_map[shstrtab_off];
 
@@ -205,9 +203,8 @@ void elf_init(struct elf_entry *e)
        Required by first NULL section */
     s = emit_symbol(s, "");
 
-    hashmap_foreach(&e->output.sections, crc, __section) {
-        (void) crc;
-        struct elf_section *section = (struct elf_section *) __section;
+    vector_foreach(e->output.sections, i) {
+        struct elf_section *section = &vector_at(e->output.sections, i);
 
         printf("Put to .shstrtab `%s`\n", section->name);
 
@@ -229,7 +226,7 @@ void elf_init(struct elf_entry *e)
      emit_bytes(symtab_off + ELF_SYMTAB_ENTSIZE, &sym);
 
     /**********************
-     * Stage: Emit program header
+     * Stage: Emit file header
      **********************/
      struct elf_fhdr fhdr = {
         .ident     = "\x7F\x45\x4C\x46\x02\x01\x01",
@@ -244,44 +241,65 @@ void elf_init(struct elf_entry *e)
         .phentsize = ELF_PHDR_SIZE,
         .phnum     = emit_phdrs(text_off, text_size, off), /* TODO: Fix. */
         .shentsize = ELF_SH_SIZE,
-        .shnum     = e->output.sections.size,
+        .shnum     = e->output.sections.count,
         .shstrndx  = shstrtab_idx
     };
 
     emit_bytes(0x00, &fhdr);
+
+    /**********************
+     * Stage: Emit .text
+     **********************/
+    instr_vector_t *text_data = elf_lookup_section(&e->output, ".text");
+
+    /* TODO: Pretty large text section smashes ELF by overriding
+             some parts. */
+    emit_bytes_cnt(text_off, text_data->data, text_data->size);
 }
 
-void elf_exit()
+void elf_exit(struct elf_entry *e)
 {
     if (munmap(elf_map, ELF_INIT_SIZE) < 0)
         weak_fatal_errno("munmap()");
 
     if (close(elf_fd) < 0)
         weak_fatal_errno("close()");
+
+    struct codegen_output *o = &e->output;
+
+    hashmap_destroy(&o->fn_offsets);
+    vector_foreach(o->sections, i) {
+        struct elf_section *s = &vector_at(o->sections, i);
+        vector_free(s->instrs);
+    }
+    vector_free(o->sections);
 }
 
 void elf_init_section(
-    struct codegen_output *codegen,
+    struct codegen_output *output,
     const char            *section,
     uint64_t               size
 ) {
-    struct elf_section *s   = weak_calloc(1, sizeof (struct elf_section));
+    struct elf_section  s   = {0};
     uint64_t            crc = (uint64_t) crc32_string(section);
 
-    s->size = size;
-    strncpy(s->name, section, sizeof (s->name) - 1);
-    hashmap_put(&codegen->sections, crc, (uintptr_t) s);
+    s.size = size;
+    strncpy(s.name, section, sizeof (s.name) - 1);
+    vector_push_back(output->sections, s);
 }
 
 instr_vector_t *elf_lookup_section(
-    struct codegen_output *codegen,
+    struct codegen_output *output,
     const char            *section
 ) {
-    uint64_t crc  = (uint64_t) crc32_string(section);
-    bool     ok   = 0;
-    int64_t  addr = hashmap_get(&codegen->sections, crc, &ok);
+    section_vector_t *v = &output->sections;
 
-    struct elf_section *s = (struct elf_section *) addr;
+    vector_foreach(*v, i) {
+        struct elf_section *s = &vector_at(*v, i);
 
-    return &s->instrs;
+        if (!strcmp(s->name, section))
+            return &s->instrs;
+    }
+
+    weak_unreachable("Cannot find `%s` section", section);
 }

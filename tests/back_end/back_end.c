@@ -34,7 +34,7 @@ int main()
     };
 
     elf_init(&elf);
-    elf_exit();
+    elf_exit(&elf);
 
 #if defined CONFIG_USE_BACKEND_RISC_V
     snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-readelf -a %s", elf_path);
