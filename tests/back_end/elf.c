@@ -31,7 +31,6 @@ int main()
         ".rodata",
         ".strtab",
         ".shstrtab",
-        // ".symtab",
         ".init_array",
         ".fini_array",
         ".ctors",
@@ -40,6 +39,8 @@ int main()
 
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
         elf_init_section(&output, sections[i], 100);
+
+    elf_init_section(&output, ".symtab", /* ELF symtab entry size. */ 24 * 2);
 
     struct elf_entry elf = {
         .filename = elf_path,

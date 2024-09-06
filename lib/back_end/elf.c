@@ -116,7 +116,6 @@ void elf_init(struct elf_entry *e)
     /**********************
      * Stage: Emit section headers
      **********************/
-
     uint64_t idx            = 0;
     uint64_t off            = ELF_PHDR_OFF;
     uint64_t name_off       = 0;
@@ -182,9 +181,10 @@ void elf_init(struct elf_entry *e)
         }
 
         if (!strcmp(section->name, ".symtab")) {
-            shdr.link = shstrtab_idx;
-            shdr.entsize = ELF_SYMTAB_ENTSIZE;
-            symtab_off = idx;
+            shdr.link       = shstrtab_idx;
+            shdr.info       = /* Count of symbols. */ 2;
+            shdr.entsize    = ELF_SYMTAB_ENTSIZE;
+            symtab_off      = off;
         }
 
         emit_shdr(shnum++, &shdr);
@@ -199,17 +199,11 @@ void elf_init(struct elf_entry *e)
     /**********************
      * Stage: Strtab contents
      **********************/
-    char *shstrtab_it = &elf_map[shstrtab_off];
+    char *s = &elf_map[shstrtab_off];
 
     /* Placeholder first symbol, which is empty.
-       Required by first NULL section
-
-      [Nr] Name              Type             Address           Offset
-           Size              EntSize          Flags  Link  Info  Align
-      [ 0]                   NULL             0000000000000000  00000000
-           0000000000000000  0000000000000000           0     0     0
-    */
-    shstrtab_it = emit_symbol(shstrtab_it, "");
+       Required by first NULL section */
+    s = emit_symbol(s, "");
 
     hashmap_foreach(&e->output.sections, crc, __section) {
         (void) crc;
@@ -217,13 +211,26 @@ void elf_init(struct elf_entry *e)
 
         printf("Put to .shstrtab `%s`\n", section->name);
 
-        shstrtab_it = emit_symbol(shstrtab_it, section->name);
+        s = emit_symbol(s, section->name);
     }
+
+    /**********************
+     * Stage: Emit symtab entries
+     **********************/
+
+     /* TODO: Collect from fn_offsets for example. */
+     struct elf_sym sym = {
+        .name   = /* Offset in .shstrtab */ 1,
+        .size   = 0,
+        .value  = 1,
+        .info   = 2,
+        .shndx  = shstrtab_idx
+     };
+     emit_bytes(symtab_off + ELF_SYMTAB_ENTSIZE, &sym);
 
     /**********************
      * Stage: Emit program header
      **********************/
-
      struct elf_fhdr fhdr = {
         .ident     = "\x7F\x45\x4C\x46\x02\x01\x01",
         .type      = ET_EXEC,
