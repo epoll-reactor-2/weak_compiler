@@ -105,6 +105,141 @@ static uint16_t emit_phdrs(uint64_t text_off, uint64_t size, uint64_t sections_s
     return phnum;
 }
 
+static void calculate_strtabs_index(
+    section_vector_t *sections,
+    uint64_t         *strtab_idx,
+    uint64_t         *shstrtab_idx
+) {
+    uint64_t idx = 1;
+
+    vector_foreach(*sections, i) {
+        struct elf_section *section = &vector_at(*sections, i);
+
+        if (!strcmp(section->name, ".strtab"))
+            *strtab_idx = idx;
+
+        if (!strcmp(section->name, ".shstrtab"))
+            *shstrtab_idx = idx;
+
+        ++idx;
+    }
+}
+
+static void emit_shdrs(
+    struct codegen_output *output,
+    section_vector_t      *sections,
+    uint64_t               shstrtab_idx,
+    uint64_t              *strtab_off,
+    uint64_t              *shstrtab_off,
+    uint64_t              *symtab_off,
+    uint64_t              *text_off,
+    uint64_t              *text_size
+) {
+    uint64_t idx      = 1;
+    uint64_t shnum    = 0;
+    uint64_t name_off = 0;
+    uint64_t off      = 0;
+
+    struct elf_shdr null_shdr = {
+        0
+    };
+    emit_shdr(shnum++, &null_shdr);
+
+    vector_foreach(*sections, i) {
+        struct elf_section *section = &vector_at(*sections, i);
+
+        struct elf_shdr shdr = {
+            .name_ptr  = 0x01 + name_off,
+            .type      = dispatch_section_type(section->name),
+            .addr      = off,
+            .off       = off,
+            .size      = section->size,
+            .flags     = PF_W,
+            .addralign = 0x4
+        };
+
+        name_off += strlen(section->name) + /* NULL byte */ 1;
+
+        if (!strcmp(section->name, ".strtab"))
+            *strtab_off = off;
+
+        if (!strcmp(section->name, ".shstrtab"))
+            *shstrtab_off = off;
+
+        if (!strcmp(section->name, ".text")) {
+            *text_off  = off;
+            *text_size = section->size;
+        }
+
+        if (!strcmp(section->name, ".symtab")) {
+            shdr.link       = shstrtab_idx;
+            shdr.info       = output->syms_cnt;
+            shdr.entsize    = ELF_SYMTAB_ENTSIZE;
+            *symtab_off     = off;
+        }
+
+        emit_shdr(shnum++, &shdr);
+
+        off += section->size;
+        ++idx;
+    }
+}
+
+static void emit_shstrtab(
+    section_vector_t *sections,
+    uint64_t          shstrtab_off
+) {
+    char *s = &elf_map[shstrtab_off];
+
+    /* Placeholder first symbol, which is empty.
+       Required by first NULL section */
+    s = emit_symbol(s, "");
+
+    vector_foreach(*sections, i) {
+        struct elf_section *section = &vector_at(*sections, i);
+
+        s = emit_symbol(s, section->name);
+    }
+}
+
+static void emit_text(
+    struct codegen_output *output,
+    uint64_t               text_off
+) {
+    instr_vector_t *text_data = elf_lookup_section(output, ".text");
+
+    /* TODO: Pretty large text section smashes ELF by overriding
+             some parts. */
+    emit_bytes_cnt(text_off, text_data->data, text_data->size);
+}
+
+static void emit_fhdr(
+    uint64_t text_off,
+    uint64_t text_size,
+    uint64_t shstrtab_idx,
+    uint64_t off,
+    uint64_t shnum
+) {
+     struct elf_fhdr fhdr = {
+        .ident     = "\x7F\x45\x4C\x46\x02\x01\x01",
+        .type      = ET_EXEC,
+        .machine   = ELF_TARGET_ARCH,
+        .version   = 2,
+        .entry     = ELF_ENTRY_ADDR,
+        .phoff     = ELF_PHDR_OFF,
+        .shoff     = ELF_SH_OFF,
+        .flags     = 0x00,
+        .ehsize    = 0x40,
+        .phentsize = ELF_PHDR_SIZE,
+        .phnum     = emit_phdrs(text_off, text_size, off),
+        .shentsize = ELF_SH_SIZE,
+        .shnum     = shnum + /* First NULL section */ 1,
+        .shstrndx  = shstrtab_idx
+    };
+
+    emit_bytes(0x00, &fhdr);
+}
+
 void elf_init(struct elf_entry *e)
 {
     elf_fd = open(e->filename, O_CREAT | O_TRUNC | O_RDWR, 0666);
@@ -131,130 +266,58 @@ void elf_init(struct elf_entry *e)
     uint64_t text_size      = 0;
     uint64_t shnum          = 0;
 
-    struct elf_shdr null_shdr = {
-        0
-    };
-    emit_shdr(shnum++, &null_shdr);
+    calculate_strtabs_index(
+        &e->output.sections,
+        &strtab_idx,
+        &shstrtab_idx
+    );
 
-    idx = 1;
-    vector_foreach(e->output.sections, i) {
-        struct elf_section *section = &vector_at(e->output.sections, i);
+    emit_shdrs(
+        &e->output,
+        &e->output.sections,
+        shstrtab_idx,
+        &strtab_off,
+        &shstrtab_off,
+        &symtab_off,
+        &text_off,
+        &text_size
+    );
 
-        if (!strcmp(section->name, ".strtab"))
-            strtab_idx = idx;
-
-        if (!strcmp(section->name, ".shstrtab"))
-            shstrtab_idx = idx;
-
-        ++idx;
-    }
-
-    idx = 1;
-    vector_foreach(e->output.sections, i) {
-        struct elf_section *section = &vector_at(e->output.sections, i);
-
-        printf("Name: %s\n", section->name);
-
-        struct elf_shdr shdr = {
-            .name_ptr  = 0x01 + name_off,
-            .type      = dispatch_section_type(section->name),
-            .addr      = off,
-            .off       = off,
-            .size      = section->size,
-            .flags     = PF_W,
-            .addralign = 0x4
-        };
-
-        name_off += strlen(section->name) + /* NULL byte */ 1;
-
-        if (!strcmp(section->name, ".strtab"))
-            strtab_off = off;
-
-        if (!strcmp(section->name, ".shstrtab"))
-            shstrtab_off = off;
-
-        if (!strcmp(section->name, ".text")) {
-            text_off  = off;
-            text_size = section->size;
-        }
-
-        if (!strcmp(section->name, ".symtab")) {
-            shdr.link       = shstrtab_idx;
-            shdr.info       = /* Count of symbols. */ 2;
-            shdr.entsize    = ELF_SYMTAB_ENTSIZE;
-            symtab_off      = off;
-        }
-
-        emit_shdr(shnum++, &shdr);
-
-        off += section->size;
-        ++idx;
-    }
-
-    printf(".strtab   off = %lx\n", strtab_off);
-    printf(".shstrtab off = %lx\n", shstrtab_off);
-
-    /**********************
-     * Stage: Emit .shstrtab
-     **********************/
-    char *s = &elf_map[shstrtab_off];
-
-    /* Placeholder first symbol, which is empty.
-       Required by first NULL section */
-    s = emit_symbol(s, "");
-
-    vector_foreach(e->output.sections, i) {
-        struct elf_section *section = &vector_at(e->output.sections, i);
-
-        printf("Put to .shstrtab `%s`\n", section->name);
-
-        s = emit_symbol(s, section->name);
-    }
+    emit_shstrtab(
+        &e->output.sections,
+        shstrtab_off
+    );
 
     /**********************
      * Stage: Emit symtab entries
      **********************/
 
-     /* TODO: Collect from fn_offsets for example. */
-     struct elf_sym sym = {
+    /* TODO: Collect from fn_offsets for example. */
+    struct elf_sym sym = {
         .name   = /* Offset in .shstrtab */ 1,
         .size   = 0,
         .value  = 1,
         .info   = 2,
         .shndx  = shstrtab_idx
-     };
-     emit_bytes(symtab_off + ELF_SYMTAB_ENTSIZE, &sym);
-
-    /**********************
-     * Stage: Emit file header
-     **********************/
-     struct elf_fhdr fhdr = {
-        .ident     = "\x7F\x45\x4C\x46\x02\x01\x01",
-        .type      = ET_EXEC,
-        .machine   = ELF_TARGET_ARCH,
-        .version   = 2,
-        .entry     = ELF_ENTRY_ADDR,
-        .phoff     = ELF_PHDR_OFF,
-        .shoff     = ELF_SH_OFF,
-        .flags     = 0x00,
-        .ehsize    = 0x40,
-        .phentsize = ELF_PHDR_SIZE,
-        .phnum     = emit_phdrs(text_off, text_size, off), /* TODO: Fix. */
-        .shentsize = ELF_SH_SIZE,
-        .shnum     = e->output.sections.count,
-        .shstrndx  = shstrtab_idx
     };
+    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 1), &sym);
+    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 2), &sym);
+    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 3), &sym);
+    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 4), &sym);
+    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 5), &sym);
 
-    emit_bytes(0x00, &fhdr);
+    emit_fhdr(
+        text_off,
+        text_size,
+        shstrtab_idx,
+        off,
+        e->output.sections.count
+    );
 
-    /**********************
-     * Stage: Emit .text
-     **********************/
-    instr_vector_t *text_data = elf_lookup_section(&e->output, ".text");
-
-    /* TODO: Pretty large text section smashes ELF by overriding
-             some parts. */
-    emit_bytes_cnt(text_off, text_data->data, text_data->size);
+    emit_text(
+        &e->output,
+        text_off
+    );
 }
 
 void elf_exit(struct elf_entry *e)
@@ -288,6 +351,14 @@ void elf_init_section(
     vector_push_back(output->sections, s);
 }
 
+void elf_init_symtab(
+    struct codegen_output *output,
+    uint64_t               syms_cnt
+) {
+    output->syms_cnt = syms_cnt;
+    elf_init_section(output, ".symtab", syms_cnt * ELF_SYMTAB_ENTSIZE);
+}
+
 instr_vector_t *elf_lookup_section(
     struct codegen_output *output,
     const char            *section
@@ -303,3 +374,14 @@ instr_vector_t *elf_lookup_section(
 
     weak_unreachable("Cannot find `%s` section", section);
 }
+
+/*
+Огненный гром
+Уничтожил твой дом,
+Но в руинах партера
+На мёрзлой земле
+Ты исполнила танец,
+Танец на битом стекле.
+Танец на битом стекле,
+На битом стекле босиком.
+*/

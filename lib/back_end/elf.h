@@ -198,6 +198,7 @@ typedef vector_t(struct elf_section) section_vector_t;
 struct codegen_output {
     hashmap_t         fn_offsets;
     section_vector_t  sections;
+    uint64_t          syms_cnt;
 };
 
 struct elf_entry {
@@ -210,6 +211,11 @@ void elf_init_section(
     struct codegen_output *output,
     const char            *section,
     uint64_t               size
+);
+
+void elf_init_symtab(
+    struct codegen_output *output,
+    uint64_t               syms_cnt
 );
 
 instr_vector_t *elf_lookup_section(

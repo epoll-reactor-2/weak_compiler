@@ -22,8 +22,6 @@ int main()
 
     hashmap_init(&output.fn_offsets, 512);
 
-    /* TODO: Don't work as should if we change order
-             of sections. */
     static const char *sections[] = {
         ".text",
         ".data",
@@ -39,7 +37,7 @@ int main()
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
         elf_init_section(&output, sections[i], 100);
 
-    elf_init_section(&output, ".symtab", /* ELF symtab entry size. */ 24 * 2);
+    elf_init_symtab(&output, 10);
 
     instr_vector_t *instrs = elf_lookup_section(&output, ".text");
 
