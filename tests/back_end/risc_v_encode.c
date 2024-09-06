@@ -1,4 +1,4 @@
-/* risc_v_encode_test.c - Tests for RISC-V encoding.
+/* risc_v_encode.c - Tests for RISC-V encoding.
  * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.

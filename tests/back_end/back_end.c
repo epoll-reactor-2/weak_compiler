@@ -1,3 +1,10 @@
+/* back_end.c - Tests for backend interface.
+ * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
+ *
+ * This file is distributed under the MIT license.
+ */
+
+
 #include "back_end/back_end.h"
 #include "utils/test_utils.h"
 #include <stddef.h>
