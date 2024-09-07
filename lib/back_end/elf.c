@@ -8,6 +8,7 @@
 #include "util/compiler.h"
 #include "util/crc32.h"
 #include "util/vector.h"
+#include "util/compiler.h"
 #include "util/unreachable.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -32,11 +33,11 @@ static char *elf_map;
 #define emit(addr, byte_string) \
     { strcpy(&elf_map[addr], byte_string); }
 
-#define emit_bytes(addr, data) \
-    { memcpy(&((uint8_t *) elf_map)[(addr)], (data), sizeof (*(data))); }
-
 #define emit_bytes_cnt(addr, data, size) \
     { memcpy(&((uint8_t *) elf_map)[(addr)], (data), (size)); }
+
+#define emit_bytes(addr, data) \
+    { emit_bytes_cnt(addr, data, sizeof (*(data))); }
 
 static char *emit_symbol(char *start, const char *section)
 {
@@ -86,24 +87,31 @@ static int dispatch_section_type(const char *name)
     weak_unreachable("Don't know which section type assign to `%s`", name);
 }
 
-static uint16_t emit_phdrs(uint64_t text_off, uint64_t size, uint64_t sections_size)
+static uint16_t emit_phdrs(uint64_t shdr_off)
 {
     uint16_t phnum = 0;
 
     struct elf_phdr phdr = {
         .type   = PT_LOAD,
         .flags  = PF_R | PF_W,
-        .off    = 0x40,
-        .vaddr  = 0x40,
-        .paddr  = 0x40,
-        .memsz  = sections_size,
-        .filesz = sections_size,
+        .off    = ELF_PHDR_OFF,
+        .vaddr  = ELF_PHDR_OFF,
+        .paddr  = ELF_PHDR_OFF,
+        .memsz  = shdr_off,
+        .filesz = shdr_off,
         .align  = 0x16
     };
     emit_phdr(phnum++, &phdr);
 
     return phnum;
 }
+
+struct elf_off {
+    uint64_t strtab;
+    uint64_t shstrtab;
+    uint64_t symtab;
+    uint64_t text;
+};
 
 static void calculate_strtabs_index(
     section_vector_t *sections,
@@ -125,14 +133,11 @@ static void calculate_strtabs_index(
     }
 }
 
-static void emit_shdrs(
+static uint64_t emit_shdrs(
     struct codegen_output *output,
     section_vector_t      *sections,
     uint64_t               shstrtab_idx,
-    uint64_t              *strtab_off,
-    uint64_t              *shstrtab_off,
-    uint64_t              *symtab_off,
-    uint64_t              *text_off,
+    struct elf_off        *offs,
     uint64_t              *text_size
 ) {
     uint64_t idx      = 1;
@@ -161,21 +166,21 @@ static void emit_shdrs(
         name_off += strlen(section->name) + /* NULL byte */ 1;
 
         if (!strcmp(section->name, ".strtab"))
-            *strtab_off = off;
+            offs->strtab = off;
 
         if (!strcmp(section->name, ".shstrtab"))
-            *shstrtab_off = off;
+            offs->shstrtab = off;
 
         if (!strcmp(section->name, ".text")) {
-            *text_off  = off;
+            offs->text = off;
             *text_size = section->size;
         }
 
         if (!strcmp(section->name, ".symtab")) {
-            shdr.link       = shstrtab_idx;
-            shdr.info       = output->syms_cnt;
-            shdr.entsize    = ELF_SYMTAB_ENTSIZE;
-            *symtab_off     = off;
+            shdr.link    = shstrtab_idx;
+            shdr.info    = output->syms_cnt;
+            shdr.entsize = ELF_SYMTAB_ENTSIZE;
+            offs->symtab = off;
         }
 
         emit_shdr(shnum++, &shdr);
@@ -183,13 +188,16 @@ static void emit_shdrs(
         off += section->size;
         ++idx;
     }
+
+    return off;
 }
 
-static void emit_shstrtab(
+static uint64_t emit_shstrtab(
     section_vector_t *sections,
     uint64_t          shstrtab_off
 ) {
-    char *s = &elf_map[shstrtab_off];
+    char *start = &elf_map[shstrtab_off];
+    char *s     = start;
 
     /* Placeholder first symbol, which is empty.
        Required by first NULL section */
@@ -200,6 +208,8 @@ static void emit_shstrtab(
 
         s = emit_symbol(s, section->name);
     }
+
+    return s - start;
 }
 
 static void emit_text(
@@ -214,7 +224,7 @@ static void emit_text(
 }
 
 static void emit_fhdr(
-    uint64_t text_off,
+    uint64_t shdr_off,
     uint64_t text_size,
     uint64_t shstrtab_idx,
     uint64_t off,
@@ -231,7 +241,7 @@ static void emit_fhdr(
         .flags     = 0x00,
         .ehsize    = 0x40,
         .phentsize = ELF_PHDR_SIZE,
-        .phnum     = emit_phdrs(text_off, text_size, off),
+        .phnum     = emit_phdrs(shdr_off),
         .shentsize = ELF_SH_SIZE,
         .shnum     = shnum + /* First NULL section */ 1,
         .shstrndx  = shstrtab_idx
@@ -254,17 +264,14 @@ void elf_init(struct elf_entry *e)
     /**********************
      * Stage: Emit section headers
      **********************/
-    uint64_t idx            = 0;
-    uint64_t off            = ELF_PHDR_OFF;
-    uint64_t name_off       = 0;
-    uint64_t strtab_off     = 0;
-    uint64_t strtab_idx     = 0;
-    uint64_t symtab_off     = 0;
-    uint64_t shstrtab_off   = 0;
-    uint64_t shstrtab_idx   = 0;
-    uint64_t text_off       = 0;
-    uint64_t text_size      = 0;
-    uint64_t shnum          = 0;
+    uint64_t       idx            = 0;
+    uint64_t       off            = ELF_PHDR_OFF;
+    uint64_t       name_off       = 0;
+    uint64_t       strtab_idx     = 0;
+    uint64_t       shstrtab_idx   = 0;
+    uint64_t       text_size      = 0;
+    uint64_t       shnum          = 0;
+    struct elf_off offs           = {0};
 
     calculate_strtabs_index(
         &e->output.sections,
@@ -272,42 +279,59 @@ void elf_init(struct elf_entry *e)
         &shstrtab_idx
     );
 
-    emit_shdrs(
+    uint64_t shdr_highest_addr = emit_shdrs(
         &e->output,
         &e->output.sections,
         shstrtab_idx,
-        &strtab_off,
-        &shstrtab_off,
-        &symtab_off,
-        &text_off,
+        &offs,
         &text_size
     );
 
-    emit_shstrtab(
+    /* At this number sections names in .shstrtab
+       ends. We should put strings for .symtab 
+       starting from it. */
+    uint64_t sections_len = emit_shstrtab(
         &e->output.sections,
-        shstrtab_off
+        offs.shstrtab
     );
 
-    /**********************
-     * Stage: Emit symtab entries
-     **********************/
+    /* TODO: Generic API. */
+    {
+        char *s = &elf_map[offs.shstrtab + sections_len];
 
-    /* TODO: Collect from fn_offsets for example. */
-    struct elf_sym sym = {
-        .name   = /* Offset in .shstrtab */ 1,
-        .size   = 0,
-        .value  = 1,
-        .info   = 2,
-        .shndx  = shstrtab_idx
-    };
-    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 1), &sym);
-    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 2), &sym);
-    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 3), &sym);
-    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 4), &sym);
-    emit_bytes(symtab_off + (ELF_SYMTAB_ENTSIZE * 5), &sym);
+        const char *fns[] = {
+            "fn1",
+            "fn2",
+            "fn3",
+            "fn4",
+            "fn5",
+            "fn6",
+            "fn7",
+            "fn8",
+            "fn9",
+            "fn10",
+        };
+
+        uint64_t it = 0;
+        for (uint64_t i = 0; i < __weak_array_size(fns); ++i) {
+            s = emit_symbol(s, fns[i]);
+
+            struct elf_sym sym = {
+                .name   = /* Offset in .shstrtab */
+                          sections_len + it,
+                .size   = 0,
+                .value  = 1,
+                .info   = 1,
+                .shndx  = shstrtab_idx
+            };
+            emit_bytes(offs.symtab + (ELF_SYMTAB_ENTSIZE * i), &sym);
+
+            it += strlen(fns[i]) + /* NULL */ 1;
+        }
+    }
 
     emit_fhdr(
-        text_off,
+        shdr_highest_addr,
         text_size,
         shstrtab_idx,
         off,
@@ -316,7 +340,7 @@ void elf_init(struct elf_entry *e)
 
     emit_text(
         &e->output,
-        text_off
+        offs.text
     );
 }
 

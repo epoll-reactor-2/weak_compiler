@@ -35,7 +35,7 @@ int main()
     };
 
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
-        elf_init_section(&output, sections[i], 100);
+        elf_init_section(&output, sections[i], 200);
 
     elf_init_symtab(&output, 10);
 
