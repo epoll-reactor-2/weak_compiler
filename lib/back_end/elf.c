@@ -27,6 +27,10 @@
 /* How much bytes occupy one symtab entry. */
 #define ELF_SYMTAB_ENTSIZE          24
 
+#define ELF64_ST_BIND(info)         ((info) >> 4)
+#define ELF64_ST_TYPE(info)         ((info) & 0xf)
+#define ELF64_ST_INFO(bind, type)   (((bind)<<4)+((type)&0xf))
+
 static int   elf_fd;
 static char *elf_map;
 
@@ -319,12 +323,15 @@ void elf_init(struct elf_entry *e)
             struct elf_sym sym = {
                 .name   = /* Offset in .shstrtab */
                           sections_len + it,
-                .size   = 0,
-                .value  = 1,
-                .info   = 1,
-                .shndx  = shstrtab_idx
+                .size   = 4,
+                .value  = 0xFFFFFFFFFF,
+                .info   = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
+                .other  = STV_INTERNAL, /* Visibility. */
+                .shndx  = 3
             };
-            emit_bytes(offs.symtab + (ELF_SYMTAB_ENTSIZE * i), &sym);
+
+            uint64_t off = offs.symtab + (ELF_SYMTAB_ENTSIZE * i);
+            emit_bytes(off, &sym);
 
             it += strlen(fns[i]) + /* NULL */ 1;
         }
