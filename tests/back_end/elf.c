@@ -13,7 +13,7 @@ char current_output_dir[128];
 
 int main()
 {
-    cfg_dir("back_end", current_output_dir);
+    cfg_dir("elf", current_output_dir);
     char elf_path[256] = {0};
     char cmd[512] = {0};
     snprintf(elf_path, sizeof (elf_path) - 1, "%s/__elf.o", current_output_dir);
