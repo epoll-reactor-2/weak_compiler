@@ -221,12 +221,18 @@ struct elf_section {
     instr_vector_t instrs;
 };
 
+struct elf_symtab_entry {
+    char           name[128];
+    uint64_t       off;
+};
+
+typedef vector_t(struct elf_symtab_entry) symtab_vector_t;
 typedef vector_t(struct elf_section) section_vector_t;
 
 struct codegen_output {
-    hashmap_t         fn_offsets;
-    section_vector_t  sections;
-    uint64_t          syms_cnt;
+    hashmap_t             fn_offsets;
+    section_vector_t      sections;
+    symtab_vector_t       symtab;
 };
 
 struct elf_entry {

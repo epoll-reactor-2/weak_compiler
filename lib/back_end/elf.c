@@ -187,7 +187,7 @@ static uint64_t emit_shdrs(
 
         if (!strcmp(section->name, ".symtab")) {
             shdr.link    = shstrtab_idx;
-            shdr.info    = output->syms_cnt;
+            shdr.info    = output->symtab.count;
             shdr.entsize = ELF_SYMTAB_ENTSIZE;
             offs->symtab = off;
         }
@@ -230,6 +230,42 @@ static void emit_text(
     /* TODO: Pretty large text section smashes ELF by overriding
              some parts. */
     emit_bytes_cnt(text_off, text_data->data, text_data->size);
+}
+
+static void emit_symtab(
+    struct elf_off        *offs,
+    uint64_t               text_idx,
+    uint64_t               symtab_start,
+    struct codegen_output *o
+) {
+    char *s = &elf_map[offs->shstrtab + symtab_start];
+    uint64_t it = 0;
+    uint64_t off = offs->symtab;
+
+    /* First symtab entry is empty. */
+    struct elf_sym null_sym = {0};
+    emit_bytes(off, &null_sym);
+
+    vector_foreach(o->symtab, i) {
+        struct elf_symtab_entry *e = &vector_at(o->symtab, i);
+
+        s = emit_symbol(s, e->name);
+
+        struct elf_sym sym = {
+            .name   = /* Offset in .shstrtab */
+                      symtab_start + it,
+            .size   = 0,
+            .value  = ELF_ENTRY_ADDR + e->off,
+            .info   = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
+            .other  = STV_DEFAULT, /* Visibility. */
+            .shndx  = text_idx
+        };
+
+        off += ELF_SYMTAB_ENTSIZE;
+        emit_bytes(off, &sym);
+
+        it += strlen(e->name) + /* NULL */ 1;
+    }
 }
 
 static void emit_fhdr(
@@ -306,43 +342,12 @@ void elf_init(struct elf_entry *e)
         offs.shstrtab
     );
 
-    /* TODO: Generic API. */
-    {
-        char *s = &elf_map[offs.shstrtab + sections_len];
-
-        const char *fns[] = {
-            "_start",
-            "fn2",
-            "fn3",
-            "fn4",
-            "fn5",
-            "fn6",
-            "fn7",
-            "fn8",
-            "fn9",
-            "fn10",
-        };
-
-        uint64_t it = 0;
-        for (uint64_t i = 0; i < __weak_array_size(fns); ++i) {
-            s = emit_symbol(s, fns[i]);
-
-            struct elf_sym sym = {
-                .name   = /* Offset in .shstrtab */
-                          sections_len + it,
-                .size   = 0,
-                .value  = ELF_ENTRY_ADDR,
-                .info   = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
-                .other  = STV_DEFAULT, /* Visibility. */
-                .shndx  = text_idx
-            };
-
-            uint64_t off = offs.symtab + (ELF_SYMTAB_ENTSIZE * i);
-            emit_bytes(off, &sym);
-
-            it += strlen(fns[i]) + /* NULL */ 1;
-        }
-    }
+    emit_symtab(
+        &offs,
+        text_idx,
+        sections_len,
+        &e->output
+    );
 
     emit_fhdr(
         shdr_highest_addr,
@@ -393,7 +398,8 @@ void elf_init_symtab(
     struct codegen_output *output,
     uint64_t               syms_cnt
 ) {
-    output->syms_cnt = syms_cnt;
+    /* Reserve space for first NULL .symtab entry. */
+    ++syms_cnt;
     elf_init_section(output, ".symtab", syms_cnt * ELF_SYMTAB_ENTSIZE);
 }
 

@@ -34,6 +34,15 @@ int main()
 #endif
     };
 
+    struct elf_symtab_entry symtab[] = {
+        { "fn_1",  0 },
+        { "fn_2",  4 },
+        { "fn_3",  8 },
+        { "fn_4", 12 },
+        { "fn_5", 16 },
+        { "fn_6", 20 },
+    };
+
     static struct {
         const char *name;
         uint64_t    size;
@@ -52,7 +61,10 @@ int main()
         vector_push_back(*instrs, code[i]);
     }
 
-    elf_init_symtab(&output, 10);
+    for (uint64_t i = 0; i < __weak_array_size(symtab); ++i)
+        vector_push_back(output.symtab, symtab[i]);
+
+    elf_init_symtab(&output, __weak_array_size(symtab));
 
 
     struct elf_entry elf = {
