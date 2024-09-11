@@ -11,6 +11,16 @@ void *diag_warn_memstream = NULL;
 
 char current_output_dir[128];
 
+uint64_t calculate_strtab_size(struct elf_symtab_entry *e, uint64_t size)
+{
+    uint64_t len = 0;
+
+    for (uint64_t i = 0; i < size; ++i)
+        len += strlen(e[i].name) + 1;
+
+    return len;
+}
+
 int main()
 {
     cfg_dir("elf", current_output_dir);
@@ -41,15 +51,30 @@ int main()
         { "fn_4", 12 },
         { "fn_5", 16 },
         { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_6", 20 },
+        { "fn_____________________________", 20 },
+        { "fn_____________________________", 20 },
+        { "fn_____________________________", 20 },
+        { "fn_____________________________", 20 },
+        { "fn_____________________________", 20 },
+        { "fn_____________________________", 20 },
     };
+    uint64_t strtab_len = calculate_strtab_size(symtab, __weak_array_size(symtab));
 
-    static struct {
+    struct {
         const char *name;
         uint64_t    size;
     } sections[] = {
         { ".text",     sizeof (code) },
-        { ".strtab",   100           },
-        { ".shstrtab", 100           }
+        { ".strtab",   strtab_len    },
+        { ".shstrtab", 100           },
     };
 
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)

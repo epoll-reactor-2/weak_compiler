@@ -144,7 +144,7 @@ static void calculate_section_indexes(
 static uint64_t emit_shdrs(
     struct codegen_output *output,
     section_vector_t      *sections,
-    uint64_t               shstrtab_idx,
+    uint64_t               strtab_idx,
     struct elf_off        *offs,
     uint64_t              *text_size
 ) {
@@ -186,7 +186,7 @@ static uint64_t emit_shdrs(
         }
 
         if (!strcmp(section->name, ".symtab")) {
-            shdr.link    = shstrtab_idx;
+            shdr.link    = strtab_idx;
             shdr.info    = output->symtab.count;
             shdr.entsize = ELF_SYMTAB_ENTSIZE;
             offs->symtab = off;
@@ -238,9 +238,11 @@ static void emit_symtab(
     uint64_t               symtab_start,
     struct codegen_output *o
 ) {
-    char *s = &elf_map[offs->shstrtab + symtab_start];
+    char *s = &elf_map[offs->strtab];
     uint64_t it = 0;
     uint64_t off = offs->symtab;
+
+    s = emit_symbol(s, "");
 
     /* First symtab entry is empty. */
     struct elf_sym null_sym = {0};
@@ -252,8 +254,7 @@ static void emit_symtab(
         s = emit_symbol(s, e->name);
 
         struct elf_sym sym = {
-            .name   = /* Offset in .shstrtab */
-                      symtab_start + it,
+            .name   = 1 + it, /* Offset in .strtab */
             .size   = 0,
             .value  = ELF_ENTRY_ADDR + e->off,
             .info   = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
@@ -329,7 +330,7 @@ void elf_init(struct elf_entry *e)
     uint64_t shdr_highest_addr = emit_shdrs(
         &e->output,
         &e->output.sections,
-        shstrtab_idx,
+        strtab_idx,
         &offs,
         &text_size
     );
