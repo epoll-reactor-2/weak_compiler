@@ -218,5 +218,7 @@ int main()
     //     "\x02\x81\x30\x83" /* ld ra, 40(sp)    */
     // );
 
+    // back_end_native_lb(risc_v_reg_t0, risc_v_reg_t1, 0xEEEEEEE);
+
     back_end_native_lb(risc_v_reg_t0, risc_v_reg_t1, 0xEEEEEEE);
 }

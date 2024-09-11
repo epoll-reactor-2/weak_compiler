@@ -22,27 +22,38 @@ int main()
 
     hashmap_init(&output.fn_offsets, 512);
 
-    static const char *sections[] = {
-        ".text",
-        ".data",
-        ".rodata",
-        ".strtab",
-        ".shstrtab",
-        ".init_array",
-        ".fini_array",
-        ".ctors",
-        ".dtors",
+    uint8_t code[] = {
+#if defined CONFIG_USE_BACKEND_X86_64
+        0xb8, 0x3c, 0x00, 0x00, 0x00, /* mov    $0x3c,%eax */
+        0xbf, 0x7b, 0x00, 0x00, 0x00, /* mov    $0x7b,%edi */
+        0x0f, 0x05                    /* syscall           */
+#elif defined CONFIG_USE_BACKEND_RISC_V
+        0xf5, 0x48,                   /* li     a7,29      */
+        0x01, 0x45,                   /* li     a0, 0      */
+        0x73, 0x00                    /* ecall             */
+#endif
+    };
+
+    static struct {
+        const char *name;
+        uint64_t    size;
+    } sections[] = {
+        { ".text",     sizeof (code) },
+        { ".strtab",   100           },
+        { ".shstrtab", 100           }
     };
 
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
-        elf_init_section(&output, sections[i], 200);
-
-    elf_init_symtab(&output, 10);
+        elf_init_section(&output, sections[i].name, sections[i].size);
 
     instr_vector_t *instrs = elf_lookup_section(&output, ".text");
 
-    // for (uint64_t i = 0; i < 10; ++i)
-        // vector_push_back(*instrs, 0xff);
+    for (uint64_t i = 0; i < __weak_array_size(code); ++i) {
+        vector_push_back(*instrs, code[i]);
+    }
+
+    elf_init_symtab(&output, 10);
+
 
     struct elf_entry elf = {
         .filename = elf_path,

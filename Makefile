@@ -18,8 +18,8 @@ SANITIZE             := 0
 
 USE_LOG              := 0
 USE_BACKEND_EVAL     := 0
-USE_BACKEND_RISC_V   := 1
-USE_BACKEND_X86_64   := 0
+USE_BACKEND_RISC_V   := 0
+USE_BACKEND_X86_64   := 1
 
 ##################################
 # Compiler flags                 #

@@ -91,19 +91,19 @@ static int dispatch_section_type(const char *name)
     weak_unreachable("Don't know which section type assign to `%s`", name);
 }
 
-static uint16_t emit_phdrs(uint64_t shdr_off)
+static uint16_t emit_phdrs(uint64_t text_size)
 {
     uint16_t phnum = 0;
 
     struct elf_phdr phdr = {
         .type   = PT_LOAD,
-        .flags  = PF_R | PF_W,
-        .off    = ELF_PHDR_OFF,
-        .vaddr  = ELF_PHDR_OFF,
-        .paddr  = ELF_PHDR_OFF,
-        .memsz  = shdr_off,
-        .filesz = shdr_off,
-        .align  = 0x16
+        .flags  = PF_R | PF_X,
+        .off    = 0x1000,
+        .vaddr  = ELF_ENTRY_ADDR,
+        .paddr  = ELF_ENTRY_ADDR,
+        .memsz  = text_size,
+        .filesz = text_size,
+        .align  = 0x1000
     };
     emit_phdr(phnum++, &phdr);
 
@@ -117,8 +117,9 @@ struct elf_off {
     uint64_t text;
 };
 
-static void calculate_strtabs_index(
+static void calculate_section_indexes(
     section_vector_t *sections,
+    uint64_t         *text_idx,
     uint64_t         *strtab_idx,
     uint64_t         *shstrtab_idx
 ) {
@@ -126,6 +127,9 @@ static void calculate_strtabs_index(
 
     vector_foreach(*sections, i) {
         struct elf_section *section = &vector_at(*sections, i);
+
+        if (!strcmp(section->name, ".text"))
+            *text_idx = idx;
 
         if (!strcmp(section->name, ".strtab"))
             *strtab_idx = idx;
@@ -147,7 +151,7 @@ static uint64_t emit_shdrs(
     uint64_t idx      = 1;
     uint64_t shnum    = 0;
     uint64_t name_off = 0;
-    uint64_t off      = 0;
+    uint64_t off      = 0x1000;
 
     struct elf_shdr null_shdr = {
         0
@@ -177,6 +181,7 @@ static uint64_t emit_shdrs(
 
         if (!strcmp(section->name, ".text")) {
             offs->text = off;
+            shdr.addr = ELF_ENTRY_ADDR;
             *text_size = section->size;
         }
 
@@ -245,7 +250,7 @@ static void emit_fhdr(
         .flags     = 0x00,
         .ehsize    = 0x40,
         .phentsize = ELF_PHDR_SIZE,
-        .phnum     = emit_phdrs(shdr_off),
+        .phnum     = emit_phdrs(text_size),
         .shentsize = ELF_SH_SIZE,
         .shnum     = shnum + /* First NULL section */ 1,
         .shstrndx  = shstrtab_idx
@@ -271,14 +276,16 @@ void elf_init(struct elf_entry *e)
     uint64_t       idx            = 0;
     uint64_t       off            = ELF_PHDR_OFF;
     uint64_t       name_off       = 0;
+    uint64_t       text_idx       = 0;
     uint64_t       strtab_idx     = 0;
     uint64_t       shstrtab_idx   = 0;
     uint64_t       text_size      = 0;
     uint64_t       shnum          = 0;
     struct elf_off offs           = {0};
 
-    calculate_strtabs_index(
+    calculate_section_indexes(
         &e->output.sections,
+        &text_idx,
         &strtab_idx,
         &shstrtab_idx
     );
@@ -304,7 +311,7 @@ void elf_init(struct elf_entry *e)
         char *s = &elf_map[offs.shstrtab + sections_len];
 
         const char *fns[] = {
-            "fn1",
+            "_start",
             "fn2",
             "fn3",
             "fn4",
@@ -323,11 +330,11 @@ void elf_init(struct elf_entry *e)
             struct elf_sym sym = {
                 .name   = /* Offset in .shstrtab */
                           sections_len + it,
-                .size   = 4,
-                .value  = 0xFFFFFFFFFF,
+                .size   = 0,
+                .value  = ELF_ENTRY_ADDR,
                 .info   = ELF64_ST_INFO(STB_GLOBAL, STT_FUNC),
-                .other  = STV_INTERNAL, /* Visibility. */
-                .shndx  = 3
+                .other  = STV_DEFAULT, /* Visibility. */
+                .shndx  = text_idx
             };
 
             uint64_t off = offs.symtab + (ELF_SYMTAB_ENTSIZE * i);
