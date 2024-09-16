@@ -36,35 +36,21 @@ int main()
 #if defined CONFIG_USE_BACKEND_X86_64
         0xb8, 0x3c, 0x00, 0x00, 0x00, /* mov    $0x3c,%eax */
         0xbf, 0x7b, 0x00, 0x00, 0x00, /* mov    $0x7b,%edi */
-        0x0f, 0x05                    /* syscall           */
+        0x0f, 0x05,                   /* syscall           */
+
+        0xb8, 0x3c, 0x00, 0x00, 0x00, /* mov    $0x3c,%eax */
+        0xbf, 0x7b, 0x00, 0x00, 0x00, /* mov    $0x7b,%edi */
+        0x0f, 0x05,                   /* syscall           */
 #elif defined CONFIG_USE_BACKEND_RISC_V
         0xf5, 0x48,                   /* li     a7,29      */
         0x01, 0x45,                   /* li     a0, 0      */
-        0x73, 0x00                    /* ecall             */
+        0x73, 0x00,                   /* ecall             */
 #endif
     };
 
     struct elf_symtab_entry symtab[] = {
-        { "fn_1",  0 },
-        { "fn_2",  4 },
-        { "fn_3",  8 },
-        { "fn_4", 12 },
-        { "fn_5", 16 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_6", 20 },
-        { "fn_____________________________", 20 },
-        { "fn_____________________________", 20 },
-        { "fn_____________________________", 20 },
-        { "fn_____________________________", 20 },
-        { "fn_____________________________", 20 },
-        { "fn_____________________________", 20 },
+        { "fn_1",   0 },
+        { "fn_2",  12 },
     };
     uint64_t strtab_len = calculate_strtab_size(symtab, __weak_array_size(symtab));
 

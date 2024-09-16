@@ -23,13 +23,12 @@
 #define ELF_SH_OFF                  0x4000
 #define ELF_INIT_SIZE               0x8000
 #define ELF_ENTRY_ADDR              0x41000
-#define ELF_PHDR_SIZE               0x0038
 /* How much bytes occupy one symtab entry. */
 #define ELF_SYMTAB_ENTSIZE          24
 
 #define ELF64_ST_BIND(info)         ((info) >> 4)
 #define ELF64_ST_TYPE(info)         ((info) & 0xf)
-#define ELF64_ST_INFO(bind, type)   (((bind)<<4)+((type)&0xf))
+#define ELF64_ST_INFO(bind, type)   (((bind) << 4) + ((type) & 0xf))
 
 static int   elf_fd;
 static char *elf_map;
@@ -60,7 +59,7 @@ static void emit_shdr(uint64_t idx, struct elf_shdr *shdr)
 
 static void emit_phdr(uint64_t idx, struct elf_phdr *phdr)
 {
-    uint64_t off = ELF_PHDR_OFF + (ELF_PHDR_SIZE * idx);
+    uint64_t off = ELF_PHDR_OFF + (sizeof (*phdr) * idx);
 
     emit_bytes(off, phdr);
 }
@@ -166,7 +165,9 @@ static void emit_shdrs(
             .type      = dispatch_section_type(section->name),
             .addr      = off,
             .off       = off,
-            .size      = section->size,
+            .size      = section->size + 1, /* I don't know why, but this extra
+                                               byte is required in order to not
+                                               corrupt .symtab mapping in objdump. */
             .flags     = PF_W,
             .addralign = 0x4
         };
@@ -182,7 +183,7 @@ static void emit_shdrs(
         if (!strcmp(section->name, ".text")) {
             offs->text = off;
             shdr.addr = ELF_ENTRY_ADDR;
-            *text_size = section->size;
+            *text_size = section->size + 1;
         }
 
         if (!strcmp(section->name, ".symtab")) {
@@ -235,9 +236,9 @@ static void emit_symtab(
     uint64_t               text_idx,
     struct codegen_output *o
 ) {
-    char *s = &elf_map[offs->strtab];
-    uint64_t it = 0;
-    uint64_t off = offs->symtab;
+    char     *s   = &elf_map[offs->strtab];
+    uint64_t  it  = 0;
+    uint64_t  off = offs->symtab;
 
     s = emit_symbol(s, "");
 
@@ -281,7 +282,7 @@ static void emit_fhdr(
         .shoff     = ELF_SH_OFF,
         .flags     = 0x00,
         .ehsize    = 0x40,
-        .phentsize = ELF_PHDR_SIZE,
+        .phentsize = sizeof (struct elf_phdr),
         .phnum     = emit_phdrs(text_size),
         .shentsize = ELF_SH_SIZE,
         .shnum     = shnum + /* First NULL section */ 1,
@@ -323,6 +324,11 @@ void elf_init(struct elf_entry *e)
         &text_size
     );
 
+    emit_text(
+        &e->output,
+        offs.text
+    );
+
     /* At this number sections names in .shstrtab
        ends. We should put strings for .symtab 
        starting from it. */
@@ -341,11 +347,6 @@ void elf_init(struct elf_entry *e)
         text_size,
         shstrtab_idx,
         e->output.sections.count
-    );
-
-    emit_text(
-        &e->output,
-        offs.text
     );
 }
 
