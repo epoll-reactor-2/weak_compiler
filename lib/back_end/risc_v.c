@@ -338,6 +338,12 @@ void back_end_native_jmp_reg(int reg)
     risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, reg, 0);
 }
 
+void back_end_native_syscall()
+{
+    uint8_t code[4] = { risc_v_I_ecall, 0x00, 0x00, 0x00 };
+    put(code, 4);
+}
+
 static int align_to_16_bytes(int num)
 {
     return (num + 15) & ~15;

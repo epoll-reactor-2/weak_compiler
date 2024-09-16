@@ -16,15 +16,5 @@ void back_end_init(struct codegen_output *output)
 
     hashmap_init(&output_code->fn_offsets, 32);
 
-    static const char *sections[] = {
-        ".text",
-        ".strtab",
-        ".shstrtab",
-        ".symtab",
-    };
-
-    for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
-        elf_init_section(output_code, sections[i], /*placeholder size*/0x100);
-
     text_section = elf_lookup_section(output_code, ".text");
 }

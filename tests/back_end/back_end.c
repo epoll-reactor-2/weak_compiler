@@ -34,9 +34,6 @@ int main()
 
     hashmap_init(&output.fn_offsets, 512);
 
-    back_end_init(&output);
-    back_end_native_sub(risc_v_reg_a2, risc_v_reg_a3, risc_v_reg_a4);
-
     struct elf_symtab_entry symtab[] = {
         { "fn_1",   0 },
         { "fn_2",  12 },
@@ -60,6 +57,10 @@ int main()
 
     elf_init_symtab(&output, __weak_array_size(symtab));
 
+    back_end_init(&output);
+    back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, 93);
+    back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 123);
+    back_end_native_syscall();
 
     struct elf_entry elf = {
         .filename = elf_path,
@@ -71,6 +72,14 @@ int main()
 
     snprintf(cmd, sizeof (cmd) - 1, "%s -a %s", __target_readelf, elf_path);
     system(cmd);
+
+    snprintf(cmd, sizeof (cmd) - 1, "%s -D %s", __target_objdump, elf_path);
+    system(cmd);
+
+    snprintf(cmd, sizeof (cmd) - 1, "%s %s", __target_exec, elf_path);
+    system(cmd);
+
+    printf("*** RISC-V file exited with code %d\n\n", WEXITSTATUS(system(cmd)));
 
     return -1;
 }

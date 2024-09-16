@@ -42,9 +42,11 @@
 #if defined CONFIG_USE_BACKEND_RISC_V
 #define __target_readelf "riscv64-linux-gnu-readelf"
 #define __target_objdump "riscv64-linux-gnu-objdump"
+#define __target_exec    "qemu-riscv64 "
 #elif defined CONFIG_USE_BACKEND_X86_64
 #define __target_readelf "readelf"
 #define __target_objdump "objdump"
+#define __target_exec    "./"
 #endif /* CONFIG_USE_BACKEND_* */
 
 extern FILE *yyin;
