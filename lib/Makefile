@@ -22,7 +22,7 @@ OBJ = $(SRC:.c=.o)
 # Compiler flags                 #
 ##################################
 LDFLAGS              += -lfl
-CFLAGS               += -fPIC -I.
+CFLAGS               += -fPIC -I. -Wall -Wextra
 
 ifeq ($(USE_LOG), 1)
 CFLAGS              += -D CONFIG_USE_LOG

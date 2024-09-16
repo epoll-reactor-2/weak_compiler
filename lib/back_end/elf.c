@@ -141,7 +141,7 @@ static void calculate_section_indexes(
     }
 }
 
-static uint64_t emit_shdrs(
+static void emit_shdrs(
     struct codegen_output *output,
     section_vector_t      *sections,
     uint64_t               strtab_idx,
@@ -197,8 +197,6 @@ static uint64_t emit_shdrs(
         off += section->size;
         ++idx;
     }
-
-    return off;
 }
 
 static uint64_t emit_shstrtab(
@@ -235,7 +233,6 @@ static void emit_text(
 static void emit_symtab(
     struct elf_off        *offs,
     uint64_t               text_idx,
-    uint64_t               symtab_start,
     struct codegen_output *o
 ) {
     char *s = &elf_map[offs->strtab];
@@ -270,10 +267,8 @@ static void emit_symtab(
 }
 
 static void emit_fhdr(
-    uint64_t shdr_off,
     uint64_t text_size,
     uint64_t shstrtab_idx,
-    uint64_t off,
     uint64_t shnum
 ) {
      struct elf_fhdr fhdr = {
@@ -307,17 +302,10 @@ void elf_init(struct elf_entry *e)
     if (elf_map == MAP_FAILED)
         weak_fatal_errno("mmap()");
 
-    /**********************
-     * Stage: Emit section headers
-     **********************/
-    uint64_t       idx            = 0;
-    uint64_t       off            = ELF_PHDR_OFF;
-    uint64_t       name_off       = 0;
     uint64_t       text_idx       = 0;
     uint64_t       strtab_idx     = 0;
     uint64_t       shstrtab_idx   = 0;
     uint64_t       text_size      = 0;
-    uint64_t       shnum          = 0;
     struct elf_off offs           = {0};
 
     calculate_section_indexes(
@@ -327,7 +315,7 @@ void elf_init(struct elf_entry *e)
         &shstrtab_idx
     );
 
-    uint64_t shdr_highest_addr = emit_shdrs(
+    emit_shdrs(
         &e->output,
         &e->output.sections,
         strtab_idx,
@@ -338,7 +326,7 @@ void elf_init(struct elf_entry *e)
     /* At this number sections names in .shstrtab
        ends. We should put strings for .symtab 
        starting from it. */
-    uint64_t sections_len = emit_shstrtab(
+    emit_shstrtab(
         &e->output.sections,
         offs.shstrtab
     );
@@ -346,15 +334,12 @@ void elf_init(struct elf_entry *e)
     emit_symtab(
         &offs,
         text_idx,
-        sections_len,
         &e->output
     );
 
     emit_fhdr(
-        shdr_highest_addr,
         text_size,
         shstrtab_idx,
-        off,
         e->output.sections.count
     );
 
@@ -387,8 +372,7 @@ void elf_init_section(
     const char            *section,
     uint64_t               size
 ) {
-    struct elf_section  s   = {0};
-    uint64_t            crc = (uint64_t) crc32_string(section);
+    struct elf_section  s = {0};
 
     s.size = size;
     strncpy(s.name, section, sizeof (s.name) - 1);
