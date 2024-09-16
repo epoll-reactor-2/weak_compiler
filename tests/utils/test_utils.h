@@ -39,6 +39,14 @@
     }                                   \
 } while(0);
 
+#if defined CONFIG_USE_BACKEND_RISC_V
+#define __target_readelf "riscv64-linux-gnu-readelf"
+#define __target_objdump "riscv64-linux-gnu-objdump"
+#elif defined CONFIG_USE_BACKEND_X86_64
+#define __target_readelf "readelf"
+#define __target_objdump "objdump"
+#endif /* CONFIG_USE_BACKEND_* */
+
 extern FILE *yyin;
 extern int yylex();
 extern int yylex_destroy();

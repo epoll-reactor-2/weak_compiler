@@ -1,24 +1,31 @@
-/* back_end.c - Tests for backend interface.
+/* back_end.c - Test cases for back end interface.
  * Copyright (C) 2024 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.
  */
-
-
+#include "back_end/elf.h"
 #include "back_end/back_end.h"
+#include "back_end/risc_v.h"
 #include "utils/test_utils.h"
-#include <stddef.h>
-#include <stdio.h>
 
 void *diag_error_memstream = NULL;
 void *diag_warn_memstream = NULL;
 
 char current_output_dir[128];
 
+uint64_t calculate_strtab_size(struct elf_symtab_entry *e, uint64_t size)
+{
+    uint64_t len = 0;
+
+    for (uint64_t i = 0; i < size; ++i)
+        len += strlen(e[i].name) + 1;
+
+    return len;
+}
+
 int main()
 {
-    return 0;
-    cfg_dir("back_end", current_output_dir);
+    cfg_dir("elf", current_output_dir);
     char elf_path[256] = {0};
     char cmd[512] = {0};
     snprintf(elf_path, sizeof (elf_path) - 1, "%s/__elf.o", current_output_dir);
@@ -26,7 +33,33 @@ int main()
     struct codegen_output output = {0};
 
     hashmap_init(&output.fn_offsets, 512);
+
     back_end_init(&output);
+    back_end_native_sub(risc_v_reg_a2, risc_v_reg_a3, risc_v_reg_a4);
+
+    struct elf_symtab_entry symtab[] = {
+        { "fn_1",   0 },
+        { "fn_2",  12 },
+    };
+    uint64_t strtab_len = calculate_strtab_size(symtab, __weak_array_size(symtab));
+
+    struct {
+        const char *name;
+        uint64_t    size;
+    } sections[] = {
+        { ".text",     12            },
+        { ".strtab",   strtab_len    },
+        { ".shstrtab", 100           },
+    };
+
+    for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
+        elf_init_section(&output, sections[i].name, sections[i].size);
+
+    for (uint64_t i = 0; i < __weak_array_size(symtab); ++i)
+        vector_push_back(output.symtab, symtab[i]);
+
+    elf_init_symtab(&output, __weak_array_size(symtab));
+
 
     struct elf_entry elf = {
         .filename = elf_path,
@@ -36,17 +69,8 @@ int main()
     elf_init(&elf);
     elf_exit(&elf);
 
-#if defined CONFIG_USE_BACKEND_RISC_V
-    snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-readelf -a %s", elf_path);
-#elif defined CONFIG_USE_BACKEND_X86_64
-    snprintf(cmd, sizeof (cmd) - 1, "readelf -a %s", elf_path);
-#endif
+    snprintf(cmd, sizeof (cmd) - 1, "%s -a %s", __target_readelf, elf_path);
     system(cmd);
 
-#if defined CONFIG_USE_BACKEND_RISC_V
-    snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-objdump -D %s", elf_path);
-#elif defined CONFIG_USE_BACKEND_X86_64
-    snprintf(cmd, sizeof (cmd) - 1, "objdump -D %s", elf_path);
-#endif
-    system(cmd);
+    return -1;
 }

@@ -42,15 +42,14 @@ int main()
         0xbf, 0x7b, 0x00, 0x00, 0x00, /* mov    $0x7b,%edi */
         0x0f, 0x05,                   /* syscall           */
 #elif defined CONFIG_USE_BACKEND_RISC_V
-        0xf5, 0x48,                   /* li     a7,29      */
-        0x01, 0x45,                   /* li     a0, 0      */
-        0x73, 0x00,                   /* ecall             */
+        0x93, 0x08, 0xd0, 0x05,
+        0x13, 0x05, 0xb0, 0x07,
+        0x73, 0x00, 0x00, 0x00
 #endif
     };
 
     struct elf_symtab_entry symtab[] = {
         { "fn_1",   0 },
-        { "fn_2",  12 },
     };
     uint64_t strtab_len = calculate_strtab_size(symtab, __weak_array_size(symtab));
 
@@ -86,12 +85,8 @@ int main()
     elf_init(&elf);
     elf_exit(&elf);
 
-#if defined CONFIG_USE_BACKEND_RISC_V
-    snprintf(cmd, sizeof (cmd) - 1, "riscv64-linux-gnu-readelf -a %s", elf_path);
-#elif defined CONFIG_USE_BACKEND_X86_64
-    snprintf(cmd, sizeof (cmd) - 1, "readelf -a %s", elf_path);
-#endif
+    snprintf(cmd, sizeof (cmd) - 1, "%s -a %s", __target_readelf, elf_path);
     system(cmd);
 
-    return -1;
+    return 0;
 }

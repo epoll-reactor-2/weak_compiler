@@ -18,12 +18,9 @@ void back_end_init(struct codegen_output *output)
 
     static const char *sections[] = {
         ".text",
-        ".data",
-        ".rodata",
-        ".init_array",
-        ".fini_array",
-        ".ctors",
-        ".dtors",
+        ".strtab",
+        ".shstrtab",
+        ".symtab",
     };
 
     for (uint64_t i = 0; i < __weak_array_size(sections); ++i)
