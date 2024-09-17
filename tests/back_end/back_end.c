@@ -34,9 +34,9 @@ int main()
 
     back_end_init(&output);
 
-    back_end_emit_sym(&output, "fn_1", 0);
-    back_end_emit_sym(&output, "fn_2", 4);
-    back_end_emit_sym(&output, "fn_3", 8);
+    back_end_emit_sym("fn_1", 0);
+    back_end_emit_sym("fn_2", 4);
+    back_end_emit_sym("fn_3", 8);
 
     back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, 93);
     back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 123);

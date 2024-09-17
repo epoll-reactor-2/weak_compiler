@@ -6,6 +6,11 @@
 static struct codegen_output *output_code;
 static instr_vector_t        *text_section;
 
+uint64_t back_end_seek()
+{
+    return text_section->count;
+}
+
 void put(uint8_t *code, uint64_t size)
 {
     for (uint64_t i = 0; i < size; ++i)
@@ -25,16 +30,13 @@ static uint64_t calculate_strtab_size(symtab_vector_t *v)
     return len;
 }
 
-void back_end_emit_sym(
-    struct codegen_output *output,
-    const char            *name,
-    uint64_t               off
-) {
+void back_end_emit_sym(const char *name, uint64_t off)
+{
     struct elf_symtab_entry entry = {0};
     strncpy(entry.name, name, sizeof (entry.name) - 1);
     entry.off = off;
 
-    vector_push_back(output->symtab, entry);
+    vector_push_back(output_code->symtab, entry);
 }
 
 void back_end_init(struct codegen_output *output)

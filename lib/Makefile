@@ -8,6 +8,7 @@ LEX_OBJ = $(LEX_SRC:.c=.o)
 
 SRC += back_end/back_end.c
 SRC += back_end/elf.c
+SRC += back_end/gen.c
 
 ifeq ($(USE_BACKEND_RISC_V), 1)
 SRC += back_end/risc_v.c

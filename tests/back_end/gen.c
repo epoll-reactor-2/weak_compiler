@@ -4,6 +4,7 @@
  * This file is distributed under the MIT license.
  */
 
+#include "front_end/ast/ast_dump.h"
 #include "back_end/gen.h"
 #include "back_end/back_end.h"
 #include "back_end/risc_v.h"
@@ -13,32 +14,34 @@
 void *diag_error_memstream = NULL;
 void *diag_warn_memstream = NULL;
 
+char current_output_dir[128];
+
+void configure_ast(bool simple)
+{
+    struct ast_dump_config ast_config = {
+        .omit_pos = simple,
+        .colored  = 1
+    };
+    ast_dump_set_config(&ast_config);
+}
+
 void __gen_test(const char *path, unused const char *filename, FILE *out_stream)
 {
+    char elf_path[256] = {0};
+    snprintf(elf_path, sizeof (elf_path) - 1, "%s/__gen.o", current_output_dir);
+
+    struct codegen_output output = {0};
+    back_end_init(&output);
+
     struct ast_node *ast = gen_ast(path);
+    ast_dump(stdout, ast);
+    back_end_gen(ast);
     ast_node_cleanup(ast);
 
-    {
-        char elf_path[256] = {0};
-        snprintf(elf_path, sizeof (elf_path) - 1, "__elf.o");
+    back_end_emit(&output, elf_path);
 
-        struct codegen_output output = {0};
-
-        back_end_init(&output);
-
-        back_end_emit_sym(&output, "fn_1", 0);
-        back_end_emit_sym(&output, "fn_2", 4);
-        back_end_emit_sym(&output, "fn_3", 8);
-
-        back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, 93);
-        back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 123);
-        back_end_native_syscall();
-
-        back_end_emit(&output, elf_path);
-    }
-
-    char buf[8192 * 100];
-    system_read(buf, "%s -D --section=.text __elf.o", __target_objdump);
+    char buf[8192 * 16];
+    system_read(buf, "%s -D --section=.text %s", __target_objdump, elf_path);
 
     fputs(buf, out_stream);
 }
@@ -50,5 +53,10 @@ int gen_test(const char *path, const char *filename)
 
 int main()
 {
-    return do_on_each_file("gen", gen_test);
+    cfg_dir("gen", current_output_dir);
+    configure_ast(/*simple=*/0);
+
+    do_on_each_file("gen", gen_test);
+
+    return 1;
 }
