@@ -31,6 +31,7 @@ all: files src $(FUZZER_OBJ)
 ##################################
 files:
 	@mkdir -p ../build/inputs; \
+	 cp -r back_end/input/*  ../build/inputs;
 	 cp -r front_end/input/*  ../build/inputs;
 
 ##################################

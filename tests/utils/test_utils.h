@@ -82,7 +82,7 @@ void get_init_comment(FILE *in, FILE *out, const char *filename)
     fseek(in, 0, SEEK_SET);
 
     while ((read = getline(&line, &len, in)) != -1) {
-        if (read <= 3)
+        if (read <= 2)
             continue;
 
         if (strncmp(line, "//", 2) == 0) {
@@ -135,7 +135,7 @@ int compare_with_comment(
 
         if (strcmp(expected, generated) != 0) {
             printf(
-                "%sMismatch:%s\n%s\ngot,\n%s\nexpected\n",
+                "%sMismatch:%s\n`%s`\ngot,\n`%s`\nexpected\n",
                 color_red, color_end,
                 generated, expected
             );
@@ -273,18 +273,3 @@ struct ast_node *gen_ast(const char *filename)
     tokens_cleanup(tokens);
     return ast;
 }
-
-// struct ir_unit gen_ir(const char *filename)
-// {
-//     struct ast_node *ast = gen_ast(filename);
-// 
-//     /* Preconditions for IR generator. */
-//     ana_var_usage(ast);
-//     sema_type(&ast);
-//     ana_fn(ast);
-//     ana_type(ast);
-//     
-//     struct ir_unit unit = ir_gen(ast);
-//     ast_node_cleanup(ast);
-//     return unit;
-// }

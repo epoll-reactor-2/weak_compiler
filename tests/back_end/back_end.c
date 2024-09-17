@@ -6,6 +6,7 @@
 #include "back_end/elf.h"
 #include "back_end/back_end.h"
 #include "back_end/risc_v.h"
+#include "util/io.h"
 #include "utils/test_utils.h"
 
 void *diag_error_memstream = NULL;
@@ -15,18 +16,12 @@ char current_output_dir[128];
 
 void run(const char *path)
 {
-    char cmd[512] = {0};
+    system_run("%s -a %s", __target_readelf, path);
+    system_run("%s -D %s", __target_objdump, path);
 
-    snprintf(cmd, sizeof (cmd) - 1, "%s -a %s", __target_readelf, path);
-    system(cmd);
+    int code = system_run("%s %s", __target_exec, path);
 
-    snprintf(cmd, sizeof (cmd) - 1, "%s -D %s", __target_objdump, path);
-    system(cmd);
-
-    snprintf(cmd, sizeof (cmd) - 1, "%s %s", __target_exec, path);
-    system(cmd);
-
-    printf("*** RISC-V file exited with code %d\n\n", WEXITSTATUS(system(cmd)));
+    printf("*** RISC-V file exited with code %d\n\n", WEXITSTATUS(code));
 }
 
 int main()
