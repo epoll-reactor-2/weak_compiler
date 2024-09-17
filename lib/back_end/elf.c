@@ -224,7 +224,7 @@ static void emit_text(
     struct codegen_output *output,
     uint64_t               text_off
 ) {
-    instr_vector_t *text_data = elf_lookup_section(output, ".text");
+    instr_vector_t *text_data = &output->instrs;
 
     /* TODO: Pretty large text section smashes ELF by overriding
              some parts. */

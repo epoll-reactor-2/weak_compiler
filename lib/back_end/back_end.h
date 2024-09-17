@@ -10,6 +10,12 @@
 #include "back_end/elf.h"
 
 void back_end_init(struct codegen_output *output);
+void back_end_emit(struct codegen_output *output, const char *path);
+void back_end_emit_sym(
+    struct codegen_output *output,
+    const char            *name,
+    uint64_t               off
+);
 
 void put(uint8_t *code, uint64_t size);
 

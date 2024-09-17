@@ -231,6 +231,7 @@ typedef vector_t(struct elf_section) section_vector_t;
 
 struct codegen_output {
     hashmap_t             fn_offsets;
+    instr_vector_t        instrs;
     section_vector_t      sections;
     symtab_vector_t       symtab;
 };
