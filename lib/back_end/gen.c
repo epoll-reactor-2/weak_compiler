@@ -6,90 +6,40 @@
 
 #include "back_end/gen.h"
 #include "back_end/back_end.h"
+
+/*** Temporary ***/
+#include "back_end/risc_v.h"
+/***           ***/
+
 #include "front_end/ast/ast.h"
+#include "util/compiler.h"
 #include "util/unreachable.h"
+#include <asm-generic/unistd.h>
 
 static void visit(struct ast_node *ast);
 
-static void visit_char(struct ast_char *ast)
-{
-}
-
-static void visit_int(struct ast_int *ast)
-{
-}
-
-static void visit_float(struct ast_float *ast)
-{
-}
-
-static void visit_string(struct ast_string *ast)
-{
-}
-
-static void visit_bool(struct ast_bool *ast)
-{
-}
-
-static void visit_sym(struct ast_sym *ast)
-{
-}
-
-static void visit_var_decl(struct ast_var_decl *ast)
-{
-}
-
-static void visit_array_decl(struct ast_array_decl *ast)
-{
-}
-
-static void visit_struct_decl(struct ast_struct_decl *ast)
-{
-}
-
-static void visit_break(struct ast_break *ast)
-{
-}
-
-static void visit_continue(struct ast_continue *ast)
-{
-}
-
-static void visit_binary(struct ast_binary *ast)
-{
-}
-
-static void visit_unary(struct ast_unary *ast)
-{
-}
-
-static void visit_array_access(struct ast_array_access *ast)
-{
-}
-
-static void visit_member(struct ast_member *ast)
-{
-}
-
-static void visit_if(struct ast_if *ast)
-{
-}
-
-static void visit_for(struct ast_for *ast)
-{
-}
-
-static void visit_while(struct ast_while *ast)
-{
-}
-
-static void visit_do_while(struct ast_do_while *ast)
-{
-}
-
-static void visit_ret(struct ast_ret *ast)
-{
-}
+static void visit_char(unused struct ast_char *ast) {}
+static void visit_int(unused struct ast_int *ast) {}
+static void visit_float(unused struct ast_float *ast) {}
+static void visit_string(unused struct ast_string *ast) {}
+static void visit_bool(unused struct ast_bool *ast) {}
+static void visit_sym(unused struct ast_sym *ast) {}
+static void visit_var_decl(unused struct ast_var_decl *ast) {}
+static void visit_array_decl(unused struct ast_array_decl *ast) {}
+static void visit_struct_decl(unused struct ast_struct_decl *ast) {}
+static void visit_break(unused struct ast_break *ast) {}
+static void visit_continue(unused struct ast_continue *ast) {}
+static void visit_binary(unused struct ast_binary *ast) {}
+static void visit_unary(unused struct ast_unary *ast) {}
+static void visit_array_access(unused struct ast_array_access *ast) {}
+static void visit_member(unused struct ast_member *ast) {}
+static void visit_if(unused struct ast_if *ast) {}
+static void visit_for(unused struct ast_for *ast) {}
+static void visit_while(unused struct ast_while *ast) {}
+static void visit_do_while(unused struct ast_do_while *ast) {}
+static void visit_ret(unused struct ast_ret *ast) {}
+static void visit_fn_call(unused struct ast_fn_call *ast) {}
+static void visit_cast(unused struct ast_implicit_cast *ast) {}
 
 static void visit_compound(struct ast_compound *ast)
 {
@@ -99,23 +49,52 @@ static void visit_compound(struct ast_compound *ast)
     }
 }
 
+static void visit_fn_main(unused struct ast_fn_decl *ast)
+{
+    /* li    a7, __NR_exit
+       li    a0, <last reg>
+       ecall */
+    back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, __NR_exit);
+    back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 42);
+    back_end_native_syscall();
+}
+
+static void visit_fn_usual(unused struct ast_fn_decl *ast)
+{
+    /* TODO: Calculate how much variables are allocated
+             in function.
+
+             This codegen assumed to compute variable
+             values using temporary registers and
+             store value to variable via stack.
+
+             Variable is also must be referred only
+             by stack. */
+    int stack_usage = 0;
+
+    back_end_native_prologue(stack_usage);
+    back_end_native_ret();
+    back_end_native_epilogue(stack_usage);
+}
+
 static void visit_fn_decl(struct ast_fn_decl *ast)
 {
     back_end_emit_sym(ast->name, back_end_seek());
 
-    back_end_native_prologue(4);
-    back_end_native_ret();
-    back_end_native_epilogue(4);
-}
+    /* TODO: Some _start function that always starts
+             at the beginning of .text section,
+             therefore we don't care at which offset
+             main() resides.
 
-static void visit_fn_call(struct ast_fn_call *ast)
-{
+             We also need to update jump instruction
+             in _start at the very end of codegen
+             where we guarantee that main() is defined
+             at known offset. */
+    if (!strcmp(ast->name, "main"))
+        visit_fn_main(ast);
+    else
+        visit_fn_usual(ast);
 }
-
-static void visit_cast(struct ast_cast *ast)
-{
-}
-
 
 static void visit(struct ast_node *ast)
 {
