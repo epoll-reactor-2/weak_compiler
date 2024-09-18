@@ -46,6 +46,7 @@ void back_end_native_sw     (int dst, int addr, int off);
 void back_end_native_sd     (int dst, int addr, int off);
 
 void back_end_native_ret    ();
+void back_end_native_call   (int off);
 void back_end_native_jmp_reg(int reg);
 void back_end_native_syscall();
 

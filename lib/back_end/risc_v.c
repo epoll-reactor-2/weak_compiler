@@ -333,6 +333,13 @@ void back_end_native_ret()
     risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, risc_v_reg_ra, 0);
 }
 
+void back_end_native_call(int off)
+{
+    /* NOTE: What if t0 is occupied? */
+    back_end_native_addi(risc_v_reg_t0, risc_v_reg_zero, off);
+    back_end_native_jmp_reg(risc_v_reg_t0);
+}
+
 void back_end_native_jmp_reg(int reg)
 {
     risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, reg, 0);
