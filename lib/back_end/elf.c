@@ -163,7 +163,7 @@ static void emit_shdrs(
         struct elf_shdr shdr = {
             .name_ptr  = 0x01 + name_off,
             .type      = dispatch_section_type(section->name),
-            .addr      = off,
+            .addr      = 0,
             .off       = off,
             .size      = section->size + 1, /* I don't know why, but this extra
                                                byte is required in order to not
