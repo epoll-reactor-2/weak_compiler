@@ -94,6 +94,12 @@ static void visit_fn_decl(struct ast_fn_decl *ast)
         visit_fn_main(ast);
     else
         visit_fn_usual(ast);
+
+    uint64_t seek = back_end_seek();
+
+    /* back_end_seek_set(0);
+    back_end_native_addi(risc_v_reg_zero, risc_v_reg_zero, 0);
+    back_end_seek_set(seek); */
 }
 
 static void visit(struct ast_node *ast)

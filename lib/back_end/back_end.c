@@ -5,16 +5,27 @@
 
 static struct codegen_output *output_code;
 static instr_vector_t        *text_section;
+static uint64_t               text_seek;
 
 uint64_t back_end_seek()
 {
-    return text_section->count;
+    return text_seek;
+}
+
+void back_end_seek_set(uint64_t seek)
+{
+    text_seek = seek;
 }
 
 void put(uint8_t *code, uint64_t size)
 {
-    for (uint64_t i = 0; i < size; ++i)
-        vector_push_back(*text_section, code[i]);
+    uint64_t s = back_end_seek();
+
+    for (uint64_t i = 0; i < size; ++i) {
+        vector_emplace(*text_section, back_end_seek());
+        vector_at(*text_section, s + i) = code[i];
+        ++text_seek;
+    }
 }
 
 static uint64_t calculate_strtab_size(symtab_vector_t *v)
