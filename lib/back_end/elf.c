@@ -22,7 +22,8 @@
 #define ELF_SH_SIZE                 0x0040
 #define ELF_SH_OFF                  0x4000
 #define ELF_INIT_SIZE               0x8000
-#define ELF_ENTRY_ADDR              0x41000
+#define ELF_PHDR_ALIGN              0x1000
+#define ELF_ENTRY_ADDR              (ELF_PHDR_ALIGN * 1)
 /* How much bytes occupy one symtab entry. */
 #define ELF_SYMTAB_ENTSIZE          24
 
@@ -97,12 +98,12 @@ static uint16_t emit_phdrs(uint64_t text_size)
     struct elf_phdr phdr = {
         .type   = PT_LOAD,
         .flags  = PF_R | PF_X,
-        .off    = 0x1000,
+        .off    = ELF_PHDR_ALIGN,
         .vaddr  = ELF_ENTRY_ADDR,
         .paddr  = ELF_ENTRY_ADDR,
         .memsz  = text_size,
         .filesz = text_size,
-        .align  = 0x1000
+        .align  = ELF_PHDR_ALIGN
     };
     emit_phdr(phnum++, &phdr);
 
