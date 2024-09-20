@@ -23,7 +23,7 @@
 #define ELF_SH_OFF                  0x4000
 #define ELF_INIT_SIZE               0x8000
 #define ELF_PHDR_ALIGN              0x1000
-#define ELF_ENTRY_ADDR              (ELF_PHDR_ALIGN * 1)
+#define ELF_ENTRY_ADDR              (ELF_PHDR_ALIGN * 2)
 /* How much bytes occupy one symtab entry. */
 #define ELF_SYMTAB_ENTSIZE          24
 

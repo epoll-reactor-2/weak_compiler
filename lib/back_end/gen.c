@@ -52,7 +52,7 @@ static void visit_compound(struct ast_compound *ast)
 static void visit_fn_main(unused struct ast_fn_decl *ast)
 {
     /* li    a7, __NR_exit
-       li    a0, <last reg>
+       li    a0, `return` result.
        ecall */
     back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, __NR_exit);
     back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 42);
@@ -77,29 +77,43 @@ static void visit_fn_usual(unused struct ast_fn_decl *ast)
     back_end_native_epilogue(stack_usage);
 }
 
+/* _start must be located at the start address
+   and perform jump to main.
+
+   For now it contains only one instruction,
+   but will be useful to make generic API. */
+static uint64_t _start_size = 0x04;
+/* This is setup before `main` code generation
+   in order to jump from _start. */
+static uint64_t main_seek   = 0x00;
+
 static void visit_fn_decl(struct ast_fn_decl *ast)
 {
-    back_end_emit_sym(ast->name, back_end_seek());
+    static bool main_emitted = 0;
 
-    /* TODO: Some _start function that always starts
-             at the beginning of .text section,
-             therefore we don't care at which offset
-             main() resides.
-
-             We also need to update jump instruction
-             in _start at the very end of codegen
-             where we guarantee that main() is defined
-             at known offset. */
-    if (!strcmp(ast->name, "main"))
+    if (!strcmp(ast->name, "main")) {
+        main_seek = back_end_seek() + _start_size;
+        back_end_emit_sym(ast->name, main_seek);
         visit_fn_main(ast);
-    else
+
+        uint64_t seek = back_end_seek() + _start_size;
+
+        back_end_seek_set(0);
+        back_end_native_call(main_seek);
+        back_end_seek_set(seek);
+
+        main_emitted = 1;
+    } else {
+        /* Where `main()` is generated, we don't need
+           to play with additional _start function
+           offset and it is correct without it now. */
+        uint64_t off = main_emitted
+            ? back_end_seek()
+            : back_end_seek() + _start_size;
+
+        back_end_emit_sym(ast->name, off);
         visit_fn_usual(ast);
-
-    uint64_t seek = back_end_seek();
-
-    back_end_seek_set(0);
-    back_end_native_call(0x4);
-    back_end_seek_set(seek);
+    }
 }
 
 static void visit(struct ast_node *ast)
@@ -139,5 +153,7 @@ static void visit(struct ast_node *ast)
 
 void back_end_gen(struct ast_node *ast)
 {
+    back_end_emit_sym("_start", back_end_seek());
+
     visit(ast);
 }
