@@ -79,6 +79,22 @@ static void risc_v_20_imm_op(uint32_t op, int32_t reg, int32_t imm)
     put(code, 4);
 }
 
+static void risc_v_jal(int reg, int off)
+{
+    union {
+        uint8_t  code[4];
+        uint32_t instr;
+    } u;
+
+    u.instr = risc_v_I_jal
+            | ( (uint32_t) reg <<  7)
+            | (((uint32_t)(off >>  1) & 0x3FF) << 21)
+            | (((uint32_t)(off >> 11) & 0x1  ) << 20)
+            | (((uint32_t)(off >> 12) & 0xFF ) << 12)
+            | (((uint32_t)(off >> 20) & 0x1  ) << 31);
+    put(u.code, 4);
+}
+
 /* Load [31:12] bits of the register from 20-bit imm, signextend & zero lower bits */
 static void risc_v_lui(int32_t reg, int32_t imm)
 {
@@ -335,9 +351,7 @@ void back_end_native_ret()
 
 void back_end_native_call(int off)
 {
-    /* NOTE: What if t0 is occupied? */
-    back_end_native_addi(risc_v_reg_t0, risc_v_reg_zero, off);
-    back_end_native_jmp_reg(risc_v_reg_t0);
+    risc_v_jal(risc_v_reg_ra, off);
 }
 
 void back_end_native_jmp_reg(int reg)
