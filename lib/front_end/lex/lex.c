@@ -27,5 +27,10 @@ void lex_init_state()
 
 void lex_reset_state()
 {
+    for (uint64_t i = 0; i < tokens.count; ++i) {
+        struct token *t = &tokens.data[i];
+        if (t->data)
+            free(t->data);
+    }
     vector_free(tokens);
 }

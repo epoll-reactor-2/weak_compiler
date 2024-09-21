@@ -53,16 +53,6 @@ extern FILE *yyin;
 extern int yylex();
 extern int yylex_destroy();
 
-void tokens_cleanup(tok_array_t *toks)
-{
-    for (uint64_t i = 0; i < toks->count; ++i) {
-        struct token *t = &toks->data[i];
-        if (t->data)
-            free(t->data);
-    }
-    vector_free(*toks);
-}
-
 /* Get string represented as comment placed in the very
    beginning of file. For example,
    // A,
@@ -215,8 +205,6 @@ int do_on_each_file(
 
         fclose(yyin);
         yylex_destroy();
-
-        memset(fname, 0, sizeof (fname));
     }
 
 exit:
@@ -251,7 +239,6 @@ void cfg_dir(const char *name, char *curr_out_dir)
    return tokens for current file opened by lex. */
 tok_array_t *gen_tokens(const char *filename)
 {
-    lex_reset_state();
     lex_init_state();
 
     if (!yyin) yyin = fopen(filename, "r");
@@ -270,6 +257,6 @@ struct ast_node *gen_ast(const char *filename)
 {
     tok_array_t *tokens = gen_tokens(filename);
     struct ast_node *ast = parse(tokens->data, tokens->data + tokens->count);
-    tokens_cleanup(tokens);
+    lex_reset_state();
     return ast;
 }
