@@ -71,13 +71,8 @@ static void ast_print_positioned(
             col_end,
             new_line_wanted ? '\n' : ' '
         );
-    } else {
-        if (new_line_wanted) {
-            putc('\n', mem);
-        } else {
-            putc(' ', mem);
-        }
-    }
+    } else
+        putc(new_line_wanted ? '\n' : ' ', mem);
 }
 
 static void ast_print(FILE *mem, struct ast_node *ast, const char *fmt, ...)
@@ -402,19 +397,20 @@ static void visit_member(FILE *mem, struct ast_node *ast)
 
 static void visit_fn_decl(FILE *mem, struct ast_node *ast)
 {
-    struct ast_fn_decl *decl = ast->ast;
-    bool is_proto = decl->body == NULL;
+    struct ast_fn_decl *decl     = ast->ast;
+    bool                is_proto = decl->body == NULL;
+    const char         *type     = is_proto ? "Proto" : "Decl";
 
-    ast_print_line(mem, ast, is_proto ? "FunctionProtoDecl" : "FunctionDecl");
+    ast_print_line(mem, ast, "Fn%s", type);
 
     ast_indent += 2;
-    ast_print(mem, ast, is_proto ? "FunctionProtoRetType" : "FunctionDeclRetType");
+    ast_print(mem, ast, "Fn%sRetType", type);
     fprintf(mem, "%s%s%s\n", col_type, data_type_to_string(decl->data_type), col_end);
 
-    ast_print(mem, ast, is_proto ? "FunctionProtoName" : "FunctionDeclName");
+    ast_print(mem, ast, "Fn%sName", type);
     fprintf(mem, "%s`%s`%s\n", col_id, decl->name, col_end);
 
-    ast_print_line(mem, ast, is_proto ? "FunctionProtoArgs" : "FunctionDeclArgs");
+    ast_print_line(mem, ast, "Fn%sArgs", type);
 
     ast_indent += 2;
     struct ast_compound *args = decl->args->ast;
@@ -427,10 +423,11 @@ static void visit_fn_decl(FILE *mem, struct ast_node *ast)
         return;
     }
 
-    ast_print_line(mem, ast, "FunctionDeclBody");
+    ast_print_line(mem, ast, "FnDeclBody");
 
     ast_indent += 2;
     visit(mem, decl->body);
+    ast_indent -= 2;
     ast_indent -= 2;
 }
 
@@ -438,11 +435,11 @@ static void visit_fn_call(FILE *mem, struct ast_node *ast)
 {
     struct ast_fn_call *stmt = ast->ast;
 
-    ast_print(mem, ast, "FunctionCall");
+    ast_print(mem, ast, "FnCall");
     fprintf(mem, "%s`%s`%s\n", col_id, stmt->name, col_end);
 
     ast_indent += 2;
-    ast_print_line(mem, ast, "FunctionCallArgs");
+    ast_print_line(mem, ast, "FnCallArgs");
 
     ast_indent += 2;
     struct ast_compound *args = stmt->args->ast;
