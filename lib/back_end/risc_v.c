@@ -289,6 +289,11 @@ void back_end_native_srl(int dst, int reg1, int reg2)
     risc_v_r_op(risc_v_R_srl, dst, reg1, reg2);
 }
 
+void back_end_native_li(int dst, int imm)
+{
+    back_end_native_addi(dst, risc_v_reg_zero, imm);
+}
+
 void back_end_native_lb(int dst, int addr, int off)
 {
      risc_v_i_op(risc_v_I_lb, dst, addr, off);

@@ -16,10 +16,13 @@
 #include "util/unreachable.h"
 #include <asm-generic/unistd.h>
 
+/* Some LRU maybe? */
+#define __tmp_reg_1 risc_v_reg_t0
+#define __tmp_reg_2 risc_v_reg_t1
+int     __tmp_reg = -1;
+
 static void visit(struct ast_node *ast);
 
-static void visit_char(unused struct ast_char *ast) {}
-static void visit_int(unused struct ast_int *ast) {}
 static void visit_float(unused struct ast_float *ast) {}
 static void visit_string(unused struct ast_string *ast) {}
 static void visit_bool(unused struct ast_bool *ast) {}
@@ -29,7 +32,6 @@ static void visit_array_decl(unused struct ast_array_decl *ast) {}
 static void visit_struct_decl(unused struct ast_struct_decl *ast) {}
 static void visit_break(unused struct ast_break *ast) {}
 static void visit_continue(unused struct ast_continue *ast) {}
-static void visit_binary(unused struct ast_binary *ast) {}
 static void visit_unary(unused struct ast_unary *ast) {}
 static void visit_array_access(unused struct ast_array_access *ast) {}
 static void visit_member(unused struct ast_member *ast) {}
@@ -37,9 +39,32 @@ static void visit_if(unused struct ast_if *ast) {}
 static void visit_for(unused struct ast_for *ast) {}
 static void visit_while(unused struct ast_while *ast) {}
 static void visit_do_while(unused struct ast_do_while *ast) {}
-static void visit_ret(unused struct ast_ret *ast) {}
 static void visit_fn_call(unused struct ast_fn_call *ast) {}
 static void visit_cast(unused struct ast_implicit_cast *ast) {}
+
+static void visit_char(unused struct ast_char *ast) {}
+
+static void visit_int(struct ast_int *ast)
+{
+    back_end_native_li(__tmp_reg, ast->value);
+}
+
+static void visit_binary(struct ast_binary *ast)
+{
+    __tmp_reg = __tmp_reg_1;
+    visit(ast->lhs);
+
+    __tmp_reg = __tmp_reg_2;
+    visit(ast->rhs);
+
+    back_end_native_add(__tmp_reg, __tmp_reg_1, __tmp_reg_2);
+}
+
+static void visit_ret(struct ast_ret *ast)
+{
+    if (ast->op)
+        visit(ast->op);
+}
 
 static void visit_compound(struct ast_compound *ast)
 {
@@ -54,8 +79,8 @@ static void visit_fn_main(unused struct ast_fn_decl *ast)
     /* li    a7, __NR_exit
        li    a0, `return` result.
        ecall */
-    back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, __NR_exit);
-    back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 42);
+    back_end_native_li(risc_v_reg_a7, __NR_exit);
+    back_end_native_li(risc_v_reg_a0, 42);
     back_end_native_syscall();
 }
 
@@ -73,8 +98,9 @@ static void visit_fn_usual(unused struct ast_fn_decl *ast)
     int stack_usage = 0;
 
     back_end_native_prologue(stack_usage);
-    back_end_native_ret();
+    visit(ast->body);
     back_end_native_epilogue(stack_usage);
+    back_end_native_ret();
 }
 
 /* _start must be located at the start address

@@ -36,6 +36,7 @@ void back_end_native_or     (int dst, int reg1, int reg2);
 void back_end_native_sra    (int dst, int reg1, int reg2);
 void back_end_native_srl    (int dst, int reg1, int reg2);
 
+void back_end_native_li     (int dst,           int imm);
 void back_end_native_lb     (int dst, int addr, int off);
 void back_end_native_lbu    (int dst, int addr, int off);
 void back_end_native_lh     (int dst, int addr, int off);
