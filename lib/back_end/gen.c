@@ -173,12 +173,7 @@ static void visit_compound(struct ast_compound *ast)
 
 static void visit_fn_main(unused struct ast_fn_decl *ast)
 {
-    /* li    a7, __NR_exit
-       li    a0, `return` result.
-       ecall */
-    back_end_native_li(risc_v_reg_a7, __NR_exit);
-    back_end_native_li(risc_v_reg_a0, 42);
-    back_end_native_syscall();
+    back_end_native_syscall_1(__NR_exit, 42);
 }
 
 static void visit_fn_usual(unused struct ast_fn_decl *ast)

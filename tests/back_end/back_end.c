@@ -8,6 +8,7 @@
 #include "back_end/risc_v.h"
 #include "util/io.h"
 #include "utils/test_utils.h"
+#include <asm-generic/unistd.h>
 
 void *diag_error_memstream = NULL;
 void *diag_warn_memstream = NULL;
@@ -38,9 +39,7 @@ int main()
     back_end_emit_sym("fn_2", 4);
     back_end_emit_sym("fn_3", 8);
 
-    back_end_native_addi(risc_v_reg_a7, risc_v_reg_zero, 93);
-    back_end_native_addi(risc_v_reg_a0, risc_v_reg_zero, 123);
-    back_end_native_syscall();
+    back_end_native_syscall_1(__NR_exit, 123);
 
     back_end_emit(&output, elf_path);
 

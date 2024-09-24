@@ -364,10 +364,48 @@ void back_end_native_jmp_reg(int reg)
     risc_v_i_op(risc_v_I_jalr, risc_v_reg_zero, reg, 0);
 }
 
-void back_end_native_syscall()
+void back_end_native_syscall_0(int syscall)
 {
+    back_end_native_li(risc_v_reg_a7, syscall);
+
     uint8_t code[4] = { risc_v_I_ecall, 0x00, 0x00, 0x00 };
     put(code, 4);
+}
+
+void back_end_native_syscall_1(int syscall, int _1)
+{
+    back_end_native_li(risc_v_reg_a0, _1);
+    back_end_native_syscall_0(syscall);
+}
+
+void back_end_native_syscall_2(int syscall, int _1, int _2)
+{
+    back_end_native_li(risc_v_reg_a1, _2);
+    back_end_native_syscall_1(syscall, _1);
+}
+
+void back_end_native_syscall_3(int syscall, int _1, int _2, int _3)
+{
+    back_end_native_li(risc_v_reg_a2, _3);
+    back_end_native_syscall_2(syscall, _1, _2);
+}
+
+void back_end_native_syscall_4(int syscall, int _1, int _2, int _3, int _4)
+{
+    back_end_native_li(risc_v_reg_a3, _4);
+    back_end_native_syscall_3(syscall, _1, _2, _3);
+}
+
+void back_end_native_syscall_5(int syscall, int _1, int _2, int _3, int _4, int _5)
+{
+    back_end_native_li(risc_v_reg_a4, _5);
+    back_end_native_syscall_4(syscall, _1, _2, _3, _4);
+}
+
+void back_end_native_syscall_6(int syscall, int _1, int _2, int _3, int _4, int _5, int _6)
+{
+    back_end_native_li(risc_v_reg_a5, _6);
+    back_end_native_syscall_5(syscall, _1, _2, _3, _4, _5);
 }
 
 static int align_to_16_bytes(int num)

@@ -53,7 +53,14 @@ void back_end_native_sd     (int dst, int addr, int off);
 void back_end_native_ret    ();
 void back_end_native_call   (int off);
 void back_end_native_jmp_reg(int reg);
-void back_end_native_syscall();
+
+void back_end_native_syscall_0(int syscall);
+void back_end_native_syscall_1(int syscall, int _1);
+void back_end_native_syscall_2(int syscall, int _1, int _2);
+void back_end_native_syscall_3(int syscall, int _1, int _2, int _3);
+void back_end_native_syscall_4(int syscall, int _1, int _2, int _3, int _4);
+void back_end_native_syscall_5(int syscall, int _1, int _2, int _3, int _4, int _5);
+void back_end_native_syscall_6(int syscall, int _1, int _2, int _3, int _4, int _5, int _6);
 
 void back_end_native_prologue(int stack_usage);
 void back_end_native_epilogue(int stack_usage);
