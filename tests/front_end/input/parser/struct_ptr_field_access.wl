@@ -7,11 +7,11 @@
 //            CompoundStmt <line:53, col:9>
 //              VarDecl <line:54, col:13> int * `value`
 //          VarDecl <line:56, col:9> struct z * `z_ptr`
-//  FunctionDecl <line:60, col:1>
-//    FunctionDeclRetType <line:60, col:1> int
-//    FunctionDeclName <line:60, col:1> `main`
-//    FunctionDeclArgs <line:60, col:1>
-//    FunctionDeclBody <line:60, col:1>
+//  FnDecl <line:60, col:1>
+//    FnDeclRetType <line:60, col:1> int
+//    FnDeclName <line:60, col:1> `main`
+//    FnDeclArgs <line:60, col:1>
+//    FnDeclBody <line:60, col:1>
 //      CompoundStmt <line:60, col:12>
 //        VarDecl <line:61, col:5> struct x `structure`
 //        VarDecl <line:62, col:5> struct x * `ptr`

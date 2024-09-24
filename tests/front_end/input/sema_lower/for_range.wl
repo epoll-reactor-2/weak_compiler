@@ -1,11 +1,11 @@
 //CompoundStmt
-//  FunctionDecl
-//    FunctionDeclRetType void
-//    FunctionDeclName `f`
-//    FunctionDeclArgs
+//  FnDecl
+//    FnDeclRetType void
+//    FnDeclName `f`
+//    FnDeclArgs
 //      CompoundStmt
 //        VarDecl int * `bc`
-//    FunctionDeclBody
+//    FnDeclBody
 //      CompoundStmt
 //        ArrayDecl int [2] `array`
 //        ForStmt

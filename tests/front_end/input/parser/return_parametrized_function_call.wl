@@ -1,13 +1,13 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:15, col:1>
-//    FunctionDeclRetType <line:15, col:1> int
-//    FunctionDeclName <line:15, col:1> `f`
-//    FunctionDeclArgs <line:15, col:1>
-//    FunctionDeclBody <line:15, col:1>
+//  FnDecl <line:15, col:1>
+//    FnDeclRetType <line:15, col:1> int
+//    FnDeclName <line:15, col:1> `f`
+//    FnDeclArgs <line:15, col:1>
+//    FnDeclBody <line:15, col:1>
 //      CompoundStmt <line:15, col:9>
 //        ReturnStmt <line:16, col:3>
-//          FunctionCall <line:16, col:10> `call`
-//            FunctionCallArgs <line:16, col:10>
+//          FnCall <line:16, col:10> `call`
+//            FnCallArgs <line:16, col:10>
 //              CompoundStmt <line:16, col:10>
 //                Number <line:16, col:15> 1
 //                Number <line:16, col:18> 2

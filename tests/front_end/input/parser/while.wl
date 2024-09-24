@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:17, col:1>
-//    FunctionDeclRetType <line:17, col:1> void
-//    FunctionDeclName <line:17, col:1> `f`
-//    FunctionDeclArgs <line:17, col:1>
-//    FunctionDeclBody <line:17, col:1>
+//  FnDecl <line:17, col:1>
+//    FnDeclRetType <line:17, col:1> void
+//    FnDeclName <line:17, col:1> `f`
+//    FnDeclArgs <line:17, col:1>
+//    FnDeclBody <line:17, col:1>
 //      CompoundStmt <line:17, col:10>
 //        WhileStmt <line:18, col:3>
 //          WhileStmtCond <line:18, col:12>

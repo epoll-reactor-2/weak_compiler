@@ -1,9 +1,9 @@
 //CompoundStmt
-//  FunctionDecl
-//    FunctionDeclRetType float
-//    FunctionDeclName `f`
-//    FunctionDeclArgs
-//    FunctionDeclBody
+//  FnDecl
+//    FnDeclRetType float
+//    FnDeclName `f`
+//    FnDeclArgs
+//    FnDeclBody
 //      CompoundStmt
 //        ReturnStmt
 //          ImplicitCastExpr -> float

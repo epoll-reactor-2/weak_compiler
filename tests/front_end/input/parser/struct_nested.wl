@@ -13,11 +13,11 @@
 //              VarDecl <line:40, col:13> int `f`
 //              VarDecl <line:41, col:13> int `g`
 //              VarDecl <line:42, col:13> int `h`
-//  FunctionDecl <line:47, col:1>
-//    FunctionDeclRetType <line:47, col:1> void
-//    FunctionDeclName <line:47, col:1> `f`
-//    FunctionDeclArgs <line:47, col:1>
-//    FunctionDeclBody <line:47, col:1>
+//  FnDecl <line:47, col:1>
+//    FnDeclRetType <line:47, col:1> void
+//    FnDeclName <line:47, col:1> `f`
+//    FnDeclArgs <line:47, col:1>
+//    FnDeclBody <line:47, col:1>
 //      CompoundStmt <line:47, col:10>
 //        VarDecl <line:48, col:5> struct custom `x`
 //        BinaryOperator <line:49, col:32> =

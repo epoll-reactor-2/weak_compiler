@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:14, col:1>
-//    FunctionDeclRetType <line:14, col:1> void
-//    FunctionDeclName <line:14, col:1> `f`
-//    FunctionDeclArgs <line:14, col:1>
-//    FunctionDeclBody <line:14, col:1>
+//  FnDecl <line:14, col:1>
+//    FnDeclRetType <line:14, col:1> void
+//    FnDeclName <line:14, col:1> `f`
+//    FnDeclArgs <line:14, col:1>
+//    FnDeclBody <line:14, col:1>
 //      CompoundStmt <line:14, col:10>
 //        VarDecl <line:15, col:3> float `value`
 //          FloatLiteral <line:15, col:17> 3.141500

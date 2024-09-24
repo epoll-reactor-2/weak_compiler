@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:44, col:1>
-//    FunctionDeclRetType <line:44, col:1> int
-//    FunctionDeclName <line:44, col:1> `main`
-//    FunctionDeclArgs <line:44, col:1>
-//    FunctionDeclBody <line:44, col:1>
+//  FnDecl <line:44, col:1>
+//    FnDeclRetType <line:44, col:1> int
+//    FnDeclName <line:44, col:1> `main`
+//    FnDeclArgs <line:44, col:1>
+//    FnDeclBody <line:44, col:1>
 //      CompoundStmt <line:44, col:12>
 //        ArrayDecl <line:45, col:5> int [2] `array`
 //        BinaryOperator <line:46, col:16> =
@@ -23,8 +23,8 @@
 //          Prefix UnaryOperator <line:48, col:21> *
 //            Prefix UnaryOperator <line:48, col:22> *
 //              Symbol <line:48, col:23> `var`
-//        FunctionCall <line:49, col:5> `function_call`
-//          FunctionCallArgs <line:49, col:5>
+//        FnCall <line:49, col:5> `function_call`
+//          FnCallArgs <line:49, col:5>
 //            CompoundStmt <line:49, col:5>
 //              ArrayAccess <line:49, col:19> `array`
 //                Number <line:49, col:25> 0

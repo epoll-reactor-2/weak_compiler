@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:18, col:1>
-//    FunctionDeclRetType <line:18, col:1> void
-//    FunctionDeclName <line:18, col:1> `f`
-//    FunctionDeclArgs <line:18, col:1>
-//    FunctionDeclBody <line:18, col:1>
+//  FnDecl <line:18, col:1>
+//    FnDeclRetType <line:18, col:1> void
+//    FnDeclName <line:18, col:1> `f`
+//    FnDeclArgs <line:18, col:1>
+//    FnDeclBody <line:18, col:1>
 //      CompoundStmt <line:18, col:10>
 //        VarDecl <line:19, col:3> int `var1`
 //          Number <line:19, col:14> 0

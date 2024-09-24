@@ -1,13 +1,13 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:29, col:1>
-//    FunctionDeclRetType <line:29, col:1> void
-//    FunctionDeclName <line:29, col:1> `f`
-//    FunctionDeclArgs <line:29, col:1>
+//  FnDecl <line:29, col:1>
+//    FnDeclRetType <line:29, col:1> void
+//    FnDeclName <line:29, col:1> `f`
+//    FnDeclArgs <line:29, col:1>
 //      CompoundStmt <line:29, col:64>
 //        VarDecl <line:29, col:8> int * `ptr`
 //        VarDecl <line:29, col:18> int ** `double_ptr`
 //        ArrayDecl <line:29, col:36> struct struct_type *** [2] `triple_ptr`
-//    FunctionDeclBody <line:29, col:1>
+//    FnDeclBody <line:29, col:1>
 //      CompoundStmt <line:29, col:66>
 //        VarDecl <line:30, col:5> int * `a`
 //          Number <line:30, col:14> 1

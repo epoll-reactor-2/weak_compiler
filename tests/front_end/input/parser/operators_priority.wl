@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:33, col:1>
-//    FunctionDeclRetType <line:33, col:1> void
-//    FunctionDeclName <line:33, col:1> `f`
-//    FunctionDeclArgs <line:33, col:1>
-//    FunctionDeclBody <line:33, col:1>
+//  FnDecl <line:33, col:1>
+//    FnDeclRetType <line:33, col:1> void
+//    FnDeclName <line:33, col:1> `f`
+//    FnDeclArgs <line:33, col:1>
+//    FnDeclBody <line:33, col:1>
 //      CompoundStmt <line:33, col:10>
 //        BinaryOperator <line:34, col:14> =
 //          BinaryOperator <line:34, col:5> <<

@@ -1,9 +1,9 @@
 //CompoundStmt
-//  FunctionDecl
-//    FunctionDeclRetType int
-//    FunctionDeclName `main`
-//    FunctionDeclArgs
-//    FunctionDeclBody
+//  FnDecl
+//    FnDeclRetType int
+//    FnDeclName `main`
+//    FnDeclArgs
+//    FnDeclBody
 //      CompoundStmt
 //        ReturnStmt
 //          ImplicitCastExpr -> int

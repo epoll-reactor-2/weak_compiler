@@ -6,10 +6,10 @@
 //      VarDecl <line:18, col:5> int `c`
 //      ArrayDecl <line:19, col:5> char [1000] `mem`
 //      VarDecl <line:20, col:5> struct string `description`
-//  FunctionProtoDecl <line:23, col:1>
-//    FunctionProtoRetType <line:23, col:1> void
-//    FunctionProtoName <line:23, col:1> `f`
-//    FunctionProtoArgs <line:23, col:1>
+//  FnProto <line:23, col:1>
+//    FnProtoRetType <line:23, col:1> void
+//    FnProtoName <line:23, col:1> `f`
+//    FnProtoArgs <line:23, col:1>
 //      CompoundStmt <line:23, col:21>
 //        VarDecl <line:23, col:8> struct custom `record`
 struct custom {

@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:41, col:1>
-//    FunctionDeclRetType <line:41, col:1> void
-//    FunctionDeclName <line:41, col:1> `f`
-//    FunctionDeclArgs <line:41, col:1>
-//    FunctionDeclBody <line:41, col:1>
+//  FnDecl <line:41, col:1>
+//    FnDeclRetType <line:41, col:1> void
+//    FnDeclName <line:41, col:1> `f`
+//    FnDeclArgs <line:41, col:1>
+//    FnDeclBody <line:41, col:1>
 //      CompoundStmt <line:41, col:10>
 //        ForStmt <line:42, col:3>
 //          ForStmtInit <line:42, col:8>

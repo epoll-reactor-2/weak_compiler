@@ -7,11 +7,11 @@
 //          VarDecl <line:77, col:5> int `second`
 //      VarDecl <line:79, col:3> struct b `bb`
 //      VarDecl <line:80, col:3> struct a **** `aa`
-//  FunctionDecl <line:83, col:1>
-//    FunctionDeclRetType <line:83, col:1> int
-//    FunctionDeclName <line:83, col:1> `main`
-//    FunctionDeclArgs <line:83, col:1>
-//    FunctionDeclBody <line:83, col:1>
+//  FnDecl <line:83, col:1>
+//    FnDeclRetType <line:83, col:1> int
+//    FnDeclName <line:83, col:1> `main`
+//    FnDeclArgs <line:83, col:1>
+//    FnDeclBody <line:83, col:1>
 //      CompoundStmt <line:83, col:12>
 //        ArrayDecl <line:84, col:3> struct a ** [2] `object`
 //          Number <line:84, col:19> 0
@@ -46,23 +46,23 @@
 //              Symbol <line:87, col:35> `bb`
 //              Symbol <line:87, col:38> `second`
 //        ReturnStmt <line:88, col:3>
-//          FunctionCall <line:88, col:10> `a`
-//            FunctionCallArgs <line:88, col:10>
+//          FnCall <line:88, col:10> `a`
+//            FnCallArgs <line:88, col:10>
 //              CompoundStmt <line:88, col:10>
-//                FunctionCall <line:88, col:12> `b`
-//                  FunctionCallArgs <line:88, col:12>
+//                FnCall <line:88, col:12> `b`
+//                  FnCallArgs <line:88, col:12>
 //                    CompoundStmt <line:88, col:12>
-//                      FunctionCall <line:88, col:14> `c`
-//                        FunctionCallArgs <line:88, col:14>
+//                      FnCall <line:88, col:14> `c`
+//                        FnCallArgs <line:88, col:14>
 //                          CompoundStmt <line:88, col:14>
-//                            FunctionCall <line:88, col:16> `d`
-//                              FunctionCallArgs <line:88, col:16>
+//                            FnCall <line:88, col:16> `d`
+//                              FnCallArgs <line:88, col:16>
 //                                CompoundStmt <line:88, col:16>
-//                                  FunctionCall <line:88, col:18> `e`
-//                                    FunctionCallArgs <line:88, col:18>
+//                                  FnCall <line:88, col:18> `e`
+//                                    FnCallArgs <line:88, col:18>
 //                                      CompoundStmt <line:88, col:18>
-//                                        FunctionCall <line:88, col:20> `f`
-//                                          FunctionCallArgs <line:88, col:20>
+//                                        FnCall <line:88, col:20> `f`
+//                                          FnCallArgs <line:88, col:20>
 //                                            CompoundStmt <line:88, col:20>
 //                                              BinaryOperator <line:88, col:32> +
 //                                                Prefix UnaryOperator <line:88, col:22> ++

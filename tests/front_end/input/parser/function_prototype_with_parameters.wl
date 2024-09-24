@@ -1,8 +1,8 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionProtoDecl <line:11, col:1>
-//    FunctionProtoRetType <line:11, col:1> void
-//    FunctionProtoName <line:11, col:1> `f`
-//    FunctionProtoArgs <line:11, col:1>
+//  FnProto <line:11, col:1>
+//    FnProtoRetType <line:11, col:1> void
+//    FnProtoName <line:11, col:1> `f`
+//    FnProtoArgs <line:11, col:1>
 //      CompoundStmt <line:11, col:49>
 //        VarDecl <line:11, col:8> int `arg1`
 //        VarDecl <line:11, col:18> int `arg2`

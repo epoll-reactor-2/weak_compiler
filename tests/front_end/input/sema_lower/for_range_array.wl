@@ -1,9 +1,9 @@
 //CompoundStmt
-//  FunctionDecl
-//    FunctionDeclRetType int
-//    FunctionDeclName `main`
-//    FunctionDeclArgs
-//    FunctionDeclBody
+//  FnDecl
+//    FnDeclRetType int
+//    FnDeclName `main`
+//    FnDeclArgs
+//    FnDeclBody
 //      CompoundStmt
 //        ArrayDecl int [1][2][3] `mem`
 //        ForStmt

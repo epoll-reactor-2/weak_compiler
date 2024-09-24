@@ -1,28 +1,28 @@
 //CompoundStmt
-//  FunctionDecl
-//    FunctionDeclRetType float
-//    FunctionDeclName `f`
-//    FunctionDeclArgs
+//  FnDecl
+//    FnDeclRetType float
+//    FnDeclName `f`
+//    FnDeclArgs
 //      CompoundStmt
 //        VarDecl int `arg`
-//    FunctionDeclBody
+//    FnDeclBody
 //      CompoundStmt
 //        ReturnStmt
 //          ImplicitCastExpr -> float
 //            Number 0
-//    FunctionDecl
-//      FunctionDeclRetType int
-//      FunctionDeclName `main`
-//      FunctionDeclArgs
-//      FunctionDeclBody
-//        CompoundStmt
-//          ReturnStmt
-//            ImplicitCastExpr -> int
-//              FunctionCall `f`
-//                FunctionCallArgs
-//                  CompoundStmt
-//                    ImplicitCastExpr -> int
-//                      FloatLiteral 0.000000
+//  FnDecl
+//    FnDeclRetType int
+//    FnDeclName `main`
+//    FnDeclArgs
+//    FnDeclBody
+//      CompoundStmt
+//        ReturnStmt
+//          ImplicitCastExpr -> int
+//            FnCall `f`
+//              FnCallArgs
+//                CompoundStmt
+//                  ImplicitCastExpr -> int
+//                    FloatLiteral 0.000000
 float f(int arg) {
     return 0;
 }

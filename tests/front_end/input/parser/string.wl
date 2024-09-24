@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:12, col:1>
-//    FunctionDeclRetType <line:12, col:1> int
-//    FunctionDeclName <line:12, col:1> `main`
-//    FunctionDeclArgs <line:12, col:1>
-//    FunctionDeclBody <line:12, col:1>
+//  FnDecl <line:12, col:1>
+//    FnDeclRetType <line:12, col:1> int
+//    FnDeclName <line:12, col:1> `main`
+//    FnDeclArgs <line:12, col:1>
+//    FnDeclBody <line:12, col:1>
 //      CompoundStmt <line:12, col:12>
 //        VarDecl <line:13, col:5> char * `s`
 //          StringLiteral <line:13, col:15> Abc

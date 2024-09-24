@@ -1,12 +1,12 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:19, col:1>
-//    FunctionDeclRetType <line:19, col:1> void
-//    FunctionDeclName <line:19, col:1> `f`
-//    FunctionDeclArgs <line:19, col:1>
-//    FunctionDeclBody <line:19, col:1>
+//  FnDecl <line:19, col:1>
+//    FnDeclRetType <line:19, col:1> void
+//    FnDeclName <line:19, col:1> `f`
+//    FnDeclArgs <line:19, col:1>
+//    FnDeclBody <line:19, col:1>
 //      CompoundStmt <line:19, col:10>
-//        FunctionCall <line:20, col:3> `do_work`
-//          FunctionCallArgs <line:20, col:3>
+//        FnCall <line:20, col:3> `do_work`
+//          FnCallArgs <line:20, col:3>
 //            CompoundStmt <line:20, col:3>
 //              Number <line:20, col:11> 1
 //              BinaryOperator <line:20, col:24> <<

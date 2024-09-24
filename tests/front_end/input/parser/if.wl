@@ -1,9 +1,9 @@
 //CompoundStmt <line:0, col:0>
-//  FunctionDecl <line:42, col:1>
-//    FunctionDeclRetType <line:42, col:1> void
-//    FunctionDeclName <line:42, col:1> `f`
-//    FunctionDeclArgs <line:42, col:1>
-//    FunctionDeclBody <line:42, col:1>
+//  FnDecl <line:42, col:1>
+//    FnDeclRetType <line:42, col:1> void
+//    FnDeclName <line:42, col:1> `f`
+//    FnDeclArgs <line:42, col:1>
+//    FnDeclBody <line:42, col:1>
 //      CompoundStmt <line:42, col:10>
 //        IfStmt <line:43, col:3>
 //          IfStmtCondition <line:43, col:7>
