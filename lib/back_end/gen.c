@@ -11,15 +11,78 @@
 #include "back_end/risc_v.h"
 /***           ***/
 
+#include "front_end/lex/data_type.h"
 #include "front_end/ast/ast.h"
 #include "util/compiler.h"
+#include "util/hashmap.h"
+#include "util/crc32.h"
 #include "util/unreachable.h"
+#include <stdbool.h>
 #include <asm-generic/unistd.h>
 
+/**********************************************
+ * Regalloc                                   *
+ **********************************************/
+
+int __tmp_reg;
+
+struct reg {
+    int  no;
+    bool free;
+};
+
 /* Some LRU maybe? */
-#define __tmp_reg_1 risc_v_reg_t0
-#define __tmp_reg_2 risc_v_reg_t1
-int     __tmp_reg = -1;
+static struct reg regs[] = {
+    { risc_v_reg_t0, 1 },
+    { risc_v_reg_t1, 1 },
+    { risc_v_reg_t2, 1 },
+    { risc_v_reg_t3, 1 },
+    { risc_v_reg_t4, 1 },
+    { risc_v_reg_t5, 1 },
+    { risc_v_reg_t6, 1 },
+};
+
+static int reg_alloc()
+{
+    for (uint64_t i = 0; i < __weak_array_size(regs); ++i) {
+        if (regs[i].free) {
+            regs[i].free = 0;
+            return regs[i].no;
+            /* TODO: Spill. */
+        }
+    }
+
+    weak_fatal_error("No free registers");
+}
+
+static void reg_free(int no)
+{
+    for (uint64_t i = 0; i < __weak_array_size(regs); ++i) {
+        if (regs[i].no == no) {
+            regs[i].free = 1;
+            return;
+        }
+    }
+}
+
+/**********************************************
+ * Variable mapping                           *
+ **********************************************/
+
+/* How much stack space is occupied by
+   variables. */
+static uint64_t stack_off;
+
+/* key:   CRC-32 name
+   value: stack offset */
+static hashmap_t mapping;
+/* key:   CRC-32 name
+   value: type */
+static hashmap_t mapping_type;
+
+/**********************************************
+ * Codegen                                    *
+ **********************************************/
 
 static void visit(struct ast_node *ast);
 
@@ -27,7 +90,6 @@ static void visit_float(unused struct ast_float *ast) {}
 static void visit_string(unused struct ast_string *ast) {}
 static void visit_bool(unused struct ast_bool *ast) {}
 static void visit_sym(unused struct ast_sym *ast) {}
-static void visit_var_decl(unused struct ast_var_decl *ast) {}
 static void visit_array_decl(unused struct ast_array_decl *ast) {}
 static void visit_struct_decl(unused struct ast_struct_decl *ast) {}
 static void visit_break(unused struct ast_break *ast) {}
@@ -42,6 +104,17 @@ static void visit_do_while(unused struct ast_do_while *ast) {}
 static void visit_fn_call(unused struct ast_fn_call *ast) {}
 static void visit_cast(unused struct ast_implicit_cast *ast) {}
 
+static void visit_var_decl(struct ast_var_decl *ast)
+{
+    uint64_t crc  = (uint64_t) crc32_string(ast->name);
+    uint64_t size = data_type_size[ast->dt];
+
+    hashmap_put(&mapping, crc, stack_off);
+    hashmap_put(&mapping_type, crc, ast->dt);
+
+    stack_off += size;
+}
+
 static void visit_char(unused struct ast_char *ast) {}
 
 static void visit_int(struct ast_int *ast)
@@ -49,15 +122,39 @@ static void visit_int(struct ast_int *ast)
     back_end_native_li(__tmp_reg, ast->value);
 }
 
-static void visit_binary(struct ast_binary *ast)
+static void emit_assign(struct ast_binary *ast)
 {
-    __tmp_reg = __tmp_reg_1;
+    if (ast->lhs->type == AST_SYMBOL) {
+        struct ast_sym *sym = ast->lhs->ast;
+        uint64_t        crc = (uint64_t) crc32_string(sym->value);
+        uint64_t        off = 0;
+
+        hashmap_put(&mapping, crc, off);
+    }
+}
+
+static void emit_bin(struct ast_binary *ast)
+{
+    int l = reg_alloc();
+    __tmp_reg = l;
     visit(ast->lhs);
 
-    __tmp_reg = __tmp_reg_2;
+    int r = reg_alloc();
+    __tmp_reg = r;
     visit(ast->rhs);
 
-    back_end_native_add(__tmp_reg, __tmp_reg_1, __tmp_reg_2);
+    back_end_native_add(l, l, r);
+
+    reg_free(l);
+    reg_free(r);
+}
+
+static void visit_binary(struct ast_binary *ast)
+{
+    if (ast->op == TOK_ASSIGN)
+        emit_assign(ast);
+    else
+        emit_bin(ast);
 }
 
 static void visit_ret(struct ast_ret *ast)
@@ -179,6 +276,9 @@ static void visit(struct ast_node *ast)
 
 void back_end_gen(struct ast_node *ast)
 {
+    hashmap_init(&mapping, 32);
+    hashmap_init(&mapping_type, 32);
+
     back_end_emit_sym("_start", back_end_seek());
 
     visit(ast);
