@@ -73,9 +73,17 @@ static void reg_free(int no)
    variables. */
 static uint64_t stack_off;
 
-/* key:   CRC-32 name
+/* Mapping with function offsets in .text
+
+   key:   CRC-32 name
+   value: .text offset */
+static hashmap_t mapping_fn;
+/* Mapping with local variables in
+   bounds of one function.
+
+   key:   CRC-32 name
    value: stack offset */
-static hashmap_t mapping;
+static hashmap_t mapping_local;
 /* key:   CRC-32 name
    value: type */
 static hashmap_t mapping_type;
@@ -101,7 +109,6 @@ static void visit_if(unused struct ast_if *ast) {}
 static void visit_for(unused struct ast_for *ast) {}
 static void visit_while(unused struct ast_while *ast) {}
 static void visit_do_while(unused struct ast_do_while *ast) {}
-static void visit_fn_call(unused struct ast_fn_call *ast) {}
 static void visit_cast(unused struct ast_implicit_cast *ast) {}
 
 static void visit_var_decl(struct ast_var_decl *ast)
@@ -109,10 +116,12 @@ static void visit_var_decl(struct ast_var_decl *ast)
     uint64_t crc  = (uint64_t) crc32_string(ast->name);
     uint64_t size = data_type_size[ast->dt];
 
-    hashmap_put(&mapping, crc, stack_off);
+    hashmap_put(&mapping_local, crc, stack_off);
     hashmap_put(&mapping_type, crc, ast->dt);
 
     stack_off += size;
+
+    visit(ast->body);
 }
 
 static void visit_char(unused struct ast_char *ast) {}
@@ -129,8 +138,10 @@ static void emit_assign(struct ast_binary *ast)
         uint64_t        crc = (uint64_t) crc32_string(sym->value);
         uint64_t        off = 0;
 
-        hashmap_put(&mapping, crc, off);
+        hashmap_put(&mapping_local, crc, off);
     }
+
+    visit(ast->rhs);
 }
 
 static void emit_bin(struct ast_binary *ast)
@@ -161,6 +172,11 @@ static void visit_ret(struct ast_ret *ast)
 {
     if (ast->op)
         visit(ast->op);
+
+    back_end_native_li(
+        back_end_return_reg(),
+        /* TODO: Fill */69
+    );
 }
 
 static void visit_compound(struct ast_compound *ast)
@@ -171,9 +187,71 @@ static void visit_compound(struct ast_compound *ast)
     }
 }
 
+/* _start must be located at the start address
+   and perform jump to main.
+
+   For now it contains only one instruction,
+   but will be useful to make generic API. */
+static uint64_t _start_size = 0x04;
+/* This is setup before `main` code generation
+   in order to jump from _start. */
+static uint64_t main_seek   = 0x00;
+
+static void visit_fn_call(unused struct ast_fn_call *ast)
+{
+    bool     ok  = 0;
+    uint64_t crc = crc32_string(ast->name);
+    uint64_t off = hashmap_get(&mapping_fn, crc, &ok);
+
+    if (!ok) {
+        weak_fatal_error("Could not find `%s` function in mapping.", ast->name);
+    }
+
+    /* TODO: Fix to make it work as well as in
+             main() as outside.
+
+        0000000000002004 <sum_2>:
+            addi  sp,sp,-16
+            sd    ra,8(sp)
+            sd    s0,0(sp)
+            addi  s0,sp,16
+            li    t0,1
+            li    t1,2
+            add   t0,t0,t1
+            li    a0,69
+            ld    ra,8(sp)
+            ld    s0,0(sp)
+            addi  sp,sp,16
+            ret
+
+        0000000000002034 <sum_3>:
+            addi  sp,sp,-16
+            sd    ra,8(sp)
+            sd    s0,0(sp)
+            addi  s0,sp,16
+            jal   2048 <sum_3+0x14>   <<<< There
+            li    t0,1
+            li    t2,2
+            li    t3,3
+            add   t2,t2,t3
+            add   t0,t0,t1
+            li    a0,69
+            ld    ra,8(sp)
+            ld    s0,0(sp)
+            addi  sp,sp,16
+            ret
+    */
+
+    back_end_native_call(off - main_seek);
+}
+
 static void visit_fn_main(unused struct ast_fn_decl *ast)
 {
-    back_end_native_syscall_1(__NR_exit, 42);
+    visit(ast->body);
+    /* TODO: Assure that there is proper value
+             in `a0` before doing this. */
+    back_end_native_syscall_0(__NR_exit);
+ /* back_end_native_syscall_1(__NR_exit, 42); */
 }
 
 static void visit_fn_usual(unused struct ast_fn_decl *ast)
@@ -195,19 +273,11 @@ static void visit_fn_usual(unused struct ast_fn_decl *ast)
     back_end_native_ret();
 }
 
-/* _start must be located at the start address
-   and perform jump to main.
-
-   For now it contains only one instruction,
-   but will be useful to make generic API. */
-static uint64_t _start_size = 0x04;
-/* This is setup before `main` code generation
-   in order to jump from _start. */
-static uint64_t main_seek   = 0x00;
-
 static void visit_fn_decl(struct ast_fn_decl *ast)
 {
     static bool main_emitted = 0;
+
+    uint64_t crc = crc32_string(ast->name);
 
     if (!strcmp(ast->name, "main")) {
         main_seek = back_end_seek() + _start_size;
@@ -220,6 +290,8 @@ static void visit_fn_decl(struct ast_fn_decl *ast)
         back_end_native_call(main_seek);
         back_end_seek_set(seek);
 
+        hashmap_put(&mapping_fn, crc, back_end_seek());
+
         main_emitted = 1;
     } else {
         /* Where `main()` is generated, we don't need
@@ -228,6 +300,8 @@ static void visit_fn_decl(struct ast_fn_decl *ast)
         uint64_t off = main_emitted
             ? back_end_seek()
             : back_end_seek() + _start_size;
+
+        hashmap_put(&mapping_fn, crc, off);
 
         back_end_emit_sym(ast->name, off);
         visit_fn_usual(ast);
@@ -271,7 +345,8 @@ static void visit(struct ast_node *ast)
 
 void back_end_gen(struct ast_node *ast)
 {
-    hashmap_init(&mapping, 32);
+    hashmap_init(&mapping_fn, 32);
+    hashmap_init(&mapping_local, 32);
     hashmap_init(&mapping_type, 32);
 
     back_end_emit_sym("_start", back_end_seek());
