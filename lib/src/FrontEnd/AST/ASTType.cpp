@@ -14,7 +14,7 @@ const char *weak::ASTTypeToString(ASTType T) {
   case AST_FLOATING_POINT_LITERAL: return "AST_FLOATING_POINT_LITERAL";
   case AST_STRING_LITERAL:         return "AST_STRING_LITERAL";
   case AST_BOOLEAN_LITERAL:        return "AST_BOOLEAN_LITERAL";
-  case AST_SYMBOL:                 return "AST_VAR_DECL";
+  case AST_SYMBOL:                 return "AST_SYMBOL";
   case AST_VAR_DECL:               return "AST_VAR_DECL";
   case AST_ARRAY_DECL:             return "AST_ARRAY_DECL";
   case AST_STRUCT_DECL:            return "AST_STRUCT_DECL";

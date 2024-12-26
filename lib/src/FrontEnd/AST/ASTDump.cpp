@@ -230,7 +230,7 @@ private:
   }
 
   void Visit(ASTMemberAccess *Stmt) override {
-    ASTTypePrintLine("StructMemberAccess", Stmt);
+    ASTTypePrintLine("MemberAccess", Stmt);
 
     mIndent += 2;
     PrintIndent();

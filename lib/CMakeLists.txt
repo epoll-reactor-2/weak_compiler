@@ -3,7 +3,8 @@ file (GLOB_RECURSE SOURCES *.cpp *.h)
 add_library(WeakCompiler SHARED "${SOURCES}")
 
 target_link_libraries(WeakCompiler PRIVATE ${llvm_libs})
-target_compile_options(WeakCompiler PRIVATE -Wall -Wextra -Wpedantic -fPIC -flto -O3)
+# target_compile_options(WeakCompiler PRIVATE -Wall -Wextra -Wpedantic -fPIC -flto -O3)
+target_compile_options(WeakCompiler PRIVATE -Wall -Wextra -Wpedantic -O0 -ggdb)
 
 if (WEAK_COMPILER_SANITIZE)
   message(STATUS "Building the compiler library with sanitizer flags")

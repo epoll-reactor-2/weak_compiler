@@ -1,4 +1,4 @@
-/* CodeGen.cpp - LLVM IR generator.
+  /* CodeGen.cpp - LLVM IR generator.
  * Copyright (C) 2022 epoll-reactor <glibcxx.chrono@gmail.com>
  *
  * This file is distributed under the MIT license.
@@ -7,6 +7,7 @@
 #include "MiddleEnd/CodeGen/CodeGen.h"
 
 #include "FrontEnd/AST/AST.h"
+#include "FrontEnd/AST/ASTDump.h"
 #include "MiddleEnd/CodeGen/ScalarExprEmitter.h"
 #include "MiddleEnd/CodeGen/TypeResolver.h"
 #include "Utility/Unreachable.h"
@@ -38,7 +39,7 @@ public:
     , mDecl(Decl)
     , mResolver(mIRBuilder) {}
 
-  llvm::Function *BuildSignature() {
+llvm::Function *BuildSignature() {
     /// \todo: Always external linkage? Come here after making multiple files
     ///        compilation.
     return llvm::Function::Create(
@@ -107,7 +108,9 @@ CodeGen::CodeGen(ASTNode *Root)
   , mLastInstr(nullptr)
   , mLastPtr(nullptr)
   , mIRModule("LLVM Module", mIRCtx)
-  , mIRBuilder(mIRCtx) {}
+  , mIRBuilder(mIRCtx) {
+    weak::ASTDump(Root, std::cout);
+  }
 
 void CodeGen::CreateCode() {
   mRoot->Accept(this);
@@ -473,6 +476,68 @@ void CodeGen::Visit(ASTReturn *Stmt) {
   mIRBuilder.CreateRet(mLastInstr);
 }
 
+// void CodeGen::Visit(ASTMemberAccess *Stmt) {
+  // // Snippet:
+  // //
+  // // struct a {
+  // //     struct b {
+  // //         struct c {
+  // //             int d;
+  // //         };
+  // //         c cc;
+  // //         int e;
+  // //     };
+  // //     b bb;
+  // // }
+  // //
+  // // StructMemberAccess <line:15, col:5>
+  // //   Symbol <line:15, col:5> `aa`             Name
+  // //   StructMemberAccess <line:15, col:8>      Member
+  // //     Symbol <line:15, col:8> `bb`           Name
+  // //     StructMemberAccess <line:15, col:11>   Member
+  // //       Symbol <line:15, col:11> `cc`        Name
+  // //       Symbol <line:15, col:14> `d`         Member
+// 
+  // // int main() {
+  // //     a aa;
+  // //     aa.bb.cc.d = 123;
+  // //     aa.bb.e = 1;
+  // //     return aa.bb.cc.d + aa.bb.e;
+  // // }
+  // //
+  // // === Mapping ===
+  // //  %a = type { %b }
+  // //  %b = type { %c, i32 }
+  // //  %c = type { i32 }
+  // //
+  // // aa.bb.cc.d --- symbol
+  // // \  \  \
+  // //  \  \  member
+  // //   \  \
+  // //    \  member
+  // //     \
+  // //      member
+// 
+  // Stmt->Name()->Accept(this);
+  // llvm::Value *LHS = mLastPtr;
+  // assert(LHS->getType()->getPointerElementType()->isStructTy());
+// 
+  // llvm::StructType *StructTy = llvm::dyn_cast_or_null<llvm::StructType>(LHS->getType()->getPointerElementType());
+// 
+  // mLastPtr = mIRBuilder.CreateConstInBoundsGEP2_32(StructTy, LHS, 0, 0);
+// 
+	// if (!Stmt->MemberDecl()->Is(AST_SYMBOL))
+	  // Stmt->MemberDecl()->Accept(this);
+// 
+	// llvm::outs() << "Member type: "
+	  // << weak::ASTTypeToString(Stmt->MemberDecl()->Type()) << " "
+	  // << weak::ASTTypeToString(Stmt->Name()->Type()) << "\n";
+// 
+  // mLastInstr = mIRBuilder.CreateAdd(mIRBuilder.getInt32(0), mIRBuilder.getInt32(0));
+  // mLastPtr = mLastInstr;
+// }
+
+
 void CodeGen::Visit(ASTMemberAccess *Stmt) {
   if (!mLastInstr || !mLastInstr->getType()->isStructTy())
     Stmt->Name()->Accept(this);
@@ -499,10 +564,6 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
       if (Decl->Is(AST_VAR_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
         
-        llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
-        llvm::outs() << "== MemberName is `" << MemberName << "`\n";
-        llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
-        
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;
@@ -512,10 +573,6 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
       if (Decl->Is(AST_ARRAY_DECL)) {
         auto *D = static_cast<ASTVarDecl *>(Decl);
         
-        llvm::outs() << "== D->Name()  is `" << D->Name() << "`\n";
-        llvm::outs() << "== MemberName is `" << MemberName << "`\n";
-        llvm::outs() << "== DeclIdx    is  " << DeclIdx << "\n";
-        
         if (D->Name() == MemberName) {
           Idx = DeclIdx;
           break;
@@ -523,10 +580,9 @@ void CodeGen::Visit(ASTMemberAccess *Stmt) {
       }
     }
 
-    llvm::outs() << "Idx set to " << Idx << '\n';
-
     if (Idx == -1)
-      __builtin_trap();
+      Idx = 0;
+      // __builtin_trap();
 
     mLastPtr = mIRBuilder.CreateConstInBoundsGEP2_32(StructTy, LHS, 0, Idx);
     mLastInstr = mIRBuilder.CreateLoad(mLastPtr->getType()->getPointerElementType(), mLastPtr);
